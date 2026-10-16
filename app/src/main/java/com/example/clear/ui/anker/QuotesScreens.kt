@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,13 +24,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.Quote
+import com.example.clear.model.EmotionTag
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.components.ConfirmDeleteDialog
 import com.example.clear.ui.components.EditorButtons
+import com.example.clear.ui.components.EmotionTagDialog
 import com.example.clear.ui.components.EmptyHintCard
 import com.example.clear.ui.components.OptionsMenu
+import com.example.clear.ui.components.emotionTagsLabel
 import com.example.clear.ui.theme.ClearSpacing
 
 @Composable
@@ -69,6 +73,14 @@ fun QuotesScreen(
                                     modifier = Modifier.padding(top = ClearSpacing.small)
                                 )
                             }
+                            emotionTagsLabel(quote.emotionTags)?.let { label ->
+                                Text(
+                                    label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(top = ClearSpacing.small)
+                                )
+                            }
                         }
                         OptionsMenu(
                             contentDescription = "Optionen für dieses Zitat",
@@ -95,6 +107,7 @@ fun QuotesScreen(
 @Composable
 fun QuoteEditorScreen(onClose: () -> Unit, viewModel: QuoteEditorViewModel = viewModel()) {
     val s by viewModel.state.collectAsState()
+    var showTags by remember { mutableStateOf(false) }
     Box(modifier = Modifier.imePadding()) {
         ClearDetailScreen(
             title = if (s.isNew) "Neues Zitat" else "Zitat bearbeiten",
@@ -119,6 +132,24 @@ fun QuoteEditorScreen(onClose: () -> Unit, viewModel: QuoteEditorViewModel = vie
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                OutlinedButton(
+                    onClick = { showTags = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Text(
+                        if (s.emotionTags.isEmpty()) "Emotionen zuordnen (optional)"
+                        else "Emotionen: " + EmotionTag.entries.filter { it in s.emotionTags }
+                            .joinToString(", ") { it.title }
+                    )
+                }
+                if (showTags) {
+                    EmotionTagDialog(
+                        initial = s.emotionTags,
+                        onSave = { viewModel.onTagsChange(it); showTags = false },
+                        onDismiss = { showTags = false }
+                    )
+                }
                 EditorButtons(onCancel = onClose, onSave = { viewModel.save(onClose) })
             }
         }

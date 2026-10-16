@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,14 +28,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.clear.data.AnchorImage
 import com.example.clear.data.FileStore
+import com.example.clear.model.EmotionTag
 import com.example.clear.ui.akut.ClearWarningSoft
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.components.ConfirmDeleteDialog
+import com.example.clear.ui.components.EmotionTagDialog
 import com.example.clear.ui.components.EmptyHintCard
 import com.example.clear.ui.components.OptionsMenu
 import com.example.clear.ui.components.TextInputDialog
+import com.example.clear.ui.components.emotionTagsLabel
 
 @Composable
 fun ImagesScreen(
@@ -47,6 +51,7 @@ fun ImagesScreen(
     val list = images
     var toDelete by remember { mutableStateOf<AnchorImage?>(null) }
     var captionFor by remember { mutableStateOf<AnchorImage?>(null) }
+    var tagsFor by remember { mutableStateOf<AnchorImage?>(null) }
 
     // Photo Picker: braucht keine Berechtigung, die App sieht nur das gewaehlte Bild
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -72,6 +77,7 @@ fun ImagesScreen(
                     image = image,
                     onOpen = { onOpenImage(image.id) },
                     onEditCaption = { captionFor = image },
+                    onEditTags = { tagsFor = image },
                     onDelete = { toDelete = image }
                 )
             }
@@ -95,6 +101,13 @@ fun ImagesScreen(
             onDismiss = { captionFor = null }
         )
     }
+    tagsFor?.let { image ->
+        EmotionTagDialog(
+            initial = EmotionTag.parse(image.emotionTags),
+            onSave = { viewModel.updateTags(image, it); tagsFor = null },
+            onDismiss = { tagsFor = null }
+        )
+    }
     toDelete?.let { image ->
         ConfirmDeleteDialog(
             title = "Bild löschen?",
@@ -110,6 +123,7 @@ private fun ImageCard(
     image: AnchorImage,
     onOpen: () -> Unit,
     onEditCaption: () -> Unit,
+    onEditTags: () -> Unit,
     onDelete: () -> Unit
 ) {
     val context = LocalContext.current
@@ -143,6 +157,12 @@ private fun ImageCard(
                 modifier = Modifier.weight(1f)
             )
             OptionsMenu("Optionen für dieses Bild", onEdit = onEditCaption, onDelete = onDelete)
+        }
+        TextButton(onClick = onEditTags) {
+            Text(
+                emotionTagsLabel(image.emotionTags) ?: "Emotionen zuordnen",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.clear.data.ClearDatabase
 import com.example.clear.data.ContentType
+import com.example.clear.data.IdeaLevel
 import com.example.clear.data.PersonalIdea
 import com.example.clear.data.PersonalIdeaRepository
 import com.example.clear.model.CheckInCategory
@@ -22,6 +23,7 @@ data class IdeaEditorState(
     val description: String = "",
     val category: CheckInCategory = CheckInCategory.General,
     val contentType: ContentType = ContentType.Exercise,
+    val level: IdeaLevel = IdeaLevel.Normal,
     val titleError: Boolean = false
 )
 
@@ -61,7 +63,8 @@ class IdeaEditorViewModel(
                             description = idea.description.orEmpty(),
                             category = CheckInCategory.fromId(idea.categoryId)
                                 ?: CheckInCategory.General,
-                            contentType = idea.contentType
+                            contentType = idea.contentType,
+                            level = idea.level
                         )
                     }
                 } else {
@@ -75,6 +78,7 @@ class IdeaEditorViewModel(
     fun onDescriptionChange(value: String) = _state.update { it.copy(description = value) }
     fun onCategoryChange(value: CheckInCategory) = _state.update { it.copy(category = value) }
     fun onContentTypeChange(value: ContentType) = _state.update { it.copy(contentType = value) }
+    fun onLevelChange(value: IdeaLevel) = _state.update { it.copy(level = value) }
 
     /** Speichert. Aendert man die Kategorie, wandert die Idee automatisch dorthin. */
     fun save(onDone: () -> Unit) {
@@ -93,7 +97,7 @@ class IdeaEditorViewModel(
                     PersonalIdea(
                         title = s.title.trim(), description = description,
                         categoryId = s.category.id, contentType = s.contentType,
-                        createdAt = now, updatedAt = now
+                        createdAt = now, updatedAt = now, level = s.level
                     )
                 )
             } else {
@@ -101,7 +105,7 @@ class IdeaEditorViewModel(
                     PersonalIdea(
                         id = ideaId, title = s.title.trim(), description = description,
                         categoryId = s.category.id, contentType = s.contentType,
-                        createdAt = createdAt, updatedAt = now
+                        createdAt = createdAt, updatedAt = now, level = s.level
                     )
                 )
             }

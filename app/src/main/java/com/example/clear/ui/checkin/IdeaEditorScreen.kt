@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.ContentType
+import com.example.clear.data.IdeaLevel
 import com.example.clear.model.CheckInCategory
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -82,6 +83,23 @@ fun IdeaEditorScreen(
                         )
                     }
                 }
+
+                Text("Für welchen Zustand?", style = MaterialTheme.typography.titleMedium)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
+                    IdeaLevel.entries.forEach { level ->
+                        FilterChip(
+                            selected = s.level == level,
+                            onClick = { viewModel.onLevelChange(level) },
+                            label = { Text(level.label) }
+                        )
+                    }
+                }
+                Text(
+                    "Clear zeigt diese Idee zuerst, wenn dieser Zustand bei dir zutrifft. " +
+                        "Du findest sie aber immer in der Liste.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

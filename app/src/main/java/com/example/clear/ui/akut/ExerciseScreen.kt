@@ -21,8 +21,7 @@ import com.example.clear.ui.theme.ClearSpacing
 @Composable
 fun ExerciseScreen(
     exercise: Exercise,
-    onBack: () -> Unit,
-    onOpenEmergency: () -> Unit
+    onBack: () -> Unit
 ) {
     ClearDetailScreen(title = exercise.title, onBack = onBack) {
         Text(
@@ -51,7 +50,5 @@ fun ExerciseScreen(
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
         ) { Text("Beenden") }
-
-        EmergencyLink(onClick = onOpenEmergency)
     }
 }

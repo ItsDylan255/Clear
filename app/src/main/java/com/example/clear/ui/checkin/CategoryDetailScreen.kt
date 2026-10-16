@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.data.IdeaLevel
 import com.example.clear.data.PersonalIdea
 import com.example.clear.domain.WarningState
 import com.example.clear.model.CheckInCategory
@@ -71,12 +72,42 @@ fun CategoryDetailScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            else -> list.forEach { idea ->
-                IdeaCard(
-                    idea = idea,
-                    onEdit = { onEditIdea(idea.id) },
-                    onDelete = { ideaToDelete = idea }
-                )
+            else -> {
+                // Ideen zur aktuell zutreffenden Stufe zuerst, alle anderen darunter
+                val current = warningState.toIdeaLevel()
+                val matching = list.filter { idea -> idea.level == current }
+                val others = list.filter { idea -> idea.level != current }
+                if (matching.isNotEmpty()) {
+                    if (others.isNotEmpty()) {
+                        Text("Passend zu deinem Zustand", style = MaterialTheme.typography.titleMedium)
+                    }
+                    matching.forEach { idea ->
+                        IdeaCard(
+                            idea = idea,
+                            onEdit = { onEditIdea(idea.id) },
+                            onDelete = { ideaToDelete = idea }
+                        )
+                    }
+                } else if (warningState != WarningState.Normal) {
+                    Text(
+                        "Für diesen Zustand hast du noch keine Idee gespeichert. " +
+                            "Du kannst jederzeit eine hinzufügen.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (others.isNotEmpty()) {
+                    if (matching.isNotEmpty() || warningState != WarningState.Normal) {
+                        Text("Weitere Ideen", style = MaterialTheme.typography.titleMedium)
+                    }
+                    others.forEach { idea ->
+                        IdeaCard(
+                            idea = idea,
+                            onEdit = { onEditIdea(idea.id) },
+                            onDelete = { ideaToDelete = idea }
+                        )
+                    }
+                }
             }
         }
 
@@ -125,7 +156,7 @@ private fun IdeaCard(idea: PersonalIdea, onEdit: () -> Unit, onDelete: () -> Uni
                     Text(idea.description, style = MaterialTheme.typography.bodyLarge)
                 }
                 Text(
-                    idea.contentType.label,
+                    "${idea.contentType.label} · ${idea.level.label}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = ClearSpacing.small)
@@ -148,4 +179,11 @@ private fun IdeaCard(idea: PersonalIdea, onEdit: () -> Unit, onDelete: () -> Uni
             }
         }
     }
+}
+
+/** Warnzustand der Kategorie -> passende Stufe fuer persoenliche Ideen. */
+private fun WarningState.toIdeaLevel(): IdeaLevel = when (this) {
+    WarningState.Normal -> IdeaLevel.Normal
+    WarningState.Sinking -> IdeaLevel.Sinking
+    WarningState.ContinuedLow -> IdeaLevel.Severe
 }

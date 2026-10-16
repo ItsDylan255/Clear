@@ -11,6 +11,13 @@ enum class ContentType(val label: String) {
     Other("Sonstiges")
 }
 
+/** Fuer welche Zustandsstufe einer Kategorie eine Idee gedacht ist. Room speichert den Namen. */
+enum class IdeaLevel(val label: String) {
+    Normal("Normal"),
+    Sinking("Sinkend"),
+    Severe("Stark beeinträchtigt")
+}
+
 /** Eine persönliche Idee. Kein "erledigt"-Feld, denn Ideen sind keine Aufgaben. */
 @Entity(tableName = "personal_ideas")
 data class PersonalIdea(
@@ -20,5 +27,6 @@ data class PersonalIdea(
     val categoryId: String,      // stabile Kennung, z. B. "energy"
     val contentType: ContentType,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val level: IdeaLevel = IdeaLevel.Normal
 )

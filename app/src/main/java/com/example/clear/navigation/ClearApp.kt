@@ -27,6 +27,7 @@ import com.example.clear.model.Situations
 import com.example.clear.ui.akut.AkutScreen
 import com.example.clear.ui.akut.EmergencyCardScreen
 import com.example.clear.ui.akut.ExerciseScreen
+import com.example.clear.ui.akut.MusicListenScreen
 import com.example.clear.ui.akut.SituationScreen
 import com.example.clear.ui.anker.AnkerScreen
 import com.example.clear.ui.anker.EmergencyEditScreen
@@ -47,6 +48,8 @@ import com.example.clear.ui.meditation.MeditationPlayerScreen
 import com.example.clear.ui.meditation.MeditationScreen
 import com.example.clear.ui.settings.AboutScreen
 import com.example.clear.ui.settings.AppearanceScreen
+import com.example.clear.ui.settings.CheckInReminderScreen
+import com.example.clear.ui.settings.MeditationReminderScreen
 import com.example.clear.ui.settings.MyDataScreen
 import com.example.clear.ui.settings.ReminderSettingsScreen
 import com.example.clear.ui.settings.SettingsScreen
@@ -54,12 +57,11 @@ import com.example.clear.ui.theme.ClearPrimary
 import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
 import com.example.clear.ui.theme.ClearTextSecondary
-import com.example.clear.ui.settings.CheckInReminderScreen
-import com.example.clear.ui.settings.MeditationReminderScreen
 
 // Eigene Route fuer die Notfallkarte-Bearbeitung, wenn sie aus dem Akut-Tab geoeffnet wird.
 // So bleibt der Akut-Tab in der Leiste markiert.
 private const val AKUT_EMERGENCY_EDIT = "akut_notfallkarte_bearbeiten"
+private const val AKUT_MUSIC = "akut_musik/{id}"
 
 // Auf diesen Seiten ist die untere Leiste ausgeblendet (ruhiger, Platz fuer Tastatur).
 private val routesWithoutBottomBar = setOf(
@@ -217,7 +219,7 @@ fun ClearApp() {
                             situation = situation,
                             onBack = { navController.popBackStack() },
                             onOpenExercise = { navController.navigate(AkutRoutes.exercise(it.id)) },
-                            onOpenEmergency = { navController.navigate(AkutRoutes.EMERGENCY) }
+                            onOpenMusic = { navController.navigate("akut_musik/${situation.id}") }
                         )
                     }
                 }
@@ -229,8 +231,7 @@ fun ClearApp() {
                     if (exercise != null) {
                         ExerciseScreen(
                             exercise = exercise,
-                            onBack = { navController.popBackStack() },
-                            onOpenEmergency = { navController.navigate(AkutRoutes.EMERGENCY) }
+                            onBack = { navController.popBackStack() }
                         )
                     }
                 }
@@ -242,6 +243,12 @@ fun ClearApp() {
                 }
                 composable(AKUT_EMERGENCY_EDIT) {
                     EmergencyEditScreen(onClose = { navController.popBackStack() })
+                }
+                composable(
+                    route = AKUT_MUSIC,
+                    arguments = listOf(navArgument("id") { type = NavType.StringType })
+                ) {
+                    MusicListenScreen(onBack = { navController.popBackStack() })
                 }
             }
 

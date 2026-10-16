@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -111,23 +112,102 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
             }
         }
 
-        Text("Uhrzeit", style = MaterialTheme.typography.titleMedium)
-        OutlinedButton(
-            onClick = {
-                TimePickerDialog(
-                    context,
-                    { _, hour, minute -> viewModel.setTime(hour, minute) },
-                    settings.hour, settings.minute, true
-                ).show()
-            },
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            shape = MaterialTheme.shapes.large
-        ) { Text("%02d:%02d Uhr".format(settings.hour, settings.minute)) }
-        Text(
-            "Die Uhrzeit ist ungefähr. Android kann sie um einige Minuten verschieben.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        ClearCard {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .toggleable(
+                        value = settings.randomWindow,
+                        role = Role.Switch,
+                        onValueChange = { viewModel.setRandomWindow(it) }
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Zufällige Zeiten", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Innerhalb eines Zeitfensters, nicht immer zur selben Uhrzeit.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(checked = settings.randomWindow, onCheckedChange = null)
+            }
+        }
+
+        if (settings.randomWindow) {
+            Text("Zeitfenster", style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        TimePickerDialog(
+                            context,
+                            { _, hour, minute -> viewModel.setTime(hour, minute) },
+                            settings.hour, settings.minute, true
+                        ).show()
+                    },
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                    shape = MaterialTheme.shapes.large
+                ) { Text("Ab %02d:%02d".format(settings.hour, settings.minute)) }
+                OutlinedButton(
+                    onClick = {
+                        TimePickerDialog(
+                            context,
+                            { _, hour, minute -> viewModel.setEndTime(hour, minute) },
+                            settings.endHour, settings.endMinute, true
+                        ).show()
+                    },
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                    shape = MaterialTheme.shapes.large
+                ) { Text("Bis %02d:%02d".format(settings.endHour, settings.endMinute)) }
+            }
+            if (settings.endHour * 60 + settings.endMinute <= settings.hour * 60 + settings.minute) {
+                Text(
+                    "Das Ende sollte nach dem Start liegen.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text("Wie viele Erinnerungen pro Tag?", style = MaterialTheme.typography.titleMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
+                (1..5).forEach { count ->
+                    FilterChip(
+                        selected = settings.timesPerDay == count,
+                        onClick = { viewModel.setTimesPerDay(count) },
+                        label = { Text("$count") }
+                    )
+                }
+            }
+            Text(
+                "Die Zeiten werden jeden Tag neu zufällig im Zeitfenster gewählt. " +
+                    "Android kann sie um einige Minuten verschieben.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            Text("Uhrzeit", style = MaterialTheme.typography.titleMedium)
+            OutlinedButton(
+                onClick = {
+                    TimePickerDialog(
+                        context,
+                        { _, hour, minute -> viewModel.setTime(hour, minute) },
+                        settings.hour, settings.minute, true
+                    ).show()
+                },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                shape = MaterialTheme.shapes.large
+            ) { Text("%02d:%02d Uhr".format(settings.hour, settings.minute)) }
+            Text(
+                "Die Uhrzeit ist ungefähr. Android kann sie um einige Minuten verschieben.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
         Text("Wochentage", style = MaterialTheme.typography.titleMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {

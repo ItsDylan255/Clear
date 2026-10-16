@@ -11,6 +11,7 @@ import com.example.clear.data.Letter
 import com.example.clear.data.LetterRepository
 import com.example.clear.data.Quote
 import com.example.clear.data.QuoteRepository
+import com.example.clear.model.EmotionTag
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +40,7 @@ data class QuoteEditorState(
     val isNew: Boolean = true,
     val text: String = "",
     val author: String = "",
+    val emotionTags: Set<EmotionTag> = emptySet(),
     val textError: Boolean = false
 )
 
@@ -60,7 +62,10 @@ class QuoteEditorViewModel(app: Application, handle: SavedStateHandle) : Android
                 if (q != null) {
                     createdAt = q.createdAt
                     _state.update {
-                        it.copy(isLoading = false, text = q.text, author = q.author.orEmpty())
+                        it.copy(
+                            isLoading = false, text = q.text, author = q.author.orEmpty(),
+                            emotionTags = EmotionTag.parse(q.emotionTags)
+                        )
                     }
                 } else {
                     _state.update { it.copy(isLoading = false, isNew = true) }
@@ -71,6 +76,7 @@ class QuoteEditorViewModel(app: Application, handle: SavedStateHandle) : Android
 
     fun onTextChange(v: String) = _state.update { it.copy(text = v, textError = false) }
     fun onAuthorChange(v: String) = _state.update { it.copy(author = v) }
+    fun onTagsChange(v: Set<EmotionTag>) = _state.update { it.copy(emotionTags = v) }
 
     fun save(onDone: () -> Unit) {
         val s = _state.value
@@ -83,12 +89,16 @@ class QuoteEditorViewModel(app: Application, handle: SavedStateHandle) : Android
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             val author = s.author.trim().ifBlank { null }
+            val tags = EmotionTag.serialize(s.emotionTags)
             if (s.isNew) {
-                repo.add(Quote(text = s.text.trim(), author = author, createdAt = now, updatedAt = now))
+                repo.add(
+                    Quote(text = s.text.trim(), author = author, createdAt = now,
+                        updatedAt = now, emotionTags = tags)
+                )
             } else {
                 repo.update(
                     Quote(id = quoteId, text = s.text.trim(), author = author,
-                        createdAt = createdAt, updatedAt = now)
+                        createdAt = createdAt, updatedAt = now, emotionTags = tags)
                 )
             }
             onDone()

@@ -9,7 +9,8 @@ data class AnchorImage(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fileName: String,
     val caption: String?,
-    val createdAt: Long
+    val createdAt: Long,
+    val emotionTags: String = ""
 )
 
 /** Ein Musikstueck (Kopie im privaten App-Ordner). */
@@ -18,7 +19,9 @@ data class MusicTrack(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val fileName: String,
     val title: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val emotionTags: String = "",
+    val moodGoals: String = ""
 )
 
 /**
@@ -31,7 +34,12 @@ data class ReminderSettings(
     val enabled: Boolean = false,
     val hour: Int = 9,
     val minute: Int = 0,
-    val daysMask: Int = 127
+    val daysMask: Int = 127,
+    // Zufaellige Zeiten im Zeitfenster [hour:minute, endHour:endMinute]
+    val endHour: Int = 21,
+    val endMinute: Int = 0,
+    val timesPerDay: Int = 3,
+    val randomWindow: Boolean = false
 )
 
 /** Zitate, aus denen die Erinnerung zufaellig eines waehlt. */

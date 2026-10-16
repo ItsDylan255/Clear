@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
         Quote::class, Letter::class, EmergencyCard::class,
         AnchorImage::class, MusicTrack::class, ReminderSettings::class, ReminderPoolEntry::class
     ],
-    version = 3,
+    version = 7,
     exportSchema = false
 )
 abstract class ClearDatabase : RoomDatabase() {
@@ -35,7 +35,7 @@ abstract class ClearDatabase : RoomDatabase() {
                     context.applicationContext,
                     ClearDatabase::class.java,
                     "clear.db"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build().also { instance = it }
             }
     }
 }

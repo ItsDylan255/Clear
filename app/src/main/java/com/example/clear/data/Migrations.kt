@@ -45,3 +45,36 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         )
     }
 }
+
+/** Version 3 -> 4: Emotion-Tags fuer Zitate, Bilder und Musik. */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `quotes` ADD COLUMN `emotionTags` TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE `anchor_images` ADD COLUMN `emotionTags` TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE `music_tracks` ADD COLUMN `emotionTags` TEXT NOT NULL DEFAULT ''")
+    }
+}
+
+/** Version 4 -> 5: Zeitfenster mit zufaelligen Zeiten fuer Erinnerungen. */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `reminder_settings` ADD COLUMN `endHour` INTEGER NOT NULL DEFAULT 21")
+        db.execSQL("ALTER TABLE `reminder_settings` ADD COLUMN `endMinute` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `reminder_settings` ADD COLUMN `timesPerDay` INTEGER NOT NULL DEFAULT 3")
+        db.execSQL("ALTER TABLE `reminder_settings` ADD COLUMN `randomWindow` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/** Version 5 -> 6: Zustandsstufe fuer persoenliche Ideen. Bestehende Ideen werden "Normal". */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `personal_ideas` ADD COLUMN `level` TEXT NOT NULL DEFAULT 'Normal'")
+    }
+}
+
+/** Version 6 -> 7: Stimmungsziele (Ruhe, Hoffnung, Energie) fuer Musik. */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `music_tracks` ADD COLUMN `moodGoals` TEXT NOT NULL DEFAULT ''")
+    }
+}

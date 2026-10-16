@@ -13,6 +13,8 @@ import com.example.clear.data.MusicTrack
 import com.example.clear.data.Quote
 import com.example.clear.data.ReminderPoolEntry
 import com.example.clear.data.ReminderSettings
+import com.example.clear.model.EmotionTag
+import com.example.clear.model.MoodGoal
 import com.example.clear.reminder.ReminderScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,6 +51,10 @@ class ImagesViewModel(app: Application) : AndroidViewModel(app) {
 
     fun updateCaption(id: Long, caption: String) {
         viewModelScope.launch { dao.updateCaption(id, caption.trim().ifBlank { null }) }
+    }
+
+    fun updateTags(image: AnchorImage, tags: Set<EmotionTag>) {
+        viewModelScope.launch { dao.updateTags(image.id, EmotionTag.serialize(tags)) }
     }
 
     fun delete(image: AnchorImage) {
@@ -155,6 +161,14 @@ class MusicViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun updateTags(track: MusicTrack, tags: Set<EmotionTag>) {
+        viewModelScope.launch { dao.updateTags(track.id, EmotionTag.serialize(tags)) }
+    }
+
+    fun updateMoodGoals(track: MusicTrack, goals: Set<MoodGoal>) {
+        viewModelScope.launch { dao.updateMoodGoals(track.id, MoodGoal.serialize(goals)) }
+    }
+
     private fun stopPlayback() {
         player?.release()
         player = null
@@ -190,6 +204,9 @@ class RemindersViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setEnabled(enabled: Boolean) = update { it.copy(enabled = enabled) }
     fun setTime(hour: Int, minute: Int) = update { it.copy(hour = hour, minute = minute) }
+    fun setRandomWindow(enabled: Boolean) = update { it.copy(randomWindow = enabled) }
+    fun setEndTime(hour: Int, minute: Int) = update { it.copy(endHour = hour, endMinute = minute) }
+    fun setTimesPerDay(count: Int) = update { it.copy(timesPerDay = count) }
 
     /** dayIndex: 0 = Montag ... 6 = Sonntag */
     fun toggleDay(dayIndex: Int) = update { it.copy(daysMask = it.daysMask xor (1 shl dayIndex)) }

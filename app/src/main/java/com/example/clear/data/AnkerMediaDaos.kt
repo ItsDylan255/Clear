@@ -17,14 +17,11 @@ interface ImageDao {
 
     @Insert suspend fun insert(image: AnchorImage): Long
 
-    @Query("SELECT * FROM reminder_settings WHERE id = :id")
-    fun observeSettingsById(id: Int): Flow<ReminderSettings?>
-
-    @Query("SELECT * FROM reminder_settings WHERE id = :id")
-    suspend fun getSettingsById(id: Int): ReminderSettings?
-
     @Query("UPDATE anchor_images SET caption = :caption WHERE id = :id")
     suspend fun updateCaption(id: Long, caption: String?)
+
+    @Query("UPDATE anchor_images SET emotionTags = :tags WHERE id = :id")
+    suspend fun updateTags(id: Long, tags: String)
 
     @Delete suspend fun delete(image: AnchorImage)
 }
@@ -35,6 +32,13 @@ interface MusicDao {
     fun observeAll(): Flow<List<MusicTrack>>
 
     @Insert suspend fun insert(track: MusicTrack): Long
+
+    @Query("UPDATE music_tracks SET emotionTags = :tags WHERE id = :id")
+    suspend fun updateTags(id: Long, tags: String)
+
+    @Query("UPDATE music_tracks SET moodGoals = :goals WHERE id = :id")
+    suspend fun updateMoodGoals(id: Long, goals: String)
+
     @Delete suspend fun delete(track: MusicTrack)
 }
 

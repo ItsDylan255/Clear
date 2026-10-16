@@ -56,6 +56,11 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
+    // Musik im Hintergrund (Akut-Bereich)
+    implementation("androidx.media3:media3-exoplayer:1.8.0")
+    implementation("androidx.media3:media3-session:1.8.0")
+    implementation("com.google.guava:guava:33.4.8-android")
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

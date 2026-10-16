@@ -10,7 +10,8 @@ data class Quote(
     val text: String,
     val author: String?,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val emotionTags: String = ""
 )
 
 /** Ein Brief an dich selbst. */
