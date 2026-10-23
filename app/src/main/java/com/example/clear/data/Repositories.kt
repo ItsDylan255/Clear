@@ -18,12 +18,14 @@ class CheckInRepository(private val dao: CheckInDao) {
         dao.insert(
             CheckInEntry(
                 timestamp = System.currentTimeMillis(),
-                general = answers[CheckInCategory.General],
                 energy = answers[CheckInCategory.Energy],
+                clarity = answers[CheckInCategory.Clarity],
+                recovery = answers[CheckInCategory.Recovery],
                 joy = answers[CheckInCategory.Joy],
-                sleep = answers[CheckInCategory.Sleep],
-                dailyLife = answers[CheckInCategory.DailyLife],
-                connection = answers[CheckInCategory.Connection]
+                mood = answers[CheckInCategory.Mood],
+                thoughts = answers[CheckInCategory.Thoughts],
+                connection = answers[CheckInCategory.Connection],
+                structure = answers[CheckInCategory.Structure]
             )
         )
     }

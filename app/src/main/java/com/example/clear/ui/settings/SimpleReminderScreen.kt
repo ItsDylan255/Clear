@@ -63,6 +63,57 @@ fun CheckInReminderScreen(
     onBack = onBack
 )
 
+@Composable
+fun Phq9ReminderScreen(
+    onBack: () -> Unit,
+    viewModel: Phq9ReminderViewModel = viewModel()
+) = SimpleReminderScreen(
+    title = "PHQ-9-Erinnerung",
+    intro = "Auf Wunsch erinnert Clear dich zur gewählten Zeit an den PHQ-9, sobald seit dem " +
+            "letzten Ausfüllen mindestens zwei Wochen vergangen sind. Die Erinnerung kommt jeden Tag, " +
+            "bis du ihn ausgefüllt hast.",
+    viewModel = viewModel,
+    onBack = onBack
+)
+
+@Composable
+fun Who5ReminderScreen(
+    onBack: () -> Unit,
+    viewModel: Who5ReminderViewModel = viewModel()
+) = SimpleReminderScreen(
+    title = "WHO-5-Erinnerung",
+    intro = "Auf Wunsch erinnert Clear dich zur gewählten Zeit an den WHO-5, sobald seit dem " +
+            "letzten Ausfüllen mindestens zwei Wochen vergangen sind. Die Erinnerung kommt jeden Tag, " +
+            "bis du ihn ausgefüllt hast.",
+    viewModel = viewModel,
+    onBack = onBack
+)
+
+@Composable
+fun WsasReminderScreen(
+    onBack: () -> Unit,
+    viewModel: WsasReminderViewModel = viewModel()
+) = SimpleReminderScreen(
+    title = "WSAS-Erinnerung",
+    intro = "Auf Wunsch erinnert Clear dich zur gewählten Zeit an die WSAS, sobald seit dem " +
+            "letzten Ausfüllen mindestens zwei Wochen vergangen sind. Die Erinnerung kommt jeden Tag, " +
+            "bis du sie ausgefüllt hast.",
+    viewModel = viewModel,
+    onBack = onBack
+)
+
+@Composable
+fun EveningReminderScreen(
+    onBack: () -> Unit,
+    viewModel: EveningReminderViewModel = viewModel()
+) = SimpleReminderScreen(
+    title = "Abend-Erinnerung",
+    intro = "Auf Wunsch erinnert Clear dich am Abend an Erfolge und gute Dinge. " +
+            "Hast du an dem Tag schon etwas eingetragen, bleibt die Erinnerung aus.",
+    viewModel = viewModel,
+    onBack = onBack
+)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SimpleReminderScreen(

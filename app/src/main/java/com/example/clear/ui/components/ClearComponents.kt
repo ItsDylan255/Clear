@@ -1,6 +1,7 @@
 package com.example.clear.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.example.clear.ui.theme.ClearSpacing
 
@@ -47,6 +51,49 @@ fun ClearScreen(
             )
         }
         content()
+    }
+}
+
+/**
+ * Wie ClearScreen, aber die Eintraege fuellen die Hoehe bis zur unteren Leiste.
+ * Jeder Eintrag bekommt `unit` mal sein Gewicht an Hoehe. Passt das nicht auf den
+ * Bildschirm (kleines Handy, grosse Schrift), scrollt die Seite als Rueckfall.
+ *
+ * @param weightSum Summe der Gewichte aller Eintraege (ein Eintrag mit Hoehe `unit` zaehlt 1)
+ * @param gaps Anzahl der Abstaende zwischen den Eintraegen
+ * @param fixedHeight Hoehe von Inhalten, die nicht mitwachsen (z. B. Zwischenueberschriften)
+ * @param minUnit kleinste erlaubte Hoehe pro Gewichtseinheit
+ */
+@Composable
+fun ClearFillScreen(
+    title: String,
+    weightSum: Float,
+    gaps: Int,
+    itemSpacing: Dp,
+    fixedHeight: Dp,
+    minUnit: Dp,
+    content: @Composable ColumnScope.(unit: Dp) -> Unit
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val titleHeight = with(LocalDensity.current) {
+            MaterialTheme.typography.headlineMedium.lineHeight.toDp()
+        }
+        // Oben und unten je ein Seitenrand, dazu Titel und der Abstand unter dem Titel
+        val available = maxHeight - ClearSpacing.medium * 2 - titleHeight - ClearSpacing.medium
+        val unit = ((available - fixedHeight - itemSpacing * gaps) / weightSum)
+            .coerceAtLeast(minUnit)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium),
+            verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+        ) {
+            Text(title, style = MaterialTheme.typography.headlineMedium)
+            Column(verticalArrangement = Arrangement.spacedBy(itemSpacing)) {
+                content(unit)
+            }
+        }
     }
 }
 

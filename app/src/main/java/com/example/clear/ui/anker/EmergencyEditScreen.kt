@@ -19,12 +19,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.components.EditorButtons
 
-/** Persoenliche Angaben der Notfallkarte bearbeiten. Alle Felder sind freiwillig. */
+/** Notfallperson bearbeiten. Alle Felder sind freiwillig. */
 @Composable
-fun EmergencyEditScreen(onClose: () -> Unit, viewModel: EmergencyEditViewModel = viewModel()) {
+fun EmergencyPersonEditScreen(
+    onClose: () -> Unit,
+    viewModel: EmergencyPersonEditViewModel = viewModel()
+) {
     val s by viewModel.state.collectAsState()
     Box(modifier = Modifier.imePadding()) {
-        ClearDetailScreen(title = "Meine Notfallkarte", onBack = onClose) {
+        ClearDetailScreen(title = "Notfallperson", onBack = onClose) {
             Text(
                 "Alles hier ist freiwillig und bleibt auf deinem Handy.",
                 style = MaterialTheme.typography.bodyLarge,
@@ -49,6 +52,29 @@ fun EmergencyEditScreen(onClose: () -> Unit, viewModel: EmergencyEditViewModel =
                     label = { Text("Hinweis (optional)") },
                     singleLine = true, modifier = Modifier.fillMaxWidth()
                 )
+                EditorButtons(onCancel = onClose, onSave = { viewModel.save(onClose) })
+            }
+        }
+    }
+}
+
+/** Notfallplan bearbeiten. */
+@Composable
+fun EmergencyPlanEditScreen(
+    onClose: () -> Unit,
+    viewModel: EmergencyPlanEditViewModel = viewModel()
+) {
+    val s by viewModel.state.collectAsState()
+    Box(modifier = Modifier.imePadding()) {
+        ClearDetailScreen(title = "Notfallplan", onBack = onClose) {
+            Text(
+                "Alles hier ist freiwillig und bleibt auf deinem Handy.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (s.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(32.dp))
+            } else {
                 OutlinedTextField(
                     value = s.plan, onValueChange = viewModel::onPlanChange,
                     label = { Text("Mein Plan") },

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -26,20 +27,19 @@ import com.example.clear.model.Situations
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearScreen
 import com.example.clear.ui.theme.ClearSpacing
+import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
 
 @Composable
 fun AkutScreen(
     onOpenSituation: (Situation) -> Unit,
+    onOpenThoughts: () -> Unit,
     onOpenEmergency: () -> Unit
 ) {
     val unknown = Situations.all.firstOrNull { it.id == "unknown" }
     val others = Situations.all.filter { it.id != "unknown" }
 
-    ClearScreen(
-        title = "Was brauchst du gerade?",
-        intro = "Wähle, was am ehesten zu deinem Moment passt. Du musst es nicht genau wissen."
-    ) {
+    ClearScreen(title = "Akut") {
         // 1. "Ich weiß nicht genau" ganz oben, volle Breite
         if (unknown != null) {
             SituationTile(
@@ -67,7 +67,23 @@ fun AkutScreen(
             }
         }
 
-        // 3. Notfallkarte ganz unten
+        // 3. Gedankenprotokoll
+        ClearCard(onClick = onOpenThoughts, containerColor = ClearSurfaceSoft) {
+            Row(
+                modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+            ) {
+                Icon(Icons.Outlined.Psychology, contentDescription = null, tint = ClearTextDark)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Gedankenprotokoll", style = MaterialTheme.typography.titleMedium)
+                    Text("Gedanken ordnen und neu betrachten", style = MaterialTheme.typography.bodyMedium)
+                }
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+            }
+        }
+
+        // 4. Notfallkarte ganz unten
         ClearCard(onClick = onOpenEmergency, containerColor = ClearWarningSoft) {
             Row(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp),

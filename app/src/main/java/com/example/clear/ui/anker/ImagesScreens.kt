@@ -51,14 +51,16 @@ fun ImagesScreen(
     val list = images
     var toDelete by remember { mutableStateOf<AnchorImage?>(null) }
     var captionFor by remember { mutableStateOf<AnchorImage?>(null) }
-    var tagsFor by remember { mutableStateOf<AnchorImage?>(null) }
 
     // Photo Picker: braucht keine Berechtigung, die App sieht nur das gewaehlte Bild
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) viewModel.addImage(uri)
     }
 
-    ClearDetailScreen(title = "Meine Bilder", onBack = onBack) {
+    ClearDetailScreen(
+        title = viewModel.emotionName?.let { "Bilder · $it" } ?: "Meine Bilder",
+        onBack = onBack
+    ) {
         Text(
             "Bilder von sicheren Orten, Menschen und Momenten.",
             style = MaterialTheme.typography.bodyLarge,
@@ -77,7 +79,6 @@ fun ImagesScreen(
                     image = image,
                     onOpen = { onOpenImage(image.id) },
                     onEditCaption = { captionFor = image },
-                    onEditTags = { tagsFor = image },
                     onDelete = { toDelete = image }
                 )
             }
@@ -101,17 +102,10 @@ fun ImagesScreen(
             onDismiss = { captionFor = null }
         )
     }
-    tagsFor?.let { image ->
-        EmotionTagDialog(
-            initial = EmotionTag.parse(image.emotionTags),
-            onSave = { viewModel.updateTags(image, it); tagsFor = null },
-            onDismiss = { tagsFor = null }
-        )
-    }
     toDelete?.let { image ->
         ConfirmDeleteDialog(
             title = "Bild löschen?",
-            message = "Das Bild wird aus Clear entfernt. Dein Original bleibt unberührt.",
+            message = "Das Bild wird aus Clear entfernt. Dein Original bleibt unberührt." + deleteNote(image.emotionTags),
             onConfirm = { viewModel.delete(image); toDelete = null },
             onDismiss = { toDelete = null }
         )
@@ -123,7 +117,6 @@ private fun ImageCard(
     image: AnchorImage,
     onOpen: () -> Unit,
     onEditCaption: () -> Unit,
-    onEditTags: () -> Unit,
     onDelete: () -> Unit
 ) {
     val context = LocalContext.current
@@ -157,12 +150,6 @@ private fun ImageCard(
                 modifier = Modifier.weight(1f)
             )
             OptionsMenu("Optionen für dieses Bild", onEdit = onEditCaption, onDelete = onDelete)
-        }
-        TextButton(onClick = onEditTags) {
-            Text(
-                emotionTagsLabel(image.emotionTags) ?: "Emotionen zuordnen",
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
     }
 }

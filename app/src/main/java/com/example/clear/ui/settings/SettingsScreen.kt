@@ -11,11 +11,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,21 +34,18 @@ import com.example.clear.ui.theme.ClearTextDark
 fun SettingsScreen(
     onOpenAppearance: () -> Unit,
     onOpenReminders: () -> Unit,
-    onOpenEmergency: () -> Unit,
-    onOpenMyData: () -> Unit,
-    onOpenAbout: () -> Unit
+    onOpenFocus: () -> Unit,
+    onOpenMyData: () -> Unit
 ) {
     ClearScreen(title = "Einstellungen") {
         SettingsCard(Icons.Outlined.Palette, "Darstellung",
             "Farben und Erscheinungsbild", onOpenAppearance)
         SettingsCard(Icons.Outlined.Notifications, "Erinnerungen",
             "Freiwillige Check-in- und Zitat-Erinnerungen", onOpenReminders)
-        SettingsCard(Icons.Outlined.Phone, "Notfallkarte",
-            "Kontakte und persönlichen Plan verwalten", onOpenEmergency)
+        SettingsCard(Icons.Outlined.Bedtime, "Nicht stören",
+            "Bei Übungen automatisch ruhig stellen", onOpenFocus)
         SettingsCard(Icons.Outlined.Lock, "Meine Daten",
             "Datenverwaltung und vollständiges Löschen", onOpenMyData)
-        SettingsCard(Icons.Outlined.Info, "Über Clear",
-            "App-Version, Datenschutz und Informationen", onOpenAbout)
     }
 }
 

@@ -5,13 +5,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.Spa
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,78 +22,84 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.clear.model.Meditation
 import com.example.clear.model.Meditations
-import com.example.clear.ui.components.ClearCard
-import com.example.clear.ui.components.ClearScreen
+import com.example.clear.ui.components.ClearFillScreen
 import com.example.clear.ui.theme.ClearCard as ClearCardColor
-import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
 
+/**
+ * Die zehn Meditationen als Raster (2 Spalten x 5 Reihen). Die Reihen fuellen die Hoehe bis
+ * zur unteren Leiste, ohne zu scrollen. Auf kleinen Bildschirmen scrollt die Seite als Rueckfall.
+ */
 @Composable
 fun MeditationScreen(onOpenMeditation: (Meditation) -> Unit) {
-    ClearScreen(title = "Meditieren", intro = "Ein Moment nur für dich.") {
-        // Ruhige Einfuehrungskarte
-        ClearCard(containerColor = ClearSurfaceSoft) {
+    val rows = Meditations.all.chunked(2)
+    ClearFillScreen(
+        title = "Meditieren",
+        weightSum = rows.size.toFloat(),
+        gaps = rows.size - 1,
+        itemSpacing = 10.dp,
+        fixedHeight = 0.dp,
+        minUnit = 84.dp
+    ) { unit ->
+        rows.forEach { pair ->
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+                modifier = Modifier.fillMaxWidth().height(unit),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Box(
-                    modifier = Modifier.size(52.dp).clip(CircleShape).background(ClearCardColor),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Outlined.Spa, contentDescription = null, tint = ClearTextDark)
+                pair.forEach { meditation ->
+                    MeditationTile(
+                        meditation = meditation,
+                        height = unit,
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    ) { onOpenMeditation(meditation) }
                 }
-                Column {
-                    Text("Finde deine Ruhe", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        "Zehn Minuten, in deinem eigenen Tempo.",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+                if (pair.size < 2) Spacer(Modifier.weight(1f))
             }
-        }
-
-        Meditations.all.forEach { meditation ->
-            MeditationCard(meditation) { onOpenMeditation(meditation) }
         }
     }
 }
 
 @Composable
-private fun MeditationCard(meditation: Meditation, onClick: () -> Unit) {
-    ClearCard(onClick = onClick) {
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+private fun MeditationTile(
+    meditation: Meditation,
+    height: Dp,
+    modifier: Modifier,
+    onClick: () -> Unit
+) {
+    val iconCircle = (height * 0.42f).coerceIn(34.dp, 50.dp)
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = ClearCardColor, contentColor = ClearTextDark)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Box(
-                modifier = Modifier.size(44.dp).clip(CircleShape).background(ClearSurfaceSoft),
+                modifier = Modifier.size(iconCircle).clip(CircleShape).background(ClearSurfaceSoft),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(meditation.icon, contentDescription = null, tint = ClearTextDark)
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(meditation.title, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    meditation.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    "${meditation.durationMinutes} Min.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Icon(
-                Icons.Filled.PlayArrow,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+            Spacer(Modifier.height(8.dp))
+            Text(
+                meditation.shortTitle,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp, lineHeight = 20.sp),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

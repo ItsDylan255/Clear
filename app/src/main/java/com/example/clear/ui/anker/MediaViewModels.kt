@@ -14,24 +14,32 @@ import com.example.clear.data.Quote
 import com.example.clear.data.ReminderPoolEntry
 import com.example.clear.data.ReminderSettings
 import com.example.clear.model.EmotionTag
-import com.example.clear.model.MoodGoal
+import com.example.clear.model.MusicMode
+import com.example.clear.model.Situations
 import com.example.clear.reminder.ReminderScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // ---------- Bilder ----------
 
-class ImagesViewModel(app: Application) : AndroidViewModel(app) {
+class ImagesViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     private val context: Application get() = getApplication()
     private val dao = ClearDatabase.getInstance(app).imageDao()
+    private val emotion: String? = handle.get<String>("emotion")
 
+    /** Name der gewaehlten Emotion fuer die Ueberschrift. */
+    val emotionName: String? = Situations.fromId(emotion)?.name
+
+    /** Nur die Bilder der gewaehlten Emotion. null = wird noch geladen. */
     val images: StateFlow<List<AnchorImage>?> = dao.observeAll()
+        .map { list -> list.filter { EmotionTag.matches(it.emotionTags, emotion) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _message = MutableStateFlow<String?>(null)
@@ -44,17 +52,18 @@ class ImagesViewModel(app: Application) : AndroidViewModel(app) {
                 _message.value = "Das Bild konnte nicht gespeichert werden."
             } else {
                 _message.value = null
-                dao.insert(AnchorImage(fileName = fileName, caption = null, createdAt = System.currentTimeMillis()))
+                dao.insert(
+                    AnchorImage(
+                        fileName = fileName, caption = null, createdAt = System.currentTimeMillis(),
+                        emotionTags = EmotionTag.forNewEntry(emotion)
+                    )
+                )
             }
         }
     }
 
     fun updateCaption(id: Long, caption: String) {
         viewModelScope.launch { dao.updateCaption(id, caption.trim().ifBlank { null }) }
-    }
-
-    fun updateTags(image: AnchorImage, tags: Set<EmotionTag>) {
-        viewModelScope.launch { dao.updateTags(image.id, EmotionTag.serialize(tags)) }
     }
 
     fun delete(image: AnchorImage) {
@@ -85,11 +94,17 @@ data class PlaybackState(
  * Einfache Wiedergabe mit dem eingebauten MediaPlayer.
  * Sie laeuft nur, solange die Musik-Seite offen ist. Hintergrund-Wiedergabe folgt spaeter.
  */
-class MusicViewModel(app: Application) : AndroidViewModel(app) {
+class MusicViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     private val context: Application get() = getApplication()
     private val dao = ClearDatabase.getInstance(app).musicDao()
+    private val emotion: String? = handle.get<String>("emotion")
 
+    /** Name der gewaehlten Emotion fuer die Ueberschrift. */
+    val emotionName: String? = Situations.fromId(emotion)?.name
+
+    /** Nur die Titel der gewaehlten Emotion. null = wird noch geladen. */
     val tracks: StateFlow<List<MusicTrack>?> = dao.observeAll()
+        .map { list -> list.filter { EmotionTag.matches(it.emotionTags, emotion) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _playback = MutableStateFlow(PlaybackState())
@@ -98,14 +113,19 @@ class MusicViewModel(app: Application) : AndroidViewModel(app) {
     private var player: MediaPlayer? = null
     private var prepared = false
 
-    fun addTrack(uri: Uri) {
+    fun addTrack(uri: Uri, mode: MusicMode) {
         viewModelScope.launch {
             val fileName = FileStore.import(context, uri, FileStore.MUSIC)
             if (fileName == null) {
                 _playback.update { it.copy(message = "Die Musik konnte nicht gespeichert werden.") }
             } else {
                 val title = FileStore.displayName(context, uri)?.substringBeforeLast('.') ?: "Musik"
-                dao.insert(MusicTrack(fileName = fileName, title = title, createdAt = System.currentTimeMillis()))
+                dao.insert(
+                    MusicTrack(
+                        fileName = fileName, title = title, createdAt = System.currentTimeMillis(),
+                        emotionTags = EmotionTag.forNewEntry(emotion), moodGoals = mode.id
+                    )
+                )
                 _playback.update { it.copy(message = null) }
             }
         }
@@ -161,12 +181,8 @@ class MusicViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun updateTags(track: MusicTrack, tags: Set<EmotionTag>) {
-        viewModelScope.launch { dao.updateTags(track.id, EmotionTag.serialize(tags)) }
-    }
-
-    fun updateMoodGoals(track: MusicTrack, goals: Set<MoodGoal>) {
-        viewModelScope.launch { dao.updateMoodGoals(track.id, MoodGoal.serialize(goals)) }
+    fun updateMode(track: MusicTrack, mode: MusicMode) {
+        viewModelScope.launch { dao.updateMoodGoals(track.id, mode.id) }
     }
 
     private fun stopPlayback() {

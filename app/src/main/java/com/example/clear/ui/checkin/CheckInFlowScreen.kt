@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,7 +45,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.ui.anker.EveningEntryViewModel
 import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
@@ -55,23 +61,32 @@ fun CheckInFlowScreen(
     viewModel: CheckInViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    // Nach der letzten Frage folgt "Erfolge und gute Dinge" (alles freiwillig)
+    var eveningStep by rememberSaveable { mutableStateOf(false) }
+    val eveningViewModel: EveningEntryViewModel = viewModel()
 
-    // System-Zurueck: erst eine Frage zurueck, bei der ersten Frage beenden
-    BackHandler { if (state.isFirst) onClose() else viewModel.previous() }
+    // System-Zurueck: erst einen Schritt zurueck, bei der ersten Frage beenden
+    BackHandler {
+        when {
+            eveningStep -> eveningStep = false
+            state.isFirst -> onClose()
+            else -> viewModel.previous()
+        }
+    }
 
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = ClearSpacing.large)) {
+    Column(modifier = Modifier.fillMaxSize().imePadding().padding(horizontal = ClearSpacing.large)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) {
                 Icon(Icons.Filled.Close, contentDescription = "Check-in beenden")
             }
             Text(
-                "Frage ${state.index + 1} von ${state.categories.size}",
+                if (eveningStep) "Zum Schluss" else "Frage ${state.index + 1} von ${state.categories.size}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         LinearProgressIndicator(
-            progress = { state.progress },
+            progress = { if (eveningStep) 1f else state.progress },
             modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
             color = MaterialTheme.colorScheme.primary,
             trackColor = ClearSurfaceSoft
@@ -84,6 +99,10 @@ fun CheckInFlowScreen(
                 .padding(top = ClearSpacing.large),
             verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
         ) {
+            if (eveningStep) {
+                EveningStepFields(eveningViewModel)
+                return@Column
+            }
             Text(
                 state.current.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -108,20 +127,26 @@ fun CheckInFlowScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (state.isFirst) {
+            if (state.isFirst && !eveningStep) {
                 Spacer(Modifier.size(1.dp))
             } else {
                 TextButton(
-                    onClick = viewModel::previous,
+                    onClick = { if (eveningStep) eveningStep = false else viewModel.previous() },
                     modifier = Modifier.heightIn(min = 56.dp)
                 ) { Text("Zurück") }
             }
             Button(
-                onClick = { if (state.isLast) viewModel.finish(onFinished) else viewModel.next() },
+                onClick = {
+                    when {
+                        eveningStep -> viewModel.finish { eveningViewModel.save(onFinished) }
+                        state.isLast -> eveningStep = true
+                        else -> viewModel.next()
+                    }
+                },
                 modifier = Modifier.heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
             ) {
-                Text(if (state.isLast) "Fertig" else "Weiter")
+                Text(if (eveningStep) "Fertig" else "Weiter")
             }
         }
     }
@@ -129,7 +154,7 @@ fun CheckInFlowScreen(
 
 /** Skala 1 bis 10 in zwei Reihen mit je fuenf grossen Touch-Flaechen. */
 @Composable
-private fun ScaleSelector(
+internal fun ScaleSelector(
     selected: Int?,
     onSelect: (Int) -> Unit,
     lowLabel: String,
@@ -196,4 +221,44 @@ private fun scaleColor(value: Int): Color {
     val t = (value - 1) / 9f
     return if (t < 0.5f) lerp(ScaleRed, ScaleNeutral, t / 0.5f)
     else lerp(ScaleNeutral, ScaleGreen, (t - 0.5f) / 0.5f)
+}
+
+/** Letzter Schritt des Check-ins: was geschafft wurde und drei gute Dinge. Alles ist freiwillig. */
+@Composable
+private fun EveningStepFields(viewModel: EveningEntryViewModel) {
+    val draft by viewModel.draft.collectAsState()
+    Text(
+        "Erfolge und gute Dinge",
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Text(
+        "Alles ist freiwillig. Ein Stichwort reicht, auch winzige Dinge zählen.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    OutlinedTextField(
+        value = draft.success,
+        onValueChange = viewModel::onSuccessChange,
+        label = { Text("Was habe ich heute geschafft?") },
+        minLines = 2,
+        modifier = Modifier.fillMaxWidth()
+    )
+    Text("Was war heute gut oder okay?", style = MaterialTheme.typography.titleMedium)
+    repeat(3) { index ->
+        OutlinedTextField(
+            value = draft.goodTexts[index],
+            onValueChange = { viewModel.onGoodTextChange(index, it) },
+            label = { Text("Gutes ${index + 1}") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = draft.goodReasons[index],
+            onValueChange = { viewModel.onGoodReasonChange(index, it) },
+            label = { Text("Warum ist das passiert? (optional)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }

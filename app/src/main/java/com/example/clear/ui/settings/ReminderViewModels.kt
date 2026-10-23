@@ -47,3 +47,16 @@ class MeditationReminderViewModel(app: Application) :
 
 class CheckInReminderViewModel(app: Application) :
     SimpleReminderViewModel(app, ReminderScheduler.CHECKIN_ID, 20)
+
+class EveningReminderViewModel(app: Application) :
+    SimpleReminderViewModel(app, ReminderScheduler.EVENING_ID, 20)
+
+class Phq9ReminderViewModel(app: Application) :
+    SimpleReminderViewModel(app, ReminderScheduler.PHQ_ID, 9)
+
+class Who5ReminderViewModel(app: Application) :
+    SimpleReminderViewModel(app, ReminderScheduler.WHO5_ID, 9)
+
+
+class WsasReminderViewModel(app: Application) :
+    SimpleReminderViewModel(app, ReminderScheduler.WSAS_ID, 9)

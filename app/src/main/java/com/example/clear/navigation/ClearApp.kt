@@ -10,6 +10,13 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -25,12 +32,23 @@ import com.example.clear.model.CheckInCategory
 import com.example.clear.model.Meditations
 import com.example.clear.model.Situations
 import com.example.clear.ui.akut.AkutScreen
+import com.example.clear.reminder.ExerciseNotifier
 import com.example.clear.ui.akut.EmergencyCardScreen
 import com.example.clear.ui.akut.ExerciseScreen
-import com.example.clear.ui.akut.MusicListenScreen
+import com.example.clear.ui.akut.ThoughtDetailScreen
+import com.example.clear.ui.akut.ThoughtFlowScreen
+import com.example.clear.ui.akut.ThoughtListScreen
 import com.example.clear.ui.akut.SituationScreen
+import com.example.clear.ui.anker.AnkerEmotionPickScreen
+import com.example.clear.ui.anker.EmergencyManageScreen
+import com.example.clear.ui.anker.IdeasManageScreen
+import com.example.clear.ui.anker.WarningSignsScreen
+import com.example.clear.ui.anker.AnkerType
 import com.example.clear.ui.anker.AnkerScreen
-import com.example.clear.ui.anker.EmergencyEditScreen
+import com.example.clear.ui.anker.EveningArchiveScreen
+import com.example.clear.ui.anker.EveningEditScreen
+import com.example.clear.ui.anker.EmergencyPersonEditScreen
+import com.example.clear.ui.anker.EmergencyPlanEditScreen
 import com.example.clear.ui.anker.ImageViewerScreen
 import com.example.clear.ui.anker.ImagesScreen
 import com.example.clear.ui.anker.MusicScreen
@@ -40,17 +58,35 @@ import com.example.clear.ui.anker.LetterReaderScreen
 import com.example.clear.ui.anker.LettersScreen
 import com.example.clear.ui.anker.QuoteEditorScreen
 import com.example.clear.ui.anker.QuotesScreen
+import com.example.clear.ui.checkin.ActiveIdeas
 import com.example.clear.ui.checkin.CategoryDetailScreen
+import com.example.clear.ui.checkin.IdeaDetailScreen
+import com.example.clear.ui.checkin.IdeaRateScreen
 import com.example.clear.ui.checkin.CheckInFlowScreen
+import com.example.clear.ui.checkin.CheckInHistoryScreen
+import com.example.clear.ui.checkin.Phq9HistoryScreen
+import com.example.clear.ui.checkin.Phq9HubScreen
+import com.example.clear.ui.checkin.Phq9TestScreen
+import com.example.clear.ui.checkin.QuestionnairesScreen
+import com.example.clear.ui.checkin.Who5HistoryScreen
+import com.example.clear.ui.checkin.Who5HubScreen
+import com.example.clear.ui.checkin.Who5TestScreen
+import com.example.clear.ui.checkin.WsasHistoryScreen
+import com.example.clear.ui.checkin.WsasHubScreen
+import com.example.clear.ui.checkin.WsasTestScreen
 import com.example.clear.ui.checkin.CheckInStartScreen
 import com.example.clear.ui.checkin.IdeaEditorScreen
 import com.example.clear.ui.meditation.MeditationPlayerScreen
 import com.example.clear.ui.meditation.MeditationScreen
-import com.example.clear.ui.settings.AboutScreen
 import com.example.clear.ui.settings.AppearanceScreen
 import com.example.clear.ui.settings.CheckInReminderScreen
+import com.example.clear.ui.settings.EveningReminderScreen
+import com.example.clear.ui.settings.Phq9ReminderScreen
+import com.example.clear.ui.settings.Who5ReminderScreen
+import com.example.clear.ui.settings.WsasReminderScreen
 import com.example.clear.ui.settings.MeditationReminderScreen
 import com.example.clear.ui.settings.MyDataScreen
+import com.example.clear.ui.settings.FocusSettingsScreen
 import com.example.clear.ui.settings.ReminderSettingsScreen
 import com.example.clear.ui.settings.SettingsScreen
 import com.example.clear.ui.theme.ClearPrimary
@@ -60,15 +96,47 @@ import com.example.clear.ui.theme.ClearTextSecondary
 
 // Eigene Route fuer die Notfallkarte-Bearbeitung, wenn sie aus dem Akut-Tab geoeffnet wird.
 // So bleibt der Akut-Tab in der Leiste markiert.
-private const val AKUT_EMERGENCY_EDIT = "akut_notfallkarte_bearbeiten"
-private const val AKUT_MUSIC = "akut_musik/{id}"
+private const val ANKER_EMERGENCY_PERSON = "anker_notfallperson_bearbeiten"
+private const val ANKER_EMERGENCY_PLAN = "anker_notfallplan_bearbeiten"
+private const val ANKER_WARNING_SIGNS = "anker_warnzeichen"
+// Mein-Anker-Ansicht einer Emotion (gleiche Seiten, eigene Routen je Bereich)
+private val akutView = AnkerViewRoutes("akut_ansicht")
+private val ankerView = AnkerViewRoutes("anker_ansicht")
+// Verlaufsseite im Check-in-Bereich
+private const val CHECKIN_HISTORY = "checkin_verlauf"
+// Monatlicher Fragebogen (PHQ-9) im Check-in-Bereich
+private const val CHECKIN_QUESTIONNAIRES = "checkin_frageboegen"
+private const val CHECKIN_PHQ = "checkin_phq"
+private const val CHECKIN_PHQ_TEST = "checkin_phq_test"
+private const val CHECKIN_PHQ_HISTORY = "checkin_phq_verlauf"
+private const val CHECKIN_WHO5 = "checkin_who5"
+private const val CHECKIN_WHO5_TEST = "checkin_who5_test"
+private const val CHECKIN_WHO5_HISTORY = "checkin_who5_verlauf"
+private const val CHECKIN_WSAS = "checkin_wsas"
+private const val CHECKIN_WSAS_TEST = "checkin_wsas_test"
+private const val CHECKIN_WSAS_HISTORY = "checkin_wsas_verlauf"
+// Idee im Check-in: Beschreibung und Bewertung (mode = "before" oder "after")
+private const val CHECKIN_IDEA = "checkin_idee/{ideaId}"
+private const val CHECKIN_IDEA_RATE = "checkin_idee_bewertung/{ideaId}/{mode}"
+private fun ideaRoute(id: Long) = "checkin_idee/$id"
+private fun ideaRateRoute(id: Long, mode: String) = "checkin_idee_bewertung/$id/$mode"
+
+private fun Context.findActivity(): Activity? {
+    var current = this
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return null
+}
 
 // Auf diesen Seiten ist die untere Leiste ausgeblendet (ruhiger, Platz fuer Tastatur).
 private val routesWithoutBottomBar = setOf(
-    CheckInRoutes.FLOW, CheckInRoutes.EDITOR,
+    CheckInRoutes.FLOW, CheckInRoutes.EDITOR, CHECKIN_PHQ_TEST, CHECKIN_WHO5_TEST, CHECKIN_WSAS_TEST, AkutRoutes.THOUGHT_NEW,
     AnkerRoutes.QUOTE_EDITOR, AnkerRoutes.LETTER_EDITOR,
-    SettingsRoutes.EMERGENCY_EDIT, AKUT_EMERGENCY_EDIT
-)
+    AnkerRoutes.EVENING_EDIT,
+    ANKER_EMERGENCY_PERSON, ANKER_EMERGENCY_PLAN, CHECKIN_IDEA_RATE
+) + akutView.singleViewPatterns + ankerView.singleViewPatterns
 
 // Startseite jedes Tabs. Wird fuer "erneut auf den Tab tippen" gebraucht.
 private fun MainTab.startRoute(): String = when (this) {
@@ -85,6 +153,32 @@ fun ClearApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
     val currentRoute = destination?.route
+
+    // Laufende Ideen: Benachrichtigungen wiederherstellen. Kommt man aus einer Benachrichtigung,
+    // geht es direkt zur Beschreibung oder zur Bewertung "Wie fuehlst du dich jetzt?".
+    val appContext = LocalContext.current
+    LaunchedEffect(Unit) {
+        androidx.core.app.NotificationManagerCompat.from(appContext)
+            .deleteNotificationChannel("experiments_running")
+        ExerciseNotifier.cancelLegacy(appContext)
+        ExerciseNotifier.sync(appContext)
+
+        val launchIntent = appContext.findActivity()?.intent
+        val ideaId = launchIntent?.getLongExtra(ExerciseNotifier.EXTRA_IDEA_ID, -1L) ?: -1L
+        if (launchIntent != null && ideaId > 0L) {
+            val action = launchIntent.getStringExtra(ExerciseNotifier.EXTRA_ACTION)
+            launchIntent.removeExtra(ExerciseNotifier.EXTRA_IDEA_ID)
+            launchIntent.removeExtra(ExerciseNotifier.EXTRA_ACTION)
+            navController.navigate(CheckInRoutes.START) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+            }
+            navController.navigate(ideaRoute(ideaId))
+            if (action == ExerciseNotifier.ACTION_END) {
+                navController.navigate(ideaRateRoute(ideaId, "after"))
+            }
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -142,8 +236,91 @@ fun ClearApp() {
                 composable(CheckInRoutes.START) {
                     CheckInStartScreen(
                         onStartCheckIn = { navController.navigate(CheckInRoutes.FLOW) },
+                        onOpenHistory = { navController.navigate(CHECKIN_HISTORY) },
+                        onOpenQuestionnaires = { navController.navigate(CHECKIN_QUESTIONNAIRES) },
                         onOpenCategory = { navController.navigate(CheckInRoutes.category(it.id)) }
                     )
+                }
+                composable(
+                    route = CHECKIN_IDEA,
+                    arguments = listOf(navArgument("ideaId") { type = NavType.LongType })
+                ) { entry ->
+                    IdeaDetailScreen(
+                        onBack = { navController.popBackStack() },
+                        onStart = { id -> navController.navigate(ideaRateRoute(id, "before")) },
+                        onEnd = { id -> navController.navigate(ideaRateRoute(id, "after")) }
+                    )
+                }
+                composable(
+                    route = CHECKIN_IDEA_RATE,
+                    arguments = listOf(
+                        navArgument("ideaId") { type = NavType.LongType },
+                        navArgument("mode") { type = NavType.StringType }
+                    )
+                ) {
+                    IdeaRateScreen(
+                        onBack = { navController.popBackStack() },
+                        onDone = { navController.popBackStack() }
+                    )
+                }
+                composable(CHECKIN_QUESTIONNAIRES) {
+                    QuestionnairesScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenPhq = { navController.navigate(CHECKIN_PHQ) },
+                        onOpenWho5 = { navController.navigate(CHECKIN_WHO5) },
+                        onOpenWsas = { navController.navigate(CHECKIN_WSAS) }
+                    )
+                }
+                composable(CHECKIN_WSAS) {
+                    WsasHubScreen(
+                        onBack = { navController.popBackStack() },
+                        onStart = { navController.navigate(CHECKIN_WSAS_TEST) },
+                        onOpenHistory = { navController.navigate(CHECKIN_WSAS_HISTORY) }
+                    )
+                }
+                composable(CHECKIN_WSAS_TEST) {
+                    WsasTestScreen(
+                        onClose = { navController.popBackStack() },
+                        onFinished = { navController.popBackStack() }
+                    )
+                }
+                composable(CHECKIN_WSAS_HISTORY) {
+                    WsasHistoryScreen(onBack = { navController.popBackStack() })
+                }
+                composable(CHECKIN_WHO5) {
+                    Who5HubScreen(
+                        onBack = { navController.popBackStack() },
+                        onStart = { navController.navigate(CHECKIN_WHO5_TEST) },
+                        onOpenHistory = { navController.navigate(CHECKIN_WHO5_HISTORY) }
+                    )
+                }
+                composable(CHECKIN_WHO5_TEST) {
+                    Who5TestScreen(
+                        onClose = { navController.popBackStack() },
+                        onFinished = { navController.popBackStack() }
+                    )
+                }
+                composable(CHECKIN_WHO5_HISTORY) {
+                    Who5HistoryScreen(onBack = { navController.popBackStack() })
+                }
+                composable(CHECKIN_PHQ) {
+                    Phq9HubScreen(
+                        onBack = { navController.popBackStack() },
+                        onStart = { navController.navigate(CHECKIN_PHQ_TEST) },
+                        onOpenHistory = { navController.navigate(CHECKIN_PHQ_HISTORY) }
+                    )
+                }
+                composable(CHECKIN_PHQ_TEST) {
+                    Phq9TestScreen(
+                        onClose = { navController.popBackStack() },
+                        onFinished = { navController.popBackStack() }
+                    )
+                }
+                composable(CHECKIN_PHQ_HISTORY) {
+                    Phq9HistoryScreen(onBack = { navController.popBackStack() })
+                }
+                composable(CHECKIN_HISTORY) {
+                    CheckInHistoryScreen(onBack = { navController.popBackStack() })
                 }
                 composable(CheckInRoutes.FLOW) {
                     CheckInFlowScreen(
@@ -160,12 +337,7 @@ fun ClearApp() {
                         CategoryDetailScreen(
                             category = category,
                             onBack = { navController.popBackStack() },
-                            onAddIdea = {
-                                navController.navigate(CheckInRoutes.editor(category.id))
-                            },
-                            onEditIdea = { ideaId ->
-                                navController.navigate(CheckInRoutes.editor(category.id, ideaId))
-                            }
+                            onOpenIdea = { ideaId -> navController.navigate(ideaRoute(ideaId)) }
                         )
                     }
                 }
@@ -206,6 +378,7 @@ fun ClearApp() {
                 composable(AkutRoutes.START) {
                     AkutScreen(
                         onOpenSituation = { navController.navigate(AkutRoutes.situation(it.id)) },
+                        onOpenThoughts = { navController.navigate(AkutRoutes.THOUGHTS) },
                         onOpenEmergency = { navController.navigate(AkutRoutes.EMERGENCY) }
                     )
                 }
@@ -219,7 +392,7 @@ fun ClearApp() {
                             situation = situation,
                             onBack = { navController.popBackStack() },
                             onOpenExercise = { navController.navigate(AkutRoutes.exercise(it.id)) },
-                            onOpenMusic = { navController.navigate("akut_musik/${situation.id}") }
+                            onOpenAnker = { navController.navigate(akutView.view(situation.id)) }
                         )
                     }
                 }
@@ -236,49 +409,129 @@ fun ClearApp() {
                     }
                 }
                 composable(AkutRoutes.EMERGENCY) {
-                    EmergencyCardScreen(
+                    EmergencyCardScreen(onBack = { navController.popBackStack() })
+                }
+                composable(AkutRoutes.THOUGHTS) {
+                    ThoughtListScreen(
                         onBack = { navController.popBackStack() },
-                        onEdit = { navController.navigate(AKUT_EMERGENCY_EDIT) }
+                        onNew = { navController.navigate(AkutRoutes.THOUGHT_NEW) },
+                        onOpen = { navController.navigate(AkutRoutes.thoughtDetail(it)) }
                     )
                 }
-                composable(AKUT_EMERGENCY_EDIT) {
-                    EmergencyEditScreen(onClose = { navController.popBackStack() })
+                composable(AkutRoutes.THOUGHT_NEW) {
+                    ThoughtFlowScreen(
+                        onClose = { navController.popBackStack() },
+                        onFinished = { navController.popBackStack() }
+                    )
                 }
                 composable(
-                    route = AKUT_MUSIC,
-                    arguments = listOf(navArgument("id") { type = NavType.StringType })
+                    route = AkutRoutes.THOUGHT_DETAIL,
+                    arguments = listOf(navArgument("recordId") { type = NavType.LongType })
                 ) {
-                    MusicListenScreen(onBack = { navController.popBackStack() })
+                    ThoughtDetailScreen(onBack = { navController.popBackStack() })
                 }
+                ankerViewRoutes(navController, akutView)
             }
 
             // --- Mein Anker ---
             navigation(startDestination = AnkerRoutes.START, route = MainTab.Anker.route) {
                 composable(AnkerRoutes.START) {
                     AnkerScreen(
-                        onOpenQuotes = { navController.navigate(AnkerRoutes.QUOTES) },
-                        onOpenLetters = { navController.navigate(AnkerRoutes.LETTERS) },
-                        onOpenImages = { navController.navigate(AnkerRoutes.IMAGES) },
-                        onOpenMusic = { navController.navigate(AnkerRoutes.MUSIC) }
+                        onOpenEvening = { navController.navigate(AnkerRoutes.EVENING) },
+                        onOpenIdeas = { navController.navigate(AnkerRoutes.IDEAS) },
+                        onOpenEmergency = { navController.navigate(AnkerRoutes.EMERGENCY) },
+                        onOpenType = { navController.navigate(AnkerRoutes.pick(it.id)) }
                     )
                 }
-                composable(AnkerRoutes.QUOTES) {
+                composable(AnkerRoutes.IDEAS) {
+                    IdeasManageScreen(
+                        onBack = { navController.popBackStack() },
+                        onAdd = { navController.navigate(CheckInRoutes.editor(CheckInCategory.Energy.id)) },
+                        onEdit = { categoryId, ideaId ->
+                            navController.navigate(CheckInRoutes.editor(categoryId, ideaId))
+                        }
+                    )
+                }
+                composable(AnkerRoutes.EVENING) {
+                    EveningArchiveScreen(
+                        onBack = { navController.popBackStack() },
+                        onEdit = { navController.navigate(AnkerRoutes.eveningEdit(it)) }
+                    )
+                }
+                composable(
+                    route = AnkerRoutes.EVENING_EDIT,
+                    arguments = listOf(navArgument("entryId") { type = NavType.LongType })
+                ) {
+                    EveningEditScreen(onClose = { navController.popBackStack() })
+                }
+                composable(AnkerRoutes.EMERGENCY) {
+                    EmergencyManageScreen(
+                        onBack = { navController.popBackStack() },
+                        onEditPerson = { navController.navigate(ANKER_EMERGENCY_PERSON) },
+                        onEditPlan = { navController.navigate(ANKER_EMERGENCY_PLAN) },
+                        onEditWarningSigns = { navController.navigate(ANKER_WARNING_SIGNS) }
+                    )
+                }
+                composable(ANKER_EMERGENCY_PERSON) {
+                    EmergencyPersonEditScreen(onClose = { navController.popBackStack() })
+                }
+                composable(ANKER_EMERGENCY_PLAN) {
+                    EmergencyPlanEditScreen(onClose = { navController.popBackStack() })
+                }
+                composable(ANKER_WARNING_SIGNS) {
+                    WarningSignsScreen(onBack = { navController.popBackStack() })
+                }
+                composable(
+                    route = AnkerRoutes.PICK,
+                    arguments = listOf(navArgument("type") { type = NavType.StringType })
+                ) { entry ->
+                    val ankerType = AnkerType.fromId(entry.arguments?.getString("type"))
+                    if (ankerType != null) {
+                        AnkerEmotionPickScreen(
+                            type = ankerType,
+                            onBack = { navController.popBackStack() },
+                            onPick = { emotion ->
+                                navController.navigate(
+                                    when (ankerType) {
+                                        AnkerType.Quotes -> AnkerRoutes.quotes(emotion)
+                                        AnkerType.Images -> AnkerRoutes.images(emotion)
+                                        AnkerType.Music -> AnkerRoutes.music(emotion)
+                                        AnkerType.Letters -> AnkerRoutes.letters(emotion)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+                ankerViewRoutes(navController, ankerView)
+                composable(
+                    route = AnkerRoutes.QUOTES,
+                    arguments = listOf(navArgument("emotion") { type = NavType.StringType })
+                ) { entry ->
+                    val emotion = entry.arguments?.getString("emotion") ?: "unknown"
                     QuotesScreen(
                         onBack = { navController.popBackStack() },
-                        onAdd = { navController.navigate(AnkerRoutes.quoteEditor()) },
-                        onEdit = { navController.navigate(AnkerRoutes.quoteEditor(it)) }
+                        onAdd = { navController.navigate(AnkerRoutes.quoteEditor(-1L, emotion)) },
+                        onEdit = { navController.navigate(AnkerRoutes.quoteEditor(it, emotion)) }
                     )
                 }
                 composable(
                     route = AnkerRoutes.QUOTE_EDITOR,
-                    arguments = listOf(navArgument("quoteId") { type = NavType.LongType })
+                    arguments = listOf(
+                        navArgument("quoteId") { type = NavType.LongType },
+                        navArgument("emotion") { type = NavType.StringType }
+                    )
                 ) {
                     QuoteEditorScreen(onClose = { navController.popBackStack() })
                 }
-                composable(AnkerRoutes.LETTERS) {
+                composable(
+                    route = AnkerRoutes.LETTERS,
+                    arguments = listOf(navArgument("emotion") { type = NavType.StringType })
+                ) { entry ->
+                    val emotion = entry.arguments?.getString("emotion") ?: "unknown"
                     LettersScreen(
                         onBack = { navController.popBackStack() },
-                        onAdd = { navController.navigate(AnkerRoutes.letterEditor()) },
+                        onAdd = { navController.navigate(AnkerRoutes.letterEditor(-1L, emotion)) },
                         onOpen = { navController.navigate(AnkerRoutes.letterReader(it)) }
                     )
                 }
@@ -288,16 +541,22 @@ fun ClearApp() {
                 ) {
                     LetterReaderScreen(
                         onBack = { navController.popBackStack() },
-                        onEdit = { navController.navigate(AnkerRoutes.letterEditor(it)) }
+                        onEdit = { navController.navigate(AnkerRoutes.letterEditor(it, "unknown")) }
                     )
                 }
                 composable(
                     route = AnkerRoutes.LETTER_EDITOR,
-                    arguments = listOf(navArgument("letterId") { type = NavType.LongType })
+                    arguments = listOf(
+                        navArgument("letterId") { type = NavType.LongType },
+                        navArgument("emotion") { type = NavType.StringType }
+                    )
                 ) {
                     LetterEditorScreen(onClose = { navController.popBackStack() })
                 }
-                composable(AnkerRoutes.IMAGES) {
+                composable(
+                    route = AnkerRoutes.IMAGES,
+                    arguments = listOf(navArgument("emotion") { type = NavType.StringType })
+                ) {
                     ImagesScreen(
                         onBack = { navController.popBackStack() },
                         onOpenImage = { navController.navigate(AnkerRoutes.imageViewer(it)) }
@@ -309,7 +568,10 @@ fun ClearApp() {
                 ) {
                     ImageViewerScreen(onBack = { navController.popBackStack() })
                 }
-                composable(AnkerRoutes.MUSIC) {
+                composable(
+                    route = AnkerRoutes.MUSIC,
+                    arguments = listOf(navArgument("emotion") { type = NavType.StringType })
+                ) {
                     MusicScreen(onBack = { navController.popBackStack() })
                 }
             }
@@ -320,10 +582,12 @@ fun ClearApp() {
                     SettingsScreen(
                         onOpenAppearance = { navController.navigate(SettingsRoutes.APPEARANCE) },
                         onOpenReminders = { navController.navigate(SettingsRoutes.REMINDERS) },
-                        onOpenEmergency = { navController.navigate(SettingsRoutes.EMERGENCY_EDIT) },
-                        onOpenMyData = { navController.navigate(SettingsRoutes.MY_DATA) },
-                        onOpenAbout = { navController.navigate(SettingsRoutes.ABOUT) }
+                        onOpenFocus = { navController.navigate(SettingsRoutes.FOCUS) },
+                        onOpenMyData = { navController.navigate(SettingsRoutes.MY_DATA) }
                     )
+                }
+                composable(SettingsRoutes.FOCUS) {
+                    FocusSettingsScreen(onBack = { navController.popBackStack() })
                 }
                 composable(SettingsRoutes.APPEARANCE) {
                     AppearanceScreen(onBack = { navController.popBackStack() })
@@ -333,8 +597,24 @@ fun ClearApp() {
                         onBack = { navController.popBackStack() },
                         onOpenQuoteReminders = { navController.navigate(SettingsRoutes.QUOTE_REMINDERS) },
                         onOpenMeditationReminder = { navController.navigate(SettingsRoutes.MEDITATION_REMINDER) },
-                        onOpenCheckInReminder = { navController.navigate(SettingsRoutes.CHECKIN_REMINDER) }
+                        onOpenCheckInReminder = { navController.navigate(SettingsRoutes.CHECKIN_REMINDER) },
+                        onOpenPhqReminder = { navController.navigate(SettingsRoutes.PHQ_REMINDER) },
+                        onOpenWho5Reminder = { navController.navigate(SettingsRoutes.WHO5_REMINDER) },
+                        onOpenWsasReminder = { navController.navigate(SettingsRoutes.WSAS_REMINDER) },
+                        onOpenEveningReminder = { navController.navigate(SettingsRoutes.EVENING_REMINDER) }
                     )
+                }
+                composable(SettingsRoutes.WSAS_REMINDER) {
+                    WsasReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.WHO5_REMINDER) {
+                    Who5ReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.PHQ_REMINDER) {
+                    Phq9ReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.EVENING_REMINDER) {
+                    EveningReminderScreen(onBack = { navController.popBackStack() })
                 }
                 composable(SettingsRoutes.MEDITATION_REMINDER) {
                     MeditationReminderScreen(onBack = { navController.popBackStack() })
@@ -345,14 +625,8 @@ fun ClearApp() {
                 composable(SettingsRoutes.QUOTE_REMINDERS) {
                     RemindersScreen(onBack = { navController.popBackStack() })
                 }
-                composable(SettingsRoutes.EMERGENCY_EDIT) {
-                    EmergencyEditScreen(onClose = { navController.popBackStack() })
-                }
                 composable(SettingsRoutes.MY_DATA) {
                     MyDataScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.ABOUT) {
-                    AboutScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

@@ -18,15 +18,30 @@ enum class IdeaLevel(val label: String) {
     Severe("Stark beeinträchtigt")
 }
 
-/** Eine persönliche Idee. Kein "erledigt"-Feld, denn Ideen sind keine Aufgaben. */
+/**
+ * Eine persönliche Idee. Kein "erledigt"-Feld, denn Ideen sind keine Aufgaben.
+ * Jede Idee hat drei Texte, einen je Zustand (zum Beispiel "Bewegung": was gilt bei Normal,
+ * bei Sinkend, bei Stark beeintraechtigt). `description` und `level` sind alt und werden
+ * nicht mehr benutzt.
+ */
 @Entity(tableName = "personal_ideas")
 data class PersonalIdea(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
-    val description: String?,
+    val description: String? = null,
     val categoryId: String,      // stabile Kennung, z. B. "energy"
     val contentType: ContentType,
     val createdAt: Long,
     val updatedAt: Long,
-    val level: IdeaLevel = IdeaLevel.Normal
-)
+    val level: IdeaLevel = IdeaLevel.Normal,
+    val textNormal: String = "",
+    val textSinking: String = "",
+    val textSevere: String = ""
+) {
+    /** Der Text, der zur gewaehlten Zustandsstufe passt. */
+    fun textFor(level: IdeaLevel): String = when (level) {
+        IdeaLevel.Normal -> textNormal
+        IdeaLevel.Sinking -> textSinking
+        IdeaLevel.Severe -> textSevere
+    }
+}

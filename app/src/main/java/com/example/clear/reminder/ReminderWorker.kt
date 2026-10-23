@@ -16,7 +16,9 @@ import com.example.clear.data.ClearDatabase
 import kotlinx.coroutines.flow.first
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 /** Laeuft zur geplanten Zeit: zeigt die passende Erinnerung und plant die naechste. */
 class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
@@ -35,6 +37,51 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 notificationId = 2,
                 text = "Ein ruhiger Moment für dich? Wenn du magst, nimm dir Zeit zum Meditieren."
             )
+            ReminderScheduler.PHQ_ID -> {
+                // Taeglich, sobald seit dem letzten Ausfuellen mindestens 14 Tage vergangen sind
+                val latest = ClearDatabase.getInstance(applicationContext).phq9Dao().getLatest()?.createdAt
+                if (isDue(latest)) showNotification(
+                    channelId = "phq_reminders",
+                    channelName = "PHQ-9-Erinnerungen",
+                    channelDescription = "Freiwillige Erinnerung an den PHQ-9",
+                    notificationId = 5,
+                    text = "Dein PHQ-9 ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür."
+                )
+            }
+            ReminderScheduler.WHO5_ID -> {
+                // Taeglich, sobald seit dem letzten Ausfuellen mindestens 14 Tage vergangen sind
+                val latest = ClearDatabase.getInstance(applicationContext).who5Dao().getLatest()?.createdAt
+                if (isDue(latest)) showNotification(
+                    channelId = "who5_reminders",
+                    channelName = "WHO-5-Erinnerungen",
+                    channelDescription = "Freiwillige Erinnerung an den WHO-5",
+                    notificationId = 7,
+                    text = "Dein WHO-5 ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür."
+                )
+            }
+            ReminderScheduler.WSAS_ID -> {
+                val latest = ClearDatabase.getInstance(applicationContext).wsasDao().getLatest()?.createdAt
+                if (isDue(latest)) showNotification(
+                    channelId = "wsas_reminders",
+                    channelName = "WSAS-Erinnerungen",
+                    channelDescription = "Freiwillige Erinnerung an die WSAS",
+                    notificationId = 8,
+                    text = "Deine WSAS ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür."
+                )
+            }
+            ReminderScheduler.EVENING_ID -> {
+                // Hat man heute schon etwas eingetragen, bleibt die Erinnerung aus
+                val today = LocalDate.now(ZoneId.systemDefault()).toEpochDay()
+                val entriesToday = ClearDatabase.getInstance(applicationContext)
+                    .eveningDao().countForDay(today)
+                if (entriesToday == 0) showNotification(
+                    channelId = "evening_reminders",
+                    channelName = "Abend-Erinnerungen",
+                    channelDescription = "Freiwillige Erinnerungen an Erfolge und gute Dinge",
+                    notificationId = 4,
+                    text = "Was war heute gut oder okay? Wenn du magst, trag es kurz ein."
+                )
+            }
             ReminderScheduler.CHECKIN_ID -> {
                 if (!checkedInToday()) showNotification(
                     channelId = "checkin_reminders",
@@ -63,6 +110,14 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
 
         ReminderScheduler.reschedule(applicationContext, settings, fromWorker = true)
         return Result.success()
+    }
+
+    /** Faellig: noch nie ausgefuellt oder das letzte Mal ist mindestens 14 Tage her. */
+    private fun isDue(latestCreatedAt: Long?): Boolean {
+        if (latestCreatedAt == null) return true
+        val zone = ZoneId.systemDefault()
+        val last = Instant.ofEpochMilli(latestCreatedAt).atZone(zone).toLocalDate()
+        return ChronoUnit.DAYS.between(last, LocalDate.now(zone)) >= 14
     }
 
     private suspend fun checkedInToday(): Boolean {

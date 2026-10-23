@@ -1,17 +1,19 @@
 package com.example.clear.model
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.BatteryChargingFull
+import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.People
+import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Die sechs Check-in-Bereiche. Die `id` ist stabil und wird spaeter
- * auch in der Datenbank verwendet. Reihenfolge = Reihenfolge im Check-in.
+ * Die acht Check-in-Bereiche. Die `id` ist stabil und wird in der Datenbank verwendet.
+ * Reihenfolge = Reihenfolge im Check-in. Hoher Wert bedeutet immer: gut.
  */
 enum class CheckInCategory(
     val id: String,
@@ -22,39 +24,45 @@ enum class CheckInCategory(
     val highLabel: String,
     val icon: ImageVector
 ) {
-    General(
-        "general", "Allgemein", "Dein allgemeines Wohlbefinden",
-        "Wie geht es dir insgesamt?", "sehr schlecht", "sehr gut", Icons.Outlined.Favorite
-    ),
     Energy(
-        "energy", "Energie", "Antrieb und Kraft",
-        "Wie viel Energie und Antrieb hast du?", "keine Energie", "viel Energie",
+        "energy", "Energie", "Energie und Müdigkeit",
+        "Wie viel Energie hast du?", "keine Energie", "viel Energie",
         Icons.Outlined.BatteryChargingFull
     ),
-    Joy(
-        "joy", "Freude & Interesse", "Freude an Dingen erleben",
-        "Wie gut kannst du Freude empfinden oder Interesse an Dingen haben?",
-        "gar nicht", "sehr gut", Icons.Outlined.WbSunny
+    Clarity(
+        "clarity", "Klarheit", "Konzentration und Gedächtnis",
+        "Wie klar kannst du denken, dich konzentrieren und erinnern?",
+        "sehr vernebelt", "sehr klar", Icons.Outlined.Visibility
     ),
-    Sleep(
-        "sleep", "Schlaf & Erholung", "Wie erholt du dich fühlst",
+    Recovery(
+        "recovery", "Erholung", "Schlaf und Erholung",
         "Wie erholt fühlst du dich?", "gar nicht erholt", "sehr erholt", Icons.Outlined.Bedtime
     ),
-    DailyLife(
-        "daily_life", "Alltag bewältigen", "Mit alltäglichen Aufgaben zurechtkommen",
-        "Wie gut kommst du mit alltäglichen Aufgaben zurecht?",
-        "sehr schwer", "sehr leicht", Icons.Outlined.Home
+    Joy(
+        "joy", "Freude", "Freude und Antrieb",
+        "Wie viel Freude und Interesse erlebst du?", "gar keine", "sehr viel",
+        Icons.Outlined.WbSunny
+    ),
+    Mood(
+        "mood", "Stimmung", "Stimmung und Hoffnung",
+        "Wie ist deine Stimmung?", "sehr niedergeschlagen", "sehr gut", Icons.Outlined.Favorite
+    ),
+    Thoughts(
+        "thoughts", "Gedanken", "Gedankenmuster und Grübeln",
+        "Wie ruhig und freundlich sind deine Gedanken?", "sehr belastend", "sehr ruhig",
+        Icons.Outlined.Psychology
     ),
     Connection(
-        "connection", "Verbundenheit", "Verbindung zu anderen Menschen",
+        "connection", "Verbundenheit", "Kontakt zu anderen Menschen",
         "Wie verbunden fühlst du dich mit anderen Menschen?",
         "sehr getrennt", "sehr verbunden", Icons.Outlined.People
+    ),
+    Structure(
+        "structure", "Struktur", "Tagesstruktur",
+        "Wie gut gelingt dir deine Tagesstruktur?", "gar nicht", "sehr gut", Icons.Outlined.Home
     );
 
-    val isGeneral: Boolean get() = this == General
-
     companion object {
-        val specialized: List<CheckInCategory> get() = entries.filter { !it.isGeneral }
         fun fromId(id: String?): CheckInCategory? = entries.firstOrNull { it.id == id }
     }
 }

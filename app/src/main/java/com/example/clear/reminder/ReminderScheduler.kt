@@ -21,11 +21,19 @@ object ReminderScheduler {
     const val QUOTE_ID = 1
     const val MEDITATION_ID = 2
     const val CHECKIN_ID = 3
+    const val EVENING_ID = 4
+    const val PHQ_ID = 5
+    const val WHO5_ID = 6
+    const val WSAS_ID = 7
     const val KEY_SETTINGS_ID = "settingsId"
 
     private fun workName(settingsId: Int) = when (settingsId) {
         MEDITATION_ID -> "meditation_reminder"
         CHECKIN_ID -> "checkin_reminder"
+        EVENING_ID -> "evening_reminder"
+        PHQ_ID -> "phq_reminder"
+        WHO5_ID -> "who5_reminder"
+        WSAS_ID -> "wsas_reminder"
         else -> "quote_reminder"
     }
 

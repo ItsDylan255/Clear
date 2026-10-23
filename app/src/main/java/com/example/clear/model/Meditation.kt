@@ -13,27 +13,31 @@ import androidx.compose.material.icons.outlined.RecordVoiceOver
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/** Eine gefuehrte Meditation. Alle dauern zehn Minuten. */
+/**
+ * Eine gefuehrte Meditation. Alle dauern zehn Minuten.
+ * `shortTitle` ist der kurze Name fuer die schmalen Kacheln der Uebersicht.
+ */
 data class Meditation(
     val id: String,
     val title: String,
     val description: String,
     val icon: ImageVector,
-    val durationMinutes: Int = 10
+    val durationMinutes: Int = 10,
+    val shortTitle: String = title
 )
 
 object Meditations {
     val all: List<Meditation> = listOf(
-        Meditation("mindfulness", "Achtsamkeitsmeditation", "Den Moment bewusst wahrnehmen", Icons.Outlined.Spa),
-        Meditation("breath", "Atemmeditation", "Die Aufmerksamkeit zum Atem lenken", Icons.Outlined.Air),
-        Meditation("bodyscan", "Body-Scan", "Den Körper bewusst wahrnehmen", Icons.Outlined.AccessibilityNew),
-        Meditation("self_compassion", "Selbstmitgefühlsmeditation", "Freundlicher mit dir selbst sein", Icons.Outlined.FavoriteBorder),
-        Meditation("sleep", "Schlafmeditation", "Zur Ruhe kommen", Icons.Outlined.Bedtime),
-        Meditation("concentration", "Konzentrationsmeditation", "Die Aufmerksamkeit sammeln", Icons.Outlined.CenterFocusStrong),
-        Meditation("visualization", "Visualisierungsmeditation", "Mit inneren Bildern arbeiten", Icons.Outlined.Cloud),
-        Meditation("mantra", "Mantra-Meditation", "Ein Wort oder einen Satz wiederholen", Icons.Outlined.RecordVoiceOver),
-        Meditation("walking", "Gehmeditation", "Bewusstes Gehen", Icons.Outlined.Park),
-        Meditation("gratitude", "Dankbarkeitsmeditation", "Wertschätzend wahrnehmen", Icons.Outlined.LocalFlorist)
+        Meditation("mindfulness", "Achtsamkeitsmeditation", "Den Moment bewusst wahrnehmen", Icons.Outlined.Spa, shortTitle = "Achtsamkeit"),
+        Meditation("breath", "Atemmeditation", "Die Aufmerksamkeit zum Atem lenken", Icons.Outlined.Air, shortTitle = "Atem"),
+        Meditation("bodyscan", "Body-Scan", "Den Körper bewusst wahrnehmen", Icons.Outlined.AccessibilityNew, shortTitle = "Body-Scan"),
+        Meditation("self_compassion", "Selbstmitgefühlsmeditation", "Freundlicher mit dir selbst sein", Icons.Outlined.FavoriteBorder, shortTitle = "Selbstmitgefühl"),
+        Meditation("sleep", "Schlafmeditation", "Zur Ruhe kommen", Icons.Outlined.Bedtime, shortTitle = "Schlaf"),
+        Meditation("concentration", "Konzentrationsmeditation", "Die Aufmerksamkeit sammeln", Icons.Outlined.CenterFocusStrong, shortTitle = "Konzentration"),
+        Meditation("visualization", "Visualisierungsmeditation", "Mit inneren Bildern arbeiten", Icons.Outlined.Cloud, shortTitle = "Visualisierung"),
+        Meditation("mantra", "Mantra-Meditation", "Ein Wort oder einen Satz wiederholen", Icons.Outlined.RecordVoiceOver, shortTitle = "Mantra"),
+        Meditation("walking", "Gehmeditation", "Bewusstes Gehen", Icons.Outlined.Park, shortTitle = "Gehen"),
+        Meditation("gratitude", "Dankbarkeitsmeditation", "Wertschätzend wahrnehmen", Icons.Outlined.LocalFlorist, shortTitle = "Dankbarkeit")
     )
 
     fun fromId(id: String?): Meditation? = all.firstOrNull { it.id == id }

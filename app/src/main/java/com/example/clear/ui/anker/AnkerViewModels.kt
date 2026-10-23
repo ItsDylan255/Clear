@@ -12,6 +12,7 @@ import com.example.clear.data.LetterRepository
 import com.example.clear.data.Quote
 import com.example.clear.data.QuoteRepository
 import com.example.clear.model.EmotionTag
+import com.example.clear.model.Situations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,11 +24,16 @@ import kotlinx.coroutines.launch
 
 // ---------- Zitate ----------
 
-class QuotesViewModel(app: Application) : AndroidViewModel(app) {
+class QuotesViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     private val repo = QuoteRepository(ClearDatabase.getInstance(app).quoteDao())
+    private val emotion: String? = handle.get<String>("emotion")
 
-    /** null = wird noch geladen. */
+    /** Name der gewaehlten Emotion fuer die Ueberschrift. */
+    val emotionName: String? = Situations.fromId(emotion)?.name
+
+    /** Nur die Zitate der gewaehlten Emotion. null = wird noch geladen. */
     val quotes: StateFlow<List<Quote>?> = repo.observeAll()
+        .map { list -> list.filter { EmotionTag.matches(it.emotionTags, emotion) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun delete(quote: Quote) {
@@ -40,13 +46,14 @@ data class QuoteEditorState(
     val isNew: Boolean = true,
     val text: String = "",
     val author: String = "",
-    val emotionTags: Set<EmotionTag> = emptySet(),
     val textError: Boolean = false
 )
 
 class QuoteEditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     private val repo = QuoteRepository(ClearDatabase.getInstance(app).quoteDao())
     private val quoteId: Long = handle.get<Long>("quoteId") ?: -1L
+    private val emotion: String? = handle.get<String>("emotion")
+    private var existingTags = ""
     private var createdAt = 0L
     private var saving = false
 
@@ -61,11 +68,9 @@ class QuoteEditorViewModel(app: Application, handle: SavedStateHandle) : Android
                 val q = repo.get(quoteId)
                 if (q != null) {
                     createdAt = q.createdAt
+                    existingTags = q.emotionTags
                     _state.update {
-                        it.copy(
-                            isLoading = false, text = q.text, author = q.author.orEmpty(),
-                            emotionTags = EmotionTag.parse(q.emotionTags)
-                        )
+                        it.copy(isLoading = false, text = q.text, author = q.author.orEmpty())
                     }
                 } else {
                     _state.update { it.copy(isLoading = false, isNew = true) }
@@ -76,7 +81,6 @@ class QuoteEditorViewModel(app: Application, handle: SavedStateHandle) : Android
 
     fun onTextChange(v: String) = _state.update { it.copy(text = v, textError = false) }
     fun onAuthorChange(v: String) = _state.update { it.copy(author = v) }
-    fun onTagsChange(v: Set<EmotionTag>) = _state.update { it.copy(emotionTags = v) }
 
     fun save(onDone: () -> Unit) {
         val s = _state.value
@@ -89,7 +93,8 @@ class QuoteEditorViewModel(app: Application, handle: SavedStateHandle) : Android
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             val author = s.author.trim().ifBlank { null }
-            val tags = EmotionTag.serialize(s.emotionTags)
+            // Neue Eintraege bekommen die gewaehlte Emotion, bestehende behalten ihre
+            val tags = if (s.isNew) EmotionTag.forNewEntry(emotion) else existingTags
             if (s.isNew) {
                 repo.add(
                     Quote(text = s.text.trim(), author = author, createdAt = now,
@@ -108,10 +113,16 @@ class QuoteEditorViewModel(app: Application, handle: SavedStateHandle) : Android
 
 // ---------- Briefe ----------
 
-class LettersViewModel(app: Application) : AndroidViewModel(app) {
+class LettersViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     private val repo = LetterRepository(ClearDatabase.getInstance(app).letterDao())
+    private val emotion: String? = handle.get<String>("emotion")
 
+    /** Name der gewaehlten Emotion fuer die Ueberschrift. */
+    val emotionName: String? = Situations.fromId(emotion)?.name
+
+    /** Nur die Briefe der gewaehlten Emotion. null = wird noch geladen. */
     val letters: StateFlow<List<Letter>?> = repo.observeAll()
+        .map { list -> list.filter { EmotionTag.matches(it.emotionTags, emotion) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 }
 
@@ -145,6 +156,8 @@ data class LetterEditorState(
 class LetterEditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     private val repo = LetterRepository(ClearDatabase.getInstance(app).letterDao())
     private val letterId: Long = handle.get<Long>("letterId") ?: -1L
+    private val emotion: String? = handle.get<String>("emotion")
+    private var existingTags = ""
     private var createdAt = 0L
     private var saving = false
 
@@ -159,6 +172,7 @@ class LetterEditorViewModel(app: Application, handle: SavedStateHandle) : Androi
                 val l = repo.get(letterId)
                 if (l != null) {
                     createdAt = l.createdAt
+                    existingTags = l.emotionTags
                     _state.update { it.copy(isLoading = false, title = l.title, text = l.text) }
                 } else {
                     _state.update { it.copy(isLoading = false, isNew = true) }
@@ -180,12 +194,17 @@ class LetterEditorViewModel(app: Application, handle: SavedStateHandle) : Androi
         saving = true
         viewModelScope.launch {
             val now = System.currentTimeMillis()
+            // Neue Briefe bekommen die gewaehlte Emotion, bestehende behalten ihre
+            val tags = if (s.isNew) EmotionTag.forNewEntry(emotion) else existingTags
             if (s.isNew) {
-                repo.add(Letter(title = s.title.trim(), text = s.text.trim(), createdAt = now, updatedAt = now))
+                repo.add(
+                    Letter(title = s.title.trim(), text = s.text.trim(), createdAt = now,
+                        updatedAt = now, emotionTags = tags)
+                )
             } else {
                 repo.update(
                     Letter(id = letterId, title = s.title.trim(), text = s.text.trim(),
-                        createdAt = createdAt, updatedAt = now)
+                        createdAt = createdAt, updatedAt = now, emotionTags = tags)
                 )
             }
             onDone()

@@ -26,7 +26,10 @@ import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.components.ConfirmDeleteDialog
 import com.example.clear.ui.components.EditorButtons
+import com.example.clear.ui.components.EmotionTagDialog
 import com.example.clear.ui.components.EmptyHintCard
+import com.example.clear.ui.components.emotionTagsLabel
+import com.example.clear.model.EmotionTag
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -44,7 +47,10 @@ fun LettersScreen(
     val letters by viewModel.letters.collectAsState()
     val list = letters
 
-    ClearDetailScreen(title = "Briefe an mich selbst", onBack = onBack) {
+    ClearDetailScreen(
+        title = viewModel.emotionName?.let { "Briefe · $it" } ?: "Briefe an mich selbst",
+        onBack = onBack
+    ) {
         Text(
             "Schreib dir Worte, wenn es dir gut geht. Lies sie, wenn du sie brauchst.",
             style = MaterialTheme.typography.bodyLarge,
@@ -103,7 +109,7 @@ fun LetterReaderScreen(
     if (confirmDelete && letter != null) {
         ConfirmDeleteDialog(
             title = "Brief löschen?",
-            message = "„${letter.title}“ wird dauerhaft gelöscht.",
+            message = "„${letter.title}“ wird dauerhaft gelöscht." + deleteNote(letter.emotionTags),
             onConfirm = {
                 confirmDelete = false
                 viewModel.delete(letter, onDone = onBack)

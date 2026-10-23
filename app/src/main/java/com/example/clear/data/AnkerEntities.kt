@@ -21,7 +21,8 @@ data class Letter(
     val title: String,
     val text: String,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val emotionTags: String = ""
 )
 
 /** Deine persoenliche Notfallkarte. Es gibt genau eine Zeile (id = 1). */

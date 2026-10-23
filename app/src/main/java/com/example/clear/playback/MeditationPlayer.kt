@@ -3,6 +3,7 @@ package com.example.clear.playback
 import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
+import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -41,6 +42,7 @@ object MeditationPlayer {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var controller: MediaController? = null
     private var progressJob: Job? = null
+    private var startedAt = 0L
 
     private val _state = MutableStateFlow(MeditationPlayerState())
     val state: StateFlow<MeditationPlayerState> = _state.asStateFlow()
@@ -51,7 +53,13 @@ object MeditationPlayer {
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            if (playbackState == Player.STATE_ENDED && _state.value.meditationId != null) {
+            if (_state.value.meditationId == null) return
+            val ended = playbackState == Player.STATE_ENDED
+            // Stopp ueber die Benachrichtigung: Player ist im Leerlauf. In den ersten
+            // Sekunden nach dem Start ignorieren (alte Rueckmeldungen vom Vorgaenger).
+            val stopped = playbackState == Player.STATE_IDLE &&
+                SystemClock.elapsedRealtime() - startedAt > 2000L
+            if (ended || stopped) {
                 progressJob?.cancel()
                 _state.value = MeditationPlayerState()
             }
@@ -83,6 +91,7 @@ object MeditationPlayer {
             return
         }
         MusicPlayer.stop()
+        startedAt = SystemClock.elapsedRealtime()
         val packageName = context.applicationContext.packageName
         withController(context) { c ->
             c.volume = 1f

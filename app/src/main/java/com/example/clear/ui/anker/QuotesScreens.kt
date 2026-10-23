@@ -47,7 +47,10 @@ fun QuotesScreen(
     val list = quotes
     var toDelete by remember { mutableStateOf<Quote?>(null) }
 
-    ClearDetailScreen(title = "Zitate und Gedanken", onBack = onBack) {
+    ClearDetailScreen(
+        title = viewModel.emotionName?.let { "Zitate · $it" } ?: "Zitate und Gedanken",
+        onBack = onBack
+    ) {
         Text(
             "Worte, die dir guttun.",
             style = MaterialTheme.typography.bodyLarge,
@@ -73,14 +76,6 @@ fun QuotesScreen(
                                     modifier = Modifier.padding(top = ClearSpacing.small)
                                 )
                             }
-                            emotionTagsLabel(quote.emotionTags)?.let { label ->
-                                Text(
-                                    label,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(top = ClearSpacing.small)
-                                )
-                            }
                         }
                         OptionsMenu(
                             contentDescription = "Optionen für dieses Zitat",
@@ -97,7 +92,7 @@ fun QuotesScreen(
     toDelete?.let { quote ->
         ConfirmDeleteDialog(
             title = "Zitat löschen?",
-            message = "Dieses Zitat wird dauerhaft gelöscht.",
+            message = "Dieses Zitat wird dauerhaft gelöscht." + deleteNote(quote.emotionTags),
             onConfirm = { viewModel.delete(quote); toDelete = null },
             onDismiss = { toDelete = null }
         )
@@ -107,7 +102,6 @@ fun QuotesScreen(
 @Composable
 fun QuoteEditorScreen(onClose: () -> Unit, viewModel: QuoteEditorViewModel = viewModel()) {
     val s by viewModel.state.collectAsState()
-    var showTags by remember { mutableStateOf(false) }
     Box(modifier = Modifier.imePadding()) {
         ClearDetailScreen(
             title = if (s.isNew) "Neues Zitat" else "Zitat bearbeiten",
@@ -132,24 +126,6 @@ fun QuoteEditorScreen(onClose: () -> Unit, viewModel: QuoteEditorViewModel = vie
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedButton(
-                    onClick = { showTags = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large
-                ) {
-                    Text(
-                        if (s.emotionTags.isEmpty()) "Emotionen zuordnen (optional)"
-                        else "Emotionen: " + EmotionTag.entries.filter { it in s.emotionTags }
-                            .joinToString(", ") { it.title }
-                    )
-                }
-                if (showTags) {
-                    EmotionTagDialog(
-                        initial = s.emotionTags,
-                        onSave = { viewModel.onTagsChange(it); showTags = false },
-                        onDismiss = { showTags = false }
-                    )
-                }
                 EditorButtons(onCancel = onClose, onSave = { viewModel.save(onClose) })
             }
         }

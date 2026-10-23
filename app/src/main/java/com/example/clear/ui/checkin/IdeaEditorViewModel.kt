@@ -20,11 +20,16 @@ data class IdeaEditorState(
     val isLoading: Boolean = true,
     val isNew: Boolean = true,
     val title: String = "",
-    val description: String = "",
-    val category: CheckInCategory = CheckInCategory.General,
+    val category: CheckInCategory = CheckInCategory.Energy,
     val contentType: ContentType = ContentType.Exercise,
-    val level: IdeaLevel = IdeaLevel.Normal,
-    val titleError: Boolean = false
+    // Je ein Text fuer Normal, Sinkend und Stark beeintraechtigt. Alle drei sind Pflicht.
+    val textNormal: String = "",
+    val textSinking: String = "",
+    val textSevere: String = "",
+    val titleError: Boolean = false,
+    val normalError: Boolean = false,
+    val sinkingError: Boolean = false,
+    val severeError: Boolean = false
 )
 
 /** Erstellen und Bearbeiten einer Idee. ideaId = -1 bedeutet: neue Idee. */
@@ -45,7 +50,7 @@ class IdeaEditorViewModel(
             isLoading = ideaId != -1L,
             isNew = ideaId == -1L,
             category = CheckInCategory.fromId(savedStateHandle.get<String>("categoryId"))
-                ?: CheckInCategory.General
+                ?: CheckInCategory.Energy
         )
     )
     val state: StateFlow<IdeaEditorState> = _state.asStateFlow()
@@ -60,11 +65,12 @@ class IdeaEditorViewModel(
                         it.copy(
                             isLoading = false,
                             title = idea.title,
-                            description = idea.description.orEmpty(),
                             category = CheckInCategory.fromId(idea.categoryId)
-                                ?: CheckInCategory.General,
+                                ?: CheckInCategory.Energy,
                             contentType = idea.contentType,
-                            level = idea.level
+                            textNormal = idea.textNormal,
+                            textSinking = idea.textSinking,
+                            textSevere = idea.textSevere
                         )
                     }
                 } else {
@@ -75,37 +81,47 @@ class IdeaEditorViewModel(
     }
 
     fun onTitleChange(value: String) = _state.update { it.copy(title = value, titleError = false) }
-    fun onDescriptionChange(value: String) = _state.update { it.copy(description = value) }
+    fun onNormalChange(value: String) = _state.update { it.copy(textNormal = value, normalError = false) }
+    fun onSinkingChange(value: String) = _state.update { it.copy(textSinking = value, sinkingError = false) }
+    fun onSevereChange(value: String) = _state.update { it.copy(textSevere = value, severeError = false) }
     fun onCategoryChange(value: CheckInCategory) = _state.update { it.copy(category = value) }
-    fun onContentTypeChange(value: ContentType) = _state.update { it.copy(contentType = value) }
-    fun onLevelChange(value: IdeaLevel) = _state.update { it.copy(level = value) }
 
     /** Speichert. Aendert man die Kategorie, wandert die Idee automatisch dorthin. */
     fun save(onDone: () -> Unit) {
         val s = _state.value
-        if (s.title.isBlank()) {
-            _state.update { it.copy(titleError = true) }
+        if (s.title.isBlank() || s.textNormal.isBlank() || s.textSinking.isBlank() || s.textSevere.isBlank()) {
+            _state.update {
+                it.copy(
+                    titleError = s.title.isBlank(),
+                    normalError = s.textNormal.isBlank(),
+                    sinkingError = s.textSinking.isBlank(),
+                    severeError = s.textSevere.isBlank()
+                )
+            }
             return
         }
         if (saving) return
         saving = true
         viewModelScope.launch {
             val now = System.currentTimeMillis()
-            val description = s.description.trim().ifBlank { null }
             if (s.isNew) {
                 repository.add(
                     PersonalIdea(
-                        title = s.title.trim(), description = description,
+                        title = s.title.trim(),
                         categoryId = s.category.id, contentType = s.contentType,
-                        createdAt = now, updatedAt = now, level = s.level
+                        createdAt = now, updatedAt = now,
+                        textNormal = s.textNormal.trim(), textSinking = s.textSinking.trim(),
+                        textSevere = s.textSevere.trim()
                     )
                 )
             } else {
                 repository.update(
                     PersonalIdea(
-                        id = ideaId, title = s.title.trim(), description = description,
+                        id = ideaId, title = s.title.trim(),
                         categoryId = s.category.id, contentType = s.contentType,
-                        createdAt = createdAt, updatedAt = now, level = s.level
+                        createdAt = createdAt, updatedAt = now,
+                        textNormal = s.textNormal.trim(), textSinking = s.textSinking.trim(),
+                        textSevere = s.textSevere.trim()
                     )
                 )
             }

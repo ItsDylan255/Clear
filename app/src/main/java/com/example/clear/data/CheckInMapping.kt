@@ -8,11 +8,13 @@ import java.time.Instant
 fun CheckInEntry.toRecord(): CheckInRecord = CheckInRecord(
     timestamp = Instant.ofEpochMilli(timestamp),
     ratings = buildMap {
-        general?.let { put(CheckInCategory.General.id, it) }
         energy?.let { put(CheckInCategory.Energy.id, it) }
+        clarity?.let { put(CheckInCategory.Clarity.id, it) }
+        recovery?.let { put(CheckInCategory.Recovery.id, it) }
         joy?.let { put(CheckInCategory.Joy.id, it) }
-        sleep?.let { put(CheckInCategory.Sleep.id, it) }
-        dailyLife?.let { put(CheckInCategory.DailyLife.id, it) }
+        mood?.let { put(CheckInCategory.Mood.id, it) }
+        thoughts?.let { put(CheckInCategory.Thoughts.id, it) }
         connection?.let { put(CheckInCategory.Connection.id, it) }
+        structure?.let { put(CheckInCategory.Structure.id, it) }
     }
 )

@@ -6,15 +6,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,24 +25,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.MusicTrack
-import com.example.clear.model.EmotionTag
-import com.example.clear.model.MoodGoal
+import com.example.clear.model.MusicMode
 import com.example.clear.ui.akut.ClearWarningSoft
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.components.ConfirmDeleteDialog
-import com.example.clear.ui.components.EmotionTagDialog
-import com.example.clear.ui.components.MoodGoalDialog
-import com.example.clear.ui.components.moodGoalsLabel
 import com.example.clear.ui.components.EmptyHintCard
-import com.example.clear.ui.components.emotionTagsLabel
 import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearSurfaceSoft
 
@@ -49,20 +48,22 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
     val playback by viewModel.playback.collectAsState()
     val list = tracks
     var toDelete by remember { mutableStateOf<MusicTrack?>(null) }
-    var tagTrack by remember { mutableStateOf<MusicTrack?>(null) }
-    var goalTrack by remember { mutableStateOf<MusicTrack?>(null) }
+    var modeFor by remember { mutableStateOf<MusicTrack?>(null) }
+    var showAddMode by remember { mutableStateOf(false) }
+    // Die gewaehlte Art merkt sich die Seite, waehrend die Dateiauswahl des Systems offen ist
+    var pendingModeId by rememberSaveable { mutableStateOf<String?>(null) }
 
     // Dateiauswahl des Systems (Storage Access Framework)
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) viewModel.addTrack(uri)
+        val mode = MusicMode.parse(pendingModeId.orEmpty())
+        if (uri != null && mode != null) viewModel.addTrack(uri, mode)
+        pendingModeId = null
     }
 
-    ClearDetailScreen(title = "Meine Musik", onBack = onBack) {
-        Text(
-            "Musik, die dich beruhigt.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    ClearDetailScreen(
+        title = viewModel.emotionName?.let { "Musik · $it" } ?: "Meine Musik",
+        onBack = onBack
+    ) {
         playback.message?.let { text ->
             ClearCard(containerColor = ClearWarningSoft) {
                 Text(text, style = MaterialTheme.typography.bodyLarge)
@@ -89,16 +90,9 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text(track.title, style = MaterialTheme.typography.titleMedium)
-                            TextButton(onClick = { tagTrack = track }) {
+                            TextButton(onClick = { modeFor = track }) {
                                 Text(
-                                    emotionTagsLabel(track.emotionTags) ?: "Emotionen zuordnen",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                            TextButton(onClick = { goalTrack = track }) {
-                                Text(
-                                    moodGoalsLabel(track.moodGoals)?.let { "Stimmung verändern: $it" }
-                                        ?: "Stimmungsziel zuordnen",
+                                    MusicMode.parse(track.moodGoals)?.title ?: "Art der Musik wählen",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             }
@@ -110,7 +104,7 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
                 }
             }
         }
-        AddButton("Musik hinzufügen") { picker.launch(arrayOf("audio/*")) }
+        AddButton("Musik hinzufügen") { showAddMode = true }
         Text(
             "Die Datei wird in Clear gespeichert und bleibt nur auf deinem Handy. " +
                 "Die Wiedergabe läuft, solange diese Seite offen ist.",
@@ -119,27 +113,53 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
         )
     }
 
+    if (showAddMode) {
+        MusicModeDialog(
+            title = "Wofür ist diese Musik?",
+            onPick = { mode ->
+                showAddMode = false
+                pendingModeId = mode.id
+                picker.launch(arrayOf("audio/*"))
+            },
+            onDismiss = { showAddMode = false }
+        )
+    }
+    modeFor?.let { track ->
+        MusicModeDialog(
+            title = "Wofür ist diese Musik?",
+            onPick = { mode -> viewModel.updateMode(track, mode); modeFor = null },
+            onDismiss = { modeFor = null }
+        )
+    }
     toDelete?.let { track ->
         ConfirmDeleteDialog(
             title = "Musik löschen?",
-            message = "„${track.title}“ wird aus Clear entfernt. Dein Original bleibt unberührt.",
+            message = "„${track.title}“ wird aus Clear entfernt. Dein Original bleibt unberührt." +
+                deleteNote(track.emotionTags),
             onConfirm = { viewModel.delete(track); toDelete = null },
             onDismiss = { toDelete = null }
         )
     }
+}
 
-    tagTrack?.let { track ->
-        EmotionTagDialog(
-            initial = EmotionTag.parse(track.emotionTags),
-            onSave = { viewModel.updateTags(track, it); tagTrack = null },
-            onDismiss = { tagTrack = null }
-        )
-    }
-    goalTrack?.let { track ->
-        MoodGoalDialog(
-            initial = MoodGoal.parse(track.moodGoals),
-            onSave = { viewModel.updateMoodGoals(track, it); goalTrack = null },
-            onDismiss = { goalTrack = null }
-        )
-    }
+/** Genau eine der beiden Arten waehlen. */
+@Composable
+private fun MusicModeDialog(title: String, onPick: (MusicMode) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                MusicMode.entries.forEach { mode ->
+                    OutlinedButton(
+                        onClick = { onPick(mode) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        shape = MaterialTheme.shapes.large
+                    ) { Text(mode.title) }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } }
+    )
 }

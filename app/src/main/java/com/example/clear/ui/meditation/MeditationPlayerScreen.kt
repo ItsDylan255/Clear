@@ -3,8 +3,8 @@ package com.example.clear.ui.meditation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Replay
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -62,21 +63,17 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
     var dragValue by remember { mutableStateOf<Float?>(null) }
 
     ClearDetailScreen(title = meditation.title, onBack = onBack) {
-        Text(
-            meditation.description,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
         // Ruhige Grafik statt Atemkreis-Animation
-        Box(modifier = Modifier.fillMaxWidth().padding(vertical = ClearSpacing.medium),
-            contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(vertical = ClearSpacing.small),
+            contentAlignment = Alignment.Center
+        ) {
             Box(
-                modifier = Modifier.size(160.dp).clip(CircleShape).background(ClearSurfaceSoft),
+                modifier = Modifier.size(112.dp).clip(CircleShape).background(ClearSurfaceSoft),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(meditation.icon, contentDescription = null,
-                    tint = ClearTextDark, modifier = Modifier.size(64.dp))
+                    tint = ClearTextDark, modifier = Modifier.size(48.dp))
             }
         }
 
@@ -99,53 +96,63 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
             }
         }
 
-        // Fortschritt und Zeiten
-        Slider(
-            value = dragValue ?: progress,
-            onValueChange = { dragValue = it },
-            onValueChangeFinished = {
-                dragValue?.let { MeditationPlayer.seekTo((it * durationMs).toLong()) }
-                dragValue = null
-            },
-            enabled = audioAvailable && isCurrent,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatTime(positionMs), style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("-${formatTime((durationMs - positionMs).coerceAtLeast(0L))}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-
-        // Steuerung: 15 Sekunden zurueck, Play/Pause, (Platzhalter fuer Symmetrie)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { MeditationPlayer.seekBack(15) },
-                enabled = audioAvailable && isCurrent,
-                modifier = Modifier.size(56.dp)
-            ) {
-                Icon(Icons.Outlined.Replay, contentDescription = "15 Sekunden zurück")
-            }
-            FilledIconButton(
-                onClick = {
-                    if (isCurrent) MeditationPlayer.togglePause()
-                    else MeditationPlayer.play(context, meditation)
+        // Kompakter Controller: Fortschritt, Zeiten und Tasten ohne grosse Abstaende
+        Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            Slider(
+                value = dragValue ?: progress,
+                onValueChange = { dragValue = it },
+                onValueChangeFinished = {
+                    dragValue?.let { MeditationPlayer.seekTo((it * durationMs).toLong()) }
+                    dragValue = null
                 },
-                enabled = audioAvailable,
-                modifier = Modifier.size(72.dp)
+                enabled = audioAvailable && isCurrent,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Abspielen",
-                    modifier = Modifier.size(36.dp)
-                )
+                Text(formatTime(positionMs), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("-${formatTime((durationMs - positionMs).coerceAtLeast(0L))}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Spacer(Modifier.size(56.dp))
+            // 15 Sekunden zurueck, Play/Pause, Stopp
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { MeditationPlayer.seekBack(15) },
+                    enabled = audioAvailable && isCurrent,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(Icons.Outlined.Replay, contentDescription = "15 Sekunden zurück")
+                }
+                FilledIconButton(
+                    onClick = {
+                        if (isCurrent) MeditationPlayer.togglePause()
+                        else MeditationPlayer.play(context, meditation)
+                    },
+                    enabled = audioAvailable,
+                    modifier = Modifier.size(64.dp)
+                ) {
+                    Icon(
+                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) "Pause" else "Abspielen",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                IconButton(
+                    onClick = { MeditationPlayer.stop() },
+                    enabled = audioAvailable && isCurrent,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(Icons.Filled.Stop, contentDescription = "Stopp")
+                }
+            }
         }
     }
 }

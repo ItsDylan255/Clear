@@ -22,8 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.clear.data.ContentType
-import com.example.clear.data.IdeaLevel
 import com.example.clear.model.CheckInCategory
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -54,13 +52,6 @@ fun IdeaEditorScreen(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                    value = s.description,
-                    onValueChange = viewModel::onDescriptionChange,
-                    label = { Text("Beschreibung (optional)") },
-                    minLines = 3,
-                    modifier = Modifier.fillMaxWidth()
-                )
 
                 Text("Bereich", style = MaterialTheme.typography.titleMedium)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
@@ -73,32 +64,24 @@ fun IdeaEditorScreen(
                     }
                 }
 
-                Text("Art des Inhalts", style = MaterialTheme.typography.titleMedium)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
-                    ContentType.entries.forEach { type ->
-                        FilterChip(
-                            selected = s.contentType == type,
-                            onClick = { viewModel.onContentTypeChange(type) },
-                            label = { Text(type.label) }
-                        )
-                    }
-                }
-
-                Text("Für welchen Zustand?", style = MaterialTheme.typography.titleMedium)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
-                    IdeaLevel.entries.forEach { level ->
-                        FilterChip(
-                            selected = s.level == level,
-                            onClick = { viewModel.onLevelChange(level) },
-                            label = { Text(level.label) }
-                        )
-                    }
-                }
-                Text(
-                    "Clear zeigt diese Idee zuerst, wenn dieser Zustand bei dir zutrifft. " +
-                        "Du findest sie aber immer in der Liste.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Text("Was gilt in welchem Zustand?", style = MaterialTheme.typography.titleMedium)
+                StateField(
+                    label = "Hoch",
+                    value = s.textNormal,
+                    onChange = viewModel::onNormalChange,
+                    isError = s.normalError
+                )
+                StateField(
+                    label = "Mittel",
+                    value = s.textSinking,
+                    onChange = viewModel::onSinkingChange,
+                    isError = s.sinkingError
+                )
+                StateField(
+                    label = "Niedrig",
+                    value = s.textSevere,
+                    onChange = viewModel::onSevereChange,
+                    isError = s.severeError
                 )
 
                 Row(
@@ -117,4 +100,23 @@ fun IdeaEditorScreen(
             }
         }
     }
+}
+
+/** Ein Textfeld pro Zustand. Alle drei muessen ausgefuellt werden. */
+@Composable
+private fun StateField(
+    label: String,
+    value: String,
+    onChange: (String) -> Unit,
+    isError: Boolean
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text(label) },
+        isError = isError,
+        supportingText = { if (isError) Text("Bitte ergänze diesen Text.") },
+        minLines = 2,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
