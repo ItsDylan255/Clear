@@ -299,7 +299,7 @@ fun ThoughtFlowScreen(
                             val selected = trap in s.traps
                             ClearCard(
                                 onClick = { viewModel.toggleTrap(trap) },
-                                containerColor = if (selected) ClearSurfaceSoft else null
+                                containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else null
                             ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
@@ -330,7 +330,7 @@ fun ThoughtFlowScreen(
                             val selected = s.helpQuestion == index
                             ClearCard(
                                 onClick = { viewModel.onHelpQuestion(index) },
-                                containerColor = if (selected) ClearSurfaceSoft else null
+                                containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else null
                             ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
@@ -341,6 +341,34 @@ fun ThoughtFlowScreen(
                                     Text(question, style = MaterialTheme.typography.bodyLarge)
                                 }
                             }
+                        }
+                        if (s.helpQuestion == HelpQuestions.AGAINST) {
+                            ClearCard {
+                                Text(
+                                    "Das hast du zuletzt aufgeschrieben",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                if (recent.isEmpty()) {
+                                    Text(
+                                        "Hier ist noch nichts gespeichert.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                } else {
+                                    recent.forEach { entry ->
+                                        Text("• ${entry.text}", style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                }
+                            }
+                        }
+                        if (s.helpQuestion != null) {
+                            OutlinedTextField(
+                                value = s.newView,
+                                onValueChange = viewModel::onNewView,
+                                label = { Text("Deine Antwort") },
+                                minLines = 3,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                     else -> {

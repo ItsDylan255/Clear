@@ -44,8 +44,8 @@ fun EmergencyCardScreen(
     val signList = signs.orEmpty()
 
     ClearDetailScreen(title = "Notfallkarte", onBack = onBack) {
-        PhoneCard("Notruf", "112", "Bei akuter Gefahr für dich oder andere")
-        PhoneCard("Telefonseelsorge", "0800 111 0 111", "Gespräch in schwierigen Zeiten, kostenlos")
+        PhoneCard("Notruf", "112", "")
+        PhoneCard("Telefonseelsorge", "0800 111 0 111", "")
 
         if (c != null) {
             if (c.contactName.isNotBlank() || c.contactPhone.isNotBlank()) {

@@ -45,12 +45,6 @@ fun EmergencyManageScreen(
     val planSummary = c?.safetyPlan.orEmpty()
 
     ClearDetailScreen(title = "Notfallkarte", onBack = onBack) {
-        Text(
-            "Alles hier ist freiwillig und bleibt auf deinem Handy. Im Akut-Tab siehst du deine " +
-                "Angaben dann zusammen mit den wichtigen Nummern.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         EmergencyEntryCard(
             title = "Notfallperson",
             summary = personSummary.ifBlank { "Noch niemand eingetragen" },

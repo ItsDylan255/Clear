@@ -42,6 +42,11 @@ object ExerciseNotifier {
 
     fun hasTitles(): Boolean = titles.isNotEmpty()
 
+    /** Vergisst alle Titel (beim Loeschen aller Daten). */
+    fun reset() {
+        titles.clear()
+    }
+
     private fun idFor(ideaId: Long) = ID_BASE + (ideaId % 3000).toInt()
 
     private fun ensureChannel(context: Context) {

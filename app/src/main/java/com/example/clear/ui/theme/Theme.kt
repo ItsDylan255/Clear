@@ -16,11 +16,11 @@ import androidx.compose.ui.unit.sp
 private val LightScheme = lightColorScheme(
     primary = LightPrimary,
     onPrimary = Color.White,
-    primaryContainer = LightSurfaceSoft,
-    onPrimaryContainer = LightTextDark,
-    secondary = LightPrimary,
+    primaryContainer = Color(0xFFDCE8F4),
+    onPrimaryContainer = Color(0xFF1B3550),
+    secondary = Color(0xFF5E7388),
     onSecondary = Color.White,
-    secondaryContainer = LightSurfaceSoft,
+    secondaryContainer = Color(0xFFE4EAF0),
     onSecondaryContainer = LightTextDark,
     tertiary = LightWarning,
     onTertiary = Color.White,
@@ -28,53 +28,54 @@ private val LightScheme = lightColorScheme(
     onBackground = LightTextDark,
     surface = LightCard,
     onSurface = LightTextDark,
-    surfaceVariant = Color(0xFFEDECE6),
+    surfaceVariant = LightSurfaceSoft,
     onSurfaceVariant = LightTextSecondary,
-    outline = Color(0xFF8E8D88),
-    outlineVariant = Color(0xFFDAD9D3),
+    outline = Color(0xFF8793A0),
+    outlineVariant = Color(0xFFDDE3E9),
     error = LightError,
     onError = Color.White,
-    // Alle Flaechen neutral, damit nirgends ein Farbstich der Standardfarben durchkommt
     surfaceContainerLowest = LightCard,
-    surfaceContainerLow = Color(0xFFFAF9F5),
+    surfaceContainerLow = Color(0xFFF9FAFC),
     surfaceContainer = LightCard,
-    surfaceContainerHigh = LightCard,
-    surfaceContainerHighest = Color(0xFFEFEEE8)
+    surfaceContainerHigh = Color(0xFFF1F4F7),
+    surfaceContainerHighest = Color(0xFFEAEEF2)
 )
 
 private val DarkScheme = darkColorScheme(
     primary = DarkPrimary,
-    onPrimary = Color(0xFF2B2B2D),
-    primaryContainer = DarkSurfaceSoft,
-    onPrimaryContainer = DarkTextDark,
-    secondary = DarkPrimary,
-    onSecondary = Color(0xFF2B2B2D),
+    onPrimary = Color(0xFF10202F),
+    primaryContainer = Color(0xFF2A425C),
+    onPrimaryContainer = Color(0xFFD6E6F7),
+    secondary = Color(0xFF9DB0C3),
+    onSecondary = Color(0xFF14202B),
     secondaryContainer = DarkSurfaceSoft,
     onSecondaryContainer = DarkTextDark,
     tertiary = DarkWarning,
-    onTertiary = Color(0xFF2B2B2D),
+    onTertiary = Color(0xFF2B1B17),
     background = DarkBackground,
     onBackground = DarkTextDark,
     surface = DarkCard,
     onSurface = DarkTextDark,
-    surfaceVariant = Color(0xFF4A4A4D),
+    surfaceVariant = DarkSurfaceSoft,
     onSurfaceVariant = DarkTextSecondary,
-    outline = Color(0xFF8A8A8E),
-    outlineVariant = Color(0xFF55555A),
+    outline = Color(0xFF6E7B88),
+    outlineVariant = Color(0xFF2D3844),
     error = DarkError,
-    onError = Color(0xFF2B2B2D),
-    surfaceContainerLowest = Color(0xFF242426),
-    surfaceContainerLow = Color(0xFF2F2F31),
+    onError = Color(0xFF2B1B17),
+    surfaceContainerLowest = Color(0xFF0E1216),
+    surfaceContainerLow = Color(0xFF171D23),
     surfaceContainer = DarkCard,
-    surfaceContainerHigh = Color(0xFF424245),
-    surfaceContainerHighest = Color(0xFF4A4A4D)
+    surfaceContainerHigh = Color(0xFF222A32),
+    surfaceContainerHighest = Color(0xFF2A343E)
 )
 
-// Einheitliche Eckenradien
+// Weiche, grosse Rundungen. Buttons (large) sind bei 56 dp Hoehe voll gerundet.
 val ClearShapes = Shapes(
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp)
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(24.dp),
+    large = RoundedCornerShape(28.dp),
+    extraLarge = RoundedCornerShape(32.dp)
 )
 
 // Einheitliche Abstaende
@@ -84,11 +85,16 @@ object ClearSpacing {
     val large = 24.dp
 }
 
+// Ruhige Schrift: etwas mehr Zeilenabstand, weniger Fettdruck
 val ClearTypography = Typography(
-    headlineMedium = TextStyle(fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.SemiBold),
-    titleMedium = TextStyle(fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Medium),
-    bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 24.sp),
-    bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 20.sp)
+    headlineMedium = TextStyle(fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Medium),
+    headlineSmall = TextStyle(fontSize = 24.sp, lineHeight = 32.sp, fontWeight = FontWeight.Medium),
+    titleLarge = TextStyle(fontSize = 22.sp, lineHeight = 30.sp, fontWeight = FontWeight.Medium),
+    titleMedium = TextStyle(fontSize = 17.sp, lineHeight = 24.sp, fontWeight = FontWeight.Medium),
+    bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 25.sp),
+    bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 21.sp),
+    labelLarge = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium),
+    labelMedium = TextStyle(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
 )
 
 @Composable

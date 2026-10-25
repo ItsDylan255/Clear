@@ -808,11 +808,7 @@ object Situations {
         Situation("overwhelm", "Überforderung", Icons.Outlined.Layers, shown(overwhelm)),
         Situation("insomnia", "Schlaflosigkeit", Icons.Outlined.NightsStay, shown(insomnia)),
         Situation("loneliness", "Einsamkeit", Icons.Outlined.PersonOutline, shown(loneliness)),
-        Situation(
-            "unknown", "Allgemein", Icons.Outlined.Explore, shown(unknown),
-            intro = "Das ist okay. Du musst gerade nicht wissen, was los ist. " +
-                "Wir können einfach mit dem Moment anfangen."
-        )
+        Situation("unknown", "Allgemein", Icons.Outlined.Explore, shown(unknown))
     )
 
     fun fromId(id: String?): Situation? = all.firstOrNull { it.id == id }

@@ -1,5 +1,6 @@
 package com.example.clear.ui.meditation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -80,7 +81,9 @@ private fun MeditationTile(
         onClick = onClick,
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = ClearCardColor, contentColor = ClearTextDark)
+        colors = CardDefaults.cardColors(containerColor = ClearCardColor, contentColor = ClearTextDark),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(8.dp),
@@ -88,10 +91,13 @@ private fun MeditationTile(
             verticalArrangement = Arrangement.Center
         ) {
             Box(
-                modifier = Modifier.size(iconCircle).clip(CircleShape).background(ClearSurfaceSoft),
+                modifier = Modifier.size(iconCircle).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(meditation.icon, contentDescription = null, tint = ClearTextDark)
+                Icon(
+                    meditation.icon, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
             Spacer(Modifier.height(8.dp))
             Text(

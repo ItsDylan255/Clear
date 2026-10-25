@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.clear.ui.akut.ClearWarningSoft
+import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -68,13 +68,6 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
     }
 
     ClearDetailScreen(title = "Zitat-Erinnerungen", onBack = onBack) {
-        Text(
-            "Auf Wunsch zeigt Clear dir zur gewählten Zeit eines deiner ausgewählten Zitate. " +
-                "Du kannst das jederzeit ausschalten.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
         ClearCard {
             Row(
                 modifier = Modifier
@@ -94,7 +87,7 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
         }
 
         if (permissionDenied) {
-            ClearCard(containerColor = ClearWarningSoft) {
+            ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
                     "Ohne Erlaubnis kann Clear keine Erinnerungen senden. " +
                         "Du kannst sie später in den Systemeinstellungen erteilen.",
@@ -103,7 +96,7 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
             }
         }
         if (settings.enabled && !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-            ClearCard(containerColor = ClearWarningSoft) {
+            ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
                     "Benachrichtigungen sind für Clear in den Systemeinstellungen ausgeschaltet. " +
                         "Du bekommst deshalb keine Erinnerungen.",
@@ -183,12 +176,6 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
                     )
                 }
             }
-            Text(
-                "Die Zeiten werden jeden Tag neu zufällig im Zeitfenster gewählt. " +
-                    "Android kann sie um einige Minuten verschieben.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         } else {
             Text("Uhrzeit", style = MaterialTheme.typography.titleMedium)
             OutlinedButton(
@@ -202,11 +189,6 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
             ) { Text("%02d:%02d Uhr".format(settings.hour, settings.minute)) }
-            Text(
-                "Die Uhrzeit ist ungefähr. Android kann sie um einige Minuten verschieben.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
 
         Text("Wochentage", style = MaterialTheme.typography.titleMedium)

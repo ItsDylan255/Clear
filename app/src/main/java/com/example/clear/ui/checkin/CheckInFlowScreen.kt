@@ -109,11 +109,6 @@ fun CheckInFlowScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(state.current.question, style = MaterialTheme.typography.headlineMedium)
-            Text(
-                "Freiwillig. Du kannst auch einfach weitergehen.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
             ScaleSelector(
                 selected = state.selected,
                 onSelect = viewModel::select,
@@ -190,13 +185,13 @@ internal fun ScaleSelector(
 private fun ScaleButton(value: Int, isSelected: Boolean, onSelect: (Int) -> Unit) {
     val base = scaleColor(value)
     // Nicht ausgewaehlt: helle Variante. Ausgewaehlt: volle Farbe plus dunkler Rand.
-    val background = if (isSelected) base else lerp(base, Color.White, 0.55f)
+    val background = if (isSelected) base else lerp(base, Color.White, 0.6f)
     Box(
         modifier = Modifier
             .size(52.dp)
             .clip(CircleShape)
             .background(background)
-            .then(if (isSelected) Modifier.border(3.dp, ClearTextDark, CircleShape) else Modifier)
+            .then(if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier)
             .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(value) })
             .semantics { contentDescription = "$value von 10" },
         contentAlignment = Alignment.Center
@@ -212,10 +207,10 @@ private fun ScaleButton(value: Int, isSelected: Boolean, onSelect: (Int) -> Unit
 
 // Dezenter Verlauf: gedecktes Rot -> neutrales Beige -> gedecktes Gruen
 // Die Zahlen liegen auf hellen Kreisen, darum immer dunkle Schrift
-private val ScaleTextColor = Color(0xFF34483D)
-private val ScaleRed = Color(0xFFCF7466)
-private val ScaleNeutral = Color(0xFFE6DFC3)
-private val ScaleGreen = Color(0xFF8DAA8F)
+private val ScaleTextColor = Color(0xFF26323D)
+private val ScaleRed = Color(0xFFD9A79F)
+private val ScaleNeutral = Color(0xFFE9E3D1)
+private val ScaleGreen = Color(0xFFA9C4B3)
 
 private fun scaleColor(value: Int): Color {
     val t = (value - 1) / 9f

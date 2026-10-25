@@ -34,8 +34,7 @@ fun WarningSignsScreen(onBack: () -> Unit, viewModel: WarningSignsViewModel = vi
     val items by viewModel.items.collectAsState()
     TextListScreen(
         title = "Meine Warnzeichen",
-        intro = "Woran merkst du, dass es dir schlechter geht? Schreib jedes Warnzeichen als " +
-            "einzelnen Punkt auf, zum Beispiel „Ich ziehe mich zurück“.",
+        intro = "",
         emptyText = "Hier ist noch nichts gespeichert. Du kannst jederzeit etwas hinzufügen.",
         addLabel = "Warnzeichen hinzufügen",
         editTitle = "Warnzeichen",
@@ -67,11 +66,13 @@ private fun TextListScreen(
     var toDelete by remember { mutableStateOf<TextItem?>(null) }
 
     ClearDetailScreen(title = title, onBack = onBack) {
-        Text(
-            intro,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (intro.isNotBlank()) {
+            Text(
+                intro,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         AddButton(addLabel) { adding = true }
 
         when {

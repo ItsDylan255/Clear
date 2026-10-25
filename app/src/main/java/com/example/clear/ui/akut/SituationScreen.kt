@@ -26,6 +26,7 @@ import com.example.clear.model.Situation
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
+import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.theme.ClearSurfaceSoft
 
 @Composable
@@ -42,7 +43,7 @@ fun SituationScreen(
             }
         }
         situation.hint?.let { hint ->
-            ClearCard(containerColor = ClearWarningSoft) {
+            ClearCard(containerColor = ClearNoticeSoft) {
                 Text(hint, style = MaterialTheme.typography.bodyLarge)
             }
         }

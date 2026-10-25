@@ -22,7 +22,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.DataWiper
-import com.example.clear.ui.akut.ClearWarningSoft
+import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,31 +61,11 @@ fun MyDataScreen(onBack: () -> Unit, viewModel: MyDataViewModel = viewModel()) {
     var confirm by remember { mutableStateOf(false) }
 
     ClearDetailScreen(title = "Meine Daten", onBack = onBack) {
-        Text(
-            "Alles, was du in Clear festhältst, bleibt auf diesem Handy.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        ClearCard {
-            Text("Das ist gespeichert", style = MaterialTheme.typography.titleMedium)
-            Text(
-                "Deine Check-ins, persönlichen Ideen, Zitate, Briefe, Bilder, Musik, " +
-                    "deine Notfallkarte und die Einstellungen für Erinnerungen.",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                "Clear sendet nichts ins Internet.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
         if (state.deleted) {
             ClearCard { Text("Alle Daten wurden gelöscht.", style = MaterialTheme.typography.bodyLarge) }
         }
         if (state.failed) {
-            ClearCard(containerColor = ClearWarningSoft) {
+            ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
                     "Beim Löschen ist ein Fehler aufgetreten. Bitte versuche es noch einmal.",
                     style = MaterialTheme.typography.bodyLarge
@@ -109,8 +89,8 @@ fun MyDataScreen(onBack: () -> Unit, viewModel: MyDataViewModel = viewModel()) {
             title = { Text("Alle Daten löschen?") },
             text = {
                 Text(
-                    "Alles wird dauerhaft von diesem Handy gelöscht: Check-ins, Ideen, Zitate, " +
-                        "Briefe, Bilder, Musik, Notfallkarte und Erinnerungen. " +
+                    "Alles wird dauerhaft von diesem Handy gelöscht: Check-ins, Fragebögen, Ideen, " +
+                        "Zitate, Briefe, Bilder, Musik, Notfallkarte und Erinnerungen. " +
                         "Das lässt sich nicht rückgängig machen."
                 )
             },

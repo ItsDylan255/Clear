@@ -28,11 +28,6 @@ fun EmergencyPersonEditScreen(
     val s by viewModel.state.collectAsState()
     Box(modifier = Modifier.imePadding()) {
         ClearDetailScreen(title = "Notfallperson", onBack = onClose) {
-            Text(
-                "Alles hier ist freiwillig und bleibt auf deinem Handy.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
             if (s.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp))
             } else {
@@ -67,20 +62,12 @@ fun EmergencyPlanEditScreen(
     val s by viewModel.state.collectAsState()
     Box(modifier = Modifier.imePadding()) {
         ClearDetailScreen(title = "Notfallplan", onBack = onClose) {
-            Text(
-                "Alles hier ist freiwillig und bleibt auf deinem Handy.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
             if (s.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp))
             } else {
                 OutlinedTextField(
                     value = s.plan, onValueChange = viewModel::onPlanChange,
                     label = { Text("Mein Plan") },
-                    supportingText = {
-                        Text("Zum Beispiel: Was hilft mir? Wen rufe ich an? Wo fühle ich mich sicher?")
-                    },
                     minLines = 5, modifier = Modifier.fillMaxWidth()
                 )
                 EditorButtons(onCancel = onClose, onSave = { viewModel.save(onClose) })

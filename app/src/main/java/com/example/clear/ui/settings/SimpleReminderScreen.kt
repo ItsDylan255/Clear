@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.clear.ui.akut.ClearWarningSoft
+import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -145,12 +145,6 @@ private fun SimpleReminderScreen(
     }
 
     ClearDetailScreen(title = title, onBack = onBack) {
-        Text(
-            intro,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
         ClearCard {
             Row(
                 modifier = Modifier
@@ -170,7 +164,7 @@ private fun SimpleReminderScreen(
         }
 
         if (permissionDenied) {
-            ClearCard(containerColor = ClearWarningSoft) {
+            ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
                     "Ohne Erlaubnis kann Clear keine Erinnerungen senden. " +
                             "Du kannst sie später in den Systemeinstellungen erteilen.",
@@ -179,7 +173,7 @@ private fun SimpleReminderScreen(
             }
         }
         if (settings.enabled && !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-            ClearCard(containerColor = ClearWarningSoft) {
+            ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
                     "Benachrichtigungen sind für Clear in den Systemeinstellungen ausgeschaltet. " +
                             "Du bekommst deshalb keine Erinnerungen.",
@@ -200,11 +194,6 @@ private fun SimpleReminderScreen(
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
         ) { Text("%02d:%02d Uhr".format(settings.hour, settings.minute)) }
-        Text(
-            "Die Uhrzeit ist ungefähr. Android kann sie um einige Minuten verschieben.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
 
         Text("Wochentage", style = MaterialTheme.typography.titleMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {

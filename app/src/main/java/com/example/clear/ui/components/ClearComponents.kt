@@ -1,5 +1,6 @@
 package com.example.clear.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -126,7 +128,10 @@ fun ClearDetailScreen(
     }
 }
 
-/** Runde Karte. Mit `onClick` wird sie antippbar. Standardfarbe: Weiss. */
+/**
+ * Runde Karte ohne Schatten. Mit `onClick` wird sie antippbar. Ohne eigene Farbe hat sie die
+ * Kartenfarbe und einen feinen Rand. Mit eigener Farbe (zum Beispiel ein Level) entfaellt der Rand.
+ */
 @Composable
 fun ClearCard(
     modifier: Modifier = Modifier,
@@ -137,9 +142,13 @@ fun ClearCard(
     val colors = CardDefaults.cardColors(
         containerColor = containerColor ?: MaterialTheme.colorScheme.surface
     )
+    val elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    val border = if (containerColor == null) {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    } else null
     val inner: @Composable ColumnScope.() -> Unit = {
         Column(
-            modifier = Modifier.padding(ClearSpacing.medium),
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = ClearSpacing.medium),
             verticalArrangement = Arrangement.spacedBy(ClearSpacing.small),
             content = content
         )
@@ -150,6 +159,8 @@ fun ClearCard(
             modifier = modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
             colors = colors,
+            elevation = elevation,
+            border = border,
             content = inner
         )
     } else {
@@ -157,6 +168,8 @@ fun ClearCard(
             modifier = modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
             colors = colors,
+            elevation = elevation,
+            border = border,
             content = inner
         )
     }
@@ -171,5 +184,41 @@ fun PlaceholderCard(text: String) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+/**
+ * Seite, auf der alle Eintraege garantiert ohne Scrollen auf den Bildschirm passen. Jeder Eintrag
+ * bekommt mit `Modifier.weight(...)` seinen Anteil der freien Hoehe. `unit` ist die Hoehe, die ein
+ * Eintrag mit Gewicht 1 bekommt. Die Eintraege entscheiden selbst, ob sie bei wenig Platz
+ * kompakter sind.
+ *
+ * @param weightSum Summe aller Gewichte
+ * @param gaps Anzahl der Abstaende zwischen den Eintraegen
+ */
+@Composable
+fun ClearFitScreen(
+    title: String,
+    weightSum: Float,
+    gaps: Int,
+    gap: Dp = 8.dp,
+    content: @Composable ColumnScope.(unit: Dp) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium)
+    ) {
+        Text(title, style = MaterialTheme.typography.headlineMedium)
+        androidx.compose.foundation.layout.Spacer(Modifier.height(ClearSpacing.medium))
+        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            val unit = (maxHeight - gap * gaps) / weightSum
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(gap)
+            ) {
+                content(unit)
+            }
+        }
     }
 }

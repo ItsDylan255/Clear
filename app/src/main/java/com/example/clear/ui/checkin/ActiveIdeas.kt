@@ -57,6 +57,13 @@ object ActiveIdeas {
         persist(context)
     }
 
+    /** Beendet alle laufenden Ideen und loescht den gespeicherten Stand (beim Loeschen aller Daten). */
+    fun clearAll(context: Context) {
+        loaded = true
+        _running.value = emptyMap()
+        prefs(context).edit().clear().apply()
+    }
+
     private fun persist(context: Context) {
         val text = _running.value.values.joinToString(";") { "${it.ideaId}:${it.startedAt}" }
         prefs(context).edit().putString(KEY_RUNNING, text).apply()

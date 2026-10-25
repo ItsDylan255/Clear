@@ -156,7 +156,7 @@ fun Who5TestScreen(
                 val selected = s.selected == value
                 ClearCard(
                     onClick = { viewModel.select(value) },
-                    containerColor = if (selected) ClearSurfaceSoft else null
+                    containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else null
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),

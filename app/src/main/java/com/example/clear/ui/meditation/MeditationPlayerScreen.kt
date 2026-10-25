@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
@@ -33,7 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.clear.model.Meditation
 import com.example.clear.playback.MeditationPlayer
-import com.example.clear.ui.akut.ClearWarningSoft
+import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearCard as ClearCardColor
@@ -62,23 +64,41 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
     val progress = (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
     var dragValue by remember { mutableStateOf<Float?>(null) }
 
-    ClearDetailScreen(title = meditation.title, onBack = onBack) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+            }
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = ClearSpacing.large)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+        ) {
+        Text(meditation.title, style = MaterialTheme.typography.headlineMedium)
         // Ruhige Grafik statt Atemkreis-Animation
+        // Die Grafik nimmt den freien Platz ein, so rutschen die Tasten nach unten
         Box(
-            modifier = Modifier.fillMaxWidth().padding(vertical = ClearSpacing.small),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
             Box(
-                modifier = Modifier.size(112.dp).clip(CircleShape).background(ClearSurfaceSoft),
+                modifier = Modifier.size(112.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(meditation.icon, contentDescription = null,
-                    tint = ClearTextDark, modifier = Modifier.size(48.dp))
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(48.dp))
             }
         }
 
         if (!audioAvailable) {
-            ClearCard(containerColor = ClearCardColor) {
+            ClearCard {
                 Text("Noch keine Audiodatei", style = MaterialTheme.typography.titleMedium)
                 Text(
                     "Für diese Meditation ist noch keine Aufnahme vorhanden. " +
@@ -90,7 +110,7 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
         }
         if (!isCurrent) {
             player.message?.let { text ->
-                ClearCard(containerColor = ClearWarningSoft) {
+                ClearCard(containerColor = ClearNoticeSoft) {
                     Text(text, style = MaterialTheme.typography.bodyLarge)
                 }
             }
@@ -153,6 +173,7 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
                     Icon(Icons.Filled.Stop, contentDescription = "Stopp")
                 }
             }
+        }
         }
     }
 }

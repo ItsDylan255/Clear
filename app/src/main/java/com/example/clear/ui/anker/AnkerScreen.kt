@@ -1,6 +1,11 @@
 package com.example.clear.ui.anker
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,15 +34,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.clear.model.Situation
-import com.example.clear.ui.components.ClearCard
-import com.example.clear.ui.components.ClearScreen
+import com.example.clear.ui.components.ClearFitCard
+import com.example.clear.ui.components.ClearFitScreen
+import com.example.clear.ui.components.ClearTile
 import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
 
 /**
- * Mein Anker: Erfolge und gute Dinge, Ideen, Notfallkarte und die vier Inhalte
- * Zitate, Bilder, Musik und Briefe. Die Emotions-Ansichten erreichst du ueber den Akut-Tab.
+ * Mein Anker: Erfolge und gute Dinge, Ideen, Notfallkarte und die vier Inhalte Zitate, Bilder,
+ * Musik und Briefe. Alles passt auf eine Seite, ohne Scrollen. Die Emotions-Ansichten erreichst
+ * du ueber den Akut-Tab.
  */
 @Composable
 fun AnkerScreen(
@@ -46,67 +53,20 @@ fun AnkerScreen(
     onOpenEmergency: () -> Unit,
     onOpenType: (AnkerType) -> Unit
 ) {
-    ClearScreen(title = "Mein Anker") {
-        AnkerEntryCard(Icons.Outlined.WbSunny, "Erfolge und gute Dinge", "Dein Abend-Archiv", onOpenEvening)
-        AnkerEntryCard(Icons.Outlined.Lightbulb, "Ideen", "Für deine Check-in-Bereiche", onOpenIdeas)
-        AnkerEntryCard(Icons.Outlined.Phone, "Notfallkarte", "Person, Plan und Warnzeichen", onOpenEmergency)
-        AnkerEntryCard(Icons.Outlined.FormatQuote, "Zitate", "Gedanken, die dir helfen") {
-            onOpenType(AnkerType.Quotes)
-        }
-        AnkerEntryCard(Icons.Outlined.Image, "Bilder", "Bilder, die dir Halt geben") {
-            onOpenType(AnkerType.Images)
-        }
-        AnkerEntryCard(Icons.Outlined.MusicNote, "Musik", "Deine eigene Musik") {
-            onOpenType(AnkerType.Music)
-        }
-        AnkerEntryCard(Icons.Outlined.Email, "Briefe", "Briefe an dich selbst") {
-            onOpenType(AnkerType.Letters)
-        }
-    }
-}
-
-@Composable
-private fun AnkerEntryCard(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
-    ClearCard(onClick = onClick, containerColor = ClearSurfaceSoft) {
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
-        ) {
-            Icon(icon, contentDescription = null, tint = ClearTextDark)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium)
-            }
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-        }
+    ClearFitScreen(title = "Mein Anker", weightSum = 7f, gaps = 6) { unit ->
+        val compact = unit < 66.dp
+        val item = Modifier.fillMaxWidth().weight(1f)
+        ClearFitCard(Icons.Outlined.WbSunny, "Erfolge und gute Dinge", "Dein Abend-Archiv", compact, onOpenEvening, item)
+        ClearFitCard(Icons.Outlined.Lightbulb, "Ideen", "Für deine Bereiche", compact, onOpenIdeas, item)
+        ClearFitCard(Icons.Outlined.Phone, "Notfallkarte", "Person, Plan und Warnzeichen", compact, onOpenEmergency, item)
+        ClearFitCard(Icons.Outlined.FormatQuote, "Zitate", "Gedanken, die dir helfen", compact, { onOpenType(AnkerType.Quotes) }, item)
+        ClearFitCard(Icons.Outlined.Image, "Bilder", "Bilder, die dir Halt geben", compact, { onOpenType(AnkerType.Images) }, item)
+        ClearFitCard(Icons.Outlined.MusicNote, "Musik", "Deine eigene Musik", compact, { onOpenType(AnkerType.Music) }, item)
+        ClearFitCard(Icons.Outlined.Email, "Briefe", "Briefe an dich selbst", compact, { onOpenType(AnkerType.Letters) }, item)
     }
 }
 
 @Composable
 internal fun EmotionTile(situation: Situation, onClick: () -> Unit, modifier: Modifier) {
-    Card(
-        onClick = onClick,
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 84.dp).padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)
-        ) {
-            Icon(
-                situation.icon, contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                situation.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
-            )
-        }
-    }
+    ClearTile(icon = situation.icon, title = situation.name, onClick = onClick, modifier = modifier)
 }

@@ -5,12 +5,12 @@ import androidx.compose.material.icons.outlined.AccessibilityNew
 import androidx.compose.material.icons.outlined.Air
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.CenterFocusStrong
-import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocalFlorist
 import androidx.compose.material.icons.outlined.Park
 import androidx.compose.material.icons.outlined.RecordVoiceOver
 import androidx.compose.material.icons.outlined.Spa
+import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -34,7 +34,8 @@ object Meditations {
         Meditation("self_compassion", "Selbstmitgefühlsmeditation", "Freundlicher mit dir selbst sein", Icons.Outlined.FavoriteBorder, shortTitle = "Selbstmitgefühl"),
         Meditation("sleep", "Schlafmeditation", "Zur Ruhe kommen", Icons.Outlined.Bedtime, shortTitle = "Schlaf"),
         Meditation("concentration", "Konzentrationsmeditation", "Die Aufmerksamkeit sammeln", Icons.Outlined.CenterFocusStrong, shortTitle = "Konzentration"),
-        Meditation("visualization", "Visualisierungsmeditation", "Mit inneren Bildern arbeiten", Icons.Outlined.Cloud, shortTitle = "Visualisierung"),
+        // Die ID "visualization" bleibt, damit die Audiodatei meditation_visualization weiter gefunden wird
+        Meditation("visualization", "Vergebungsmeditation", "Loslassen und Frieden schließen", Icons.Outlined.VolunteerActivism, shortTitle = "Vergebung"),
         Meditation("mantra", "Mantra-Meditation", "Ein Wort oder einen Satz wiederholen", Icons.Outlined.RecordVoiceOver, shortTitle = "Mantra"),
         Meditation("walking", "Gehmeditation", "Bewusstes Gehen", Icons.Outlined.Park, shortTitle = "Gehen"),
         Meditation("gratitude", "Dankbarkeitsmeditation", "Wertschätzend wahrnehmen", Icons.Outlined.LocalFlorist, shortTitle = "Dankbarkeit")

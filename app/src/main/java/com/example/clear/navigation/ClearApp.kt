@@ -13,6 +13,13 @@ import androidx.compose.runtime.Composable
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.sp
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -61,17 +68,16 @@ import com.example.clear.ui.anker.QuotesScreen
 import com.example.clear.ui.checkin.ActiveIdeas
 import com.example.clear.ui.checkin.CategoryDetailScreen
 import com.example.clear.ui.checkin.IdeaDetailScreen
+import com.example.clear.ui.home.HomeScreen
 import com.example.clear.ui.checkin.IdeaRateScreen
 import com.example.clear.ui.checkin.CheckInFlowScreen
-import com.example.clear.ui.checkin.CheckInHistoryScreen
-import com.example.clear.ui.checkin.Phq9HistoryScreen
+import com.example.clear.ui.checkin.HistoryChartScreen
+import com.example.clear.ui.checkin.HistoryOverviewScreen
 import com.example.clear.ui.checkin.Phq9HubScreen
 import com.example.clear.ui.checkin.Phq9TestScreen
 import com.example.clear.ui.checkin.QuestionnairesScreen
-import com.example.clear.ui.checkin.Who5HistoryScreen
 import com.example.clear.ui.checkin.Who5HubScreen
 import com.example.clear.ui.checkin.Who5TestScreen
-import com.example.clear.ui.checkin.WsasHistoryScreen
 import com.example.clear.ui.checkin.WsasHubScreen
 import com.example.clear.ui.checkin.WsasTestScreen
 import com.example.clear.ui.checkin.CheckInStartScreen
@@ -104,17 +110,16 @@ private val akutView = AnkerViewRoutes("akut_ansicht")
 private val ankerView = AnkerViewRoutes("anker_ansicht")
 // Verlaufsseite im Check-in-Bereich
 private const val CHECKIN_HISTORY = "checkin_verlauf"
+private const val CHECKIN_HISTORY_CHART = "checkin_verlauf_diagramm/{kind}"
+private fun historyChartRoute(kind: String) = "checkin_verlauf_diagramm/$kind"
 // Monatlicher Fragebogen (PHQ-9) im Check-in-Bereich
 private const val CHECKIN_QUESTIONNAIRES = "checkin_frageboegen"
 private const val CHECKIN_PHQ = "checkin_phq"
 private const val CHECKIN_PHQ_TEST = "checkin_phq_test"
-private const val CHECKIN_PHQ_HISTORY = "checkin_phq_verlauf"
 private const val CHECKIN_WHO5 = "checkin_who5"
 private const val CHECKIN_WHO5_TEST = "checkin_who5_test"
-private const val CHECKIN_WHO5_HISTORY = "checkin_who5_verlauf"
 private const val CHECKIN_WSAS = "checkin_wsas"
 private const val CHECKIN_WSAS_TEST = "checkin_wsas_test"
-private const val CHECKIN_WSAS_HISTORY = "checkin_wsas_verlauf"
 // Idee im Check-in: Beschreibung und Bewertung (mode = "before" oder "after")
 private const val CHECKIN_IDEA = "checkin_idee/{ideaId}"
 private const val CHECKIN_IDEA_RATE = "checkin_idee_bewertung/{ideaId}/{mode}"
@@ -138,13 +143,26 @@ private val routesWithoutBottomBar = setOf(
     ANKER_EMERGENCY_PERSON, ANKER_EMERGENCY_PLAN, CHECKIN_IDEA_RATE
 ) + akutView.singleViewPatterns + ankerView.singleViewPatterns
 
+private const val HOME_START = "home_start"
+
+/** Die sechs Reiter. Home ist neu, der frühere Check-in-Reiter heisst jetzt "Bereiche". */
+private enum class AppTab(val route: String, val label: String, val icon: ImageVector) {
+    Home("tab_home", "Home", Icons.Outlined.Home),
+    CheckIn(MainTab.CheckIn.route, "Bereiche", Icons.Outlined.GridView),
+    Meditieren(MainTab.Meditieren.route, MainTab.Meditieren.label, MainTab.Meditieren.icon),
+    Akut(MainTab.Akut.route, MainTab.Akut.label, MainTab.Akut.icon),
+    Anker(MainTab.Anker.route, MainTab.Anker.label, MainTab.Anker.icon),
+    Einstellungen(MainTab.Einstellungen.route, MainTab.Einstellungen.label, MainTab.Einstellungen.icon)
+}
+
 // Startseite jedes Tabs. Wird fuer "erneut auf den Tab tippen" gebraucht.
-private fun MainTab.startRoute(): String = when (this) {
-    MainTab.CheckIn -> CheckInRoutes.START
-    MainTab.Meditieren -> MeditationRoutes.START
-    MainTab.Akut -> AkutRoutes.START
-    MainTab.Anker -> AnkerRoutes.START
-    MainTab.Einstellungen -> SettingsRoutes.START
+private fun AppTab.startRoute(): String = when (this) {
+    AppTab.Home -> HOME_START
+    AppTab.CheckIn -> CheckInRoutes.START
+    AppTab.Meditieren -> MeditationRoutes.START
+    AppTab.Akut -> AkutRoutes.START
+    AppTab.Anker -> AnkerRoutes.START
+    AppTab.Einstellungen -> SettingsRoutes.START
 }
 
 @Composable
@@ -185,7 +203,7 @@ fun ClearApp() {
         bottomBar = {
             if (currentRoute !in routesWithoutBottomBar) {
                 NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                    MainTab.entries.forEach { tab ->
+                    AppTab.entries.forEach { tab ->
                         val isSelected =
                             destination?.hierarchy?.any { it.route == tab.route } == true
                         NavigationBarItem(
@@ -204,11 +222,12 @@ fun ClearApp() {
                                     }
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = null) },
+                            icon = { Icon(tab.icon, contentDescription = tab.label) },
                             label = {
                                 Text(
                                     text = tab.label,
                                     style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 10.sp,
                                     maxLines = 1,
                                     softWrap = false
                                 )
@@ -218,7 +237,7 @@ fun ClearApp() {
                                 selectedTextColor = ClearTextDark,
                                 unselectedIconColor = ClearTextSecondary,
                                 unselectedTextColor = ClearTextSecondary,
-                                indicatorColor = ClearSurfaceSoft
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer
                             )
                         )
                     }
@@ -228,16 +247,95 @@ fun ClearApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = MainTab.CheckIn.route,
-            modifier = Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)
+            startDestination = AppTab.Home.route,
+            modifier = Modifier.padding(innerPadding).consumeWindowInsets(innerPadding),
+            // Keine Animationen beim Wechsel der Seiten
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None }
         ) {
-            // --- Check In ---
-            navigation(startDestination = CheckInRoutes.START, route = MainTab.CheckIn.route) {
-                composable(CheckInRoutes.START) {
-                    CheckInStartScreen(
+            // --- Home: Check-in, Verlauf und Frageboegen ---
+            navigation(startDestination = HOME_START, route = AppTab.Home.route) {
+                composable(HOME_START) {
+                    HomeScreen(
                         onStartCheckIn = { navController.navigate(CheckInRoutes.FLOW) },
                         onOpenHistory = { navController.navigate(CHECKIN_HISTORY) },
                         onOpenQuestionnaires = { navController.navigate(CHECKIN_QUESTIONNAIRES) },
+                        onOpenIdea = { id -> navController.navigate(ideaRoute(id)) }
+                    )
+                }
+                composable(CHECKIN_QUESTIONNAIRES) {
+                    QuestionnairesScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenPhq = { navController.navigate(CHECKIN_PHQ) },
+                        onOpenWho5 = { navController.navigate(CHECKIN_WHO5) },
+                        onOpenWsas = { navController.navigate(CHECKIN_WSAS) }
+                    )
+                }
+                composable(CHECKIN_WSAS) {
+                    WsasHubScreen(
+                        onBack = { navController.popBackStack() },
+                        onStart = { navController.navigate(CHECKIN_WSAS_TEST) },
+                        onOpenHistory = { navController.navigate(historyChartRoute("wsas")) }
+                    )
+                }
+                composable(CHECKIN_WSAS_TEST) {
+                    WsasTestScreen(
+                        onClose = { navController.popBackStack() },
+                        onFinished = { navController.popBackStack() }
+                    )
+                }
+                composable(CHECKIN_WHO5) {
+                    Who5HubScreen(
+                        onBack = { navController.popBackStack() },
+                        onStart = { navController.navigate(CHECKIN_WHO5_TEST) },
+                        onOpenHistory = { navController.navigate(historyChartRoute("who5")) }
+                    )
+                }
+                composable(CHECKIN_WHO5_TEST) {
+                    Who5TestScreen(
+                        onClose = { navController.popBackStack() },
+                        onFinished = { navController.popBackStack() }
+                    )
+                }
+                composable(CHECKIN_PHQ) {
+                    Phq9HubScreen(
+                        onBack = { navController.popBackStack() },
+                        onStart = { navController.navigate(CHECKIN_PHQ_TEST) },
+                        onOpenHistory = { navController.navigate(historyChartRoute("phq9")) }
+                    )
+                }
+                composable(CHECKIN_PHQ_TEST) {
+                    Phq9TestScreen(
+                        onClose = { navController.popBackStack() },
+                        onFinished = { navController.popBackStack() }
+                    )
+                }
+                composable(CHECKIN_HISTORY) {
+                    HistoryOverviewScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpen = { kind -> navController.navigate(historyChartRoute(kind)) }
+                    )
+                }
+                composable(
+                    route = CHECKIN_HISTORY_CHART,
+                    arguments = listOf(navArgument("kind") { type = NavType.StringType })
+                ) {
+                    HistoryChartScreen(onBack = { navController.popBackStack() })
+                }
+                composable(CheckInRoutes.FLOW) {
+                    CheckInFlowScreen(
+                        onClose = { navController.popBackStack() },
+                        onFinished = { navController.popBackStack() }
+                    )
+                }
+            }
+
+            // --- Bereiche (frueher Check In) ---
+            navigation(startDestination = CheckInRoutes.START, route = AppTab.CheckIn.route) {
+                composable(CheckInRoutes.START) {
+                    CheckInStartScreen(
                         onOpenCategory = { navController.navigate(CheckInRoutes.category(it.id)) }
                     )
                 }
@@ -263,71 +361,6 @@ fun ClearApp() {
                         onDone = { navController.popBackStack() }
                     )
                 }
-                composable(CHECKIN_QUESTIONNAIRES) {
-                    QuestionnairesScreen(
-                        onBack = { navController.popBackStack() },
-                        onOpenPhq = { navController.navigate(CHECKIN_PHQ) },
-                        onOpenWho5 = { navController.navigate(CHECKIN_WHO5) },
-                        onOpenWsas = { navController.navigate(CHECKIN_WSAS) }
-                    )
-                }
-                composable(CHECKIN_WSAS) {
-                    WsasHubScreen(
-                        onBack = { navController.popBackStack() },
-                        onStart = { navController.navigate(CHECKIN_WSAS_TEST) },
-                        onOpenHistory = { navController.navigate(CHECKIN_WSAS_HISTORY) }
-                    )
-                }
-                composable(CHECKIN_WSAS_TEST) {
-                    WsasTestScreen(
-                        onClose = { navController.popBackStack() },
-                        onFinished = { navController.popBackStack() }
-                    )
-                }
-                composable(CHECKIN_WSAS_HISTORY) {
-                    WsasHistoryScreen(onBack = { navController.popBackStack() })
-                }
-                composable(CHECKIN_WHO5) {
-                    Who5HubScreen(
-                        onBack = { navController.popBackStack() },
-                        onStart = { navController.navigate(CHECKIN_WHO5_TEST) },
-                        onOpenHistory = { navController.navigate(CHECKIN_WHO5_HISTORY) }
-                    )
-                }
-                composable(CHECKIN_WHO5_TEST) {
-                    Who5TestScreen(
-                        onClose = { navController.popBackStack() },
-                        onFinished = { navController.popBackStack() }
-                    )
-                }
-                composable(CHECKIN_WHO5_HISTORY) {
-                    Who5HistoryScreen(onBack = { navController.popBackStack() })
-                }
-                composable(CHECKIN_PHQ) {
-                    Phq9HubScreen(
-                        onBack = { navController.popBackStack() },
-                        onStart = { navController.navigate(CHECKIN_PHQ_TEST) },
-                        onOpenHistory = { navController.navigate(CHECKIN_PHQ_HISTORY) }
-                    )
-                }
-                composable(CHECKIN_PHQ_TEST) {
-                    Phq9TestScreen(
-                        onClose = { navController.popBackStack() },
-                        onFinished = { navController.popBackStack() }
-                    )
-                }
-                composable(CHECKIN_PHQ_HISTORY) {
-                    Phq9HistoryScreen(onBack = { navController.popBackStack() })
-                }
-                composable(CHECKIN_HISTORY) {
-                    CheckInHistoryScreen(onBack = { navController.popBackStack() })
-                }
-                composable(CheckInRoutes.FLOW) {
-                    CheckInFlowScreen(
-                        onClose = { navController.popBackStack() },
-                        onFinished = { navController.popBackStack() }
-                    )
-                }
                 composable(
                     route = CheckInRoutes.CATEGORY,
                     arguments = listOf(navArgument("id") { type = NavType.StringType })
@@ -337,7 +370,8 @@ fun ClearApp() {
                         CategoryDetailScreen(
                             category = category,
                             onBack = { navController.popBackStack() },
-                            onOpenIdea = { ideaId -> navController.navigate(ideaRoute(ideaId)) }
+                            onOpenIdea = { ideaId -> navController.navigate(ideaRoute(ideaId)) },
+                            onOpenHistory = { navController.navigate(historyChartRoute(category.id)) }
                         )
                     }
                 }
@@ -353,7 +387,7 @@ fun ClearApp() {
             }
 
             // --- Meditieren ---
-            navigation(startDestination = MeditationRoutes.START, route = MainTab.Meditieren.route) {
+            navigation(startDestination = MeditationRoutes.START, route = AppTab.Meditieren.route) {
                 composable(MeditationRoutes.START) {
                     MeditationScreen(
                         onOpenMeditation = { navController.navigate(MeditationRoutes.player(it.id)) }
@@ -374,7 +408,7 @@ fun ClearApp() {
             }
 
             // --- Akut ---
-            navigation(startDestination = AkutRoutes.START, route = MainTab.Akut.route) {
+            navigation(startDestination = AkutRoutes.START, route = AppTab.Akut.route) {
                 composable(AkutRoutes.START) {
                     AkutScreen(
                         onOpenSituation = { navController.navigate(AkutRoutes.situation(it.id)) },
@@ -434,7 +468,7 @@ fun ClearApp() {
             }
 
             // --- Mein Anker ---
-            navigation(startDestination = AnkerRoutes.START, route = MainTab.Anker.route) {
+            navigation(startDestination = AnkerRoutes.START, route = AppTab.Anker.route) {
                 composable(AnkerRoutes.START) {
                     AnkerScreen(
                         onOpenEvening = { navController.navigate(AnkerRoutes.EVENING) },
@@ -577,7 +611,7 @@ fun ClearApp() {
             }
 
             // --- Einstellungen ---
-            navigation(startDestination = SettingsRoutes.START, route = MainTab.Einstellungen.route) {
+            navigation(startDestination = SettingsRoutes.START, route = AppTab.Einstellungen.route) {
                 composable(SettingsRoutes.START) {
                     SettingsScreen(
                         onOpenAppearance = { navController.navigate(SettingsRoutes.APPEARANCE) },

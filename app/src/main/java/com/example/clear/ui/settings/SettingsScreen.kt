@@ -4,17 +4,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,9 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearScreen
 import com.example.clear.ui.theme.ClearSpacing
-import com.example.clear.ui.theme.ClearSurfaceSoft
-import com.example.clear.ui.theme.ClearTextDark
 
+/** Einstellungen in drei Gruppen: Darstellung, Erinnerungen, Daten. */
 @Composable
 fun SettingsScreen(
     onOpenAppearance: () -> Unit,
@@ -38,47 +41,80 @@ fun SettingsScreen(
     onOpenMyData: () -> Unit
 ) {
     ClearScreen(title = "Einstellungen") {
-        SettingsCard(Icons.Outlined.Palette, "Darstellung",
-            "Farben und Erscheinungsbild", onOpenAppearance)
-        SettingsCard(Icons.Outlined.Notifications, "Erinnerungen",
-            "Freiwillige Check-in- und Zitat-Erinnerungen", onOpenReminders)
-        SettingsCard(Icons.Outlined.Bedtime, "Nicht stören",
-            "Bei Übungen automatisch ruhig stellen", onOpenFocus)
-        SettingsCard(Icons.Outlined.Lock, "Meine Daten",
-            "Datenverwaltung und vollständiges Löschen", onOpenMyData)
+        ClearCard {
+            SettingsRow(Icons.Outlined.Palette, "Darstellung", "Hell, Dunkel oder System", onOpenAppearance)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SettingsRow(
+                Icons.Outlined.Notifications, "Erinnerungen",
+                "Hinweise zu Check-in, Fragebögen und mehr", onOpenReminders
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SettingsRow(Icons.Outlined.Bedtime, "Nicht stören", "Bei Ideen automatisch ruhig stellen", onOpenFocus)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SettingsRow(Icons.Outlined.Lock, "Meine Daten", "Verwalten und vollständig löschen", onOpenMyData)
+        }
     }
 }
 
-/** Karte mit Icon, Titel, kurzer Erklaerung und Pfeil. onClick == null: kommt spaeter. */
+/** Abschnitt mit kleiner Ueberschrift und einer gemeinsamen Karte fuer alle Zeilen. */
+@Composable
+fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
+        Text(
+            title,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp)
+        )
+        ClearCard(content = content)
+    }
+}
+
+/** Eine Zeile mit rundem Symbol, Titel, kurzer Erklaerung und Pfeil. Ohne eigene Karte. */
+@Composable
+fun SettingsRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    onClick: (() -> Unit)?,
+    showArrow: Boolean = onClick != null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clip(MaterialTheme.shapes.small).clickable(onClick = onClick) else Modifier)
+            .heightIn(min = 64.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+    ) {
+        Box(
+            modifier = Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (showArrow) {
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/** Karte mit Icon, Titel, kurzer Erklaerung und Pfeil (zum Beispiel in der Liste der Erinnerungen). */
 @Composable
 fun SettingsCard(icon: ImageVector, title: String, description: String, onClick: (() -> Unit)?) {
     ClearCard(onClick = onClick) {
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
-        ) {
-            Box(
-                modifier = Modifier.size(44.dp).clip(CircleShape).background(ClearSurfaceSoft),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, contentDescription = null, tint = ClearTextDark)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (onClick != null) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+        SettingsRow(icon, title, description, onClick = null, showArrow = onClick != null)
     }
 }

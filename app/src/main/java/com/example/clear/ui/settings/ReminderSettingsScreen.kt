@@ -23,11 +23,6 @@ fun ReminderSettingsScreen(
     onOpenEveningReminder: () -> Unit
 ) {
     ClearDetailScreen(title = "Erinnerungen", onBack = onBack) {
-        Text(
-            "Erinnerungen sind immer freiwillig. Du kannst sie jederzeit ausschalten.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         SettingsCard(
             Icons.Outlined.Eco, "Check-in-Erinnerung",
             "Ein sanfter Hinweis auf deinen Check-in", onOpenCheckInReminder

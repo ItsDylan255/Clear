@@ -77,11 +77,6 @@ fun IdeaDetailScreen(
                         else "Für dieses Level fehlt noch ein Text. Du kannst ihn im Anker-Tab ergänzen.",
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    Text(
-                        ideaLevelPhrase(level),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
                 stats[ActiveIdeas.key(idea.id)]?.let { stat ->
                     Text(

@@ -24,11 +24,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.clear.reminder.DoNotDisturb
-import com.example.clear.ui.akut.ClearWarningSoft
+import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 
-/** Einstellung: Waehrend einer Akut-Uebung automatisch "Nicht stoeren". */
+/** Einstellung: Waehrend eine Idee laeuft, automatisch "Nicht stoeren". */
 @Composable
 fun FocusSettingsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
@@ -45,13 +45,6 @@ fun FocusSettingsScreen(onBack: () -> Unit) {
     }
 
     ClearDetailScreen(title = "Nicht stören", onBack = onBack) {
-        Text(
-            "Während einer Übung schaltet Clear dein Handy auf „Nur Wecker“ und danach wieder " +
-                "zurück. Du kannst das jederzeit ausschalten.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
         ClearCard {
             Row(
                 modifier = Modifier
@@ -69,13 +62,13 @@ fun FocusSettingsScreen(onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Bei Übungen automatisch", style = MaterialTheme.typography.titleMedium)
+                Text("Bei Ideen automatisch", style = MaterialTheme.typography.titleMedium)
                 Switch(checked = enabled, onCheckedChange = null)
             }
         }
 
         if (enabled && !hasAccess) {
-            ClearCard(containerColor = ClearWarningSoft) {
+            ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
                     "Dafür braucht Clear deine Erlaubnis in den Systemeinstellungen " +
                         "(Zugriff auf „Nicht stören“). Ohne sie bleibt dein Handy unverändert.",

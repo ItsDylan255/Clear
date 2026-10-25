@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,6 +41,7 @@ fun CategoryDetailScreen(
     category: CheckInCategory,
     onBack: () -> Unit,
     onOpenIdea: (Long) -> Unit,
+    onOpenHistory: () -> Unit,
     viewModel: CategoryViewModel = viewModel(),
     warningsViewModel: CheckInWarningsViewModel = viewModel(),
     statsViewModel: ExerciseStatsViewModel = viewModel()
@@ -71,11 +74,6 @@ fun CategoryDetailScreen(
                 )
             }
             else -> {
-                Text(
-                    "Tippe auf eine Idee, um die Beschreibung zu lesen und sie zu starten.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
                 // Jede Idee zeigt den Text, der zum aktuellen Level passt
                 val current = info?.level.toIdeaLevel()
                 list.forEach { idea ->
@@ -89,6 +87,12 @@ fun CategoryDetailScreen(
                 }
             }
         }
+
+        OutlinedButton(
+            onClick = onOpenHistory,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            shape = MaterialTheme.shapes.large
+        ) { Text("Verlauf ansehen") }
     }
 }
 
@@ -138,12 +142,6 @@ private fun IdeaCard(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            Text(
-                ideaLevelPhrase(level),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = ClearSpacing.small)
-            )
         }
     }
 }

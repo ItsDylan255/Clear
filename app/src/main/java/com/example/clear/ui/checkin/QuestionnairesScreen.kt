@@ -38,11 +38,6 @@ fun QuestionnairesScreen(
     val wsasAvailable by wsasViewModel.available.collectAsState()
 
     ClearDetailScreen(title = "Fragebögen", onBack = onBack) {
-        Text(
-            "Drei kurze Fragebögen. Du kannst sie ausfüllen, wenn mindestens zwei Wochen seit dem letzten Mal vergangen sind. Alle sind freiwillig und unabhängig voneinander.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         QuestionnaireCard("PHQ-9", "Neun Fragen zu den letzten zwei Wochen", phqAvailable, onOpenPhq)
         QuestionnaireCard("WHO-5", "Fünf Fragen zu deinem Wohlbefinden", who5Available, onOpenWho5)
         QuestionnaireCard("WSAS", "Fünf Fragen dazu, wie sehr dich deine Probleme im Alltag beeinträchtigen", wsasAvailable, onOpenWsas)
