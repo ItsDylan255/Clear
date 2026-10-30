@@ -90,4 +90,4 @@ app/src/main/java/com/example/clear/
 
 ## Status
 
-Clear is an early version (1.0, MVP). Feedback and ideas are welcome via [Issues](https://github.com/ItsDylan255/Clear/issues).
+Clear is an early version (1.0.0, MVP). Feedback and ideas are welcome via [Issues](https://github.com/ItsDylan255/Clear/issues).
