@@ -175,18 +175,6 @@ fun ClearCard(
     }
 }
 
-/** Platzhalter, bis ein Bereich in einem spaeteren Schritt umgesetzt wird. */
-@Composable
-fun PlaceholderCard(text: String) {
-    ClearCard {
-        Text(
-            text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
 /**
  * Seite, auf der alle Eintraege garantiert ohne Scrollen auf den Bildschirm passen. Jeder Eintrag
  * bekommt mit `Modifier.weight(...)` seinen Anteil der freien Hoehe. `unit` ist die Hoehe, die ein

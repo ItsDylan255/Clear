@@ -1,22 +1,39 @@
 package com.example.clear.ui.anker
 
 import android.app.Application
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -52,59 +69,126 @@ class IdeasManageViewModel(app: Application) : AndroidViewModel(app) {
     }
 }
 
-/** Ideen anlegen, bearbeiten und loeschen. Im Check-in werden sie nur noch angezeigt und ausprobiert. */
+/**
+ * Ideen anlegen, bearbeiten und loeschen. Uebersichtlich auch bei vielen Ideen: Die Bereiche sind
+ * eingeklappt und zeigen nur die Anzahl. Antippen klappt einen Bereich auf. Die Suche findet Ideen
+ * ueber alle Bereiche. Im Check-in werden Ideen nur angezeigt und ausprobiert.
+ */
 @Composable
 fun IdeasManageScreen(
     onBack: () -> Unit,
-    onAdd: () -> Unit,
+    onAdd: (categoryId: String) -> Unit,
     onEdit: (categoryId: String, ideaId: Long) -> Unit,
     viewModel: IdeasManageViewModel = viewModel()
 ) {
     val ideas by viewModel.ideas.collectAsState()
+    var query by rememberSaveable { mutableStateOf("") }
+    // Saveable, damit aufgeklappte Bereiche nach dem Bearbeiten einer Idee offen bleiben
+    var expanded by rememberSaveable(stateSaver = expandedSaver) { mutableStateOf(setOf<String>()) }
     var toDelete by remember { mutableStateOf<PersonalIdea?>(null) }
     val map = ideas
 
     ClearDetailScreen(title = "Ideen verwalten", onBack = onBack) {
-        Text(
-            "Hier legst du Ideen für deine Check-in-Bereiche an. Im Check-in tippst du sie dann an, " +
-                "um sie auszuprobieren.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+        AddButton("Idee hinzufügen") { onAdd(CheckInCategory.entries.first().id) }
+
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            label = { Text("Suchen") },
+            leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { query = "" }) {
+                        Icon(Icons.Filled.Close, contentDescription = "Suche löschen")
+                    }
+                }
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
-        AddButton("Idee hinzufügen", onAdd)
 
         if (map == null) {
             CircularProgressIndicator(modifier = Modifier.size(32.dp))
+        } else if (query.isNotBlank()) {
+            // Suche: Treffer aus allen Bereichen, mit dem Namen des Bereichs
+            val matches = CheckInCategory.entries.flatMap { category ->
+                map[category].orEmpty()
+                    .filter { it.title.contains(query.trim(), ignoreCase = true) }
+                    .map { category to it }
+            }
+            if (matches.isEmpty()) {
+                Text(
+                    "Dazu wurde nichts gefunden.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            matches.forEach { (category, idea) ->
+                IdeaRow(
+                    idea = idea,
+                    caption = category.title,
+                    onEdit = { onEdit(category.id, idea.id) },
+                    onDelete = { toDelete = idea }
+                )
+            }
         } else {
             CheckInCategory.entries.forEach { category ->
                 val list = map[category].orEmpty()
-                Text(category.title, style = MaterialTheme.typography.titleMedium)
-                if (list.isEmpty()) {
-                    Text(
-                        "Noch keine Ideen.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                list.forEach { idea ->
-                    ClearCard(onClick = { onEdit(category.id, idea.id) }) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.Top,
-                            horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)
+                val isOpen = category.id in expanded
+                ClearCard(
+                    onClick = {
+                        expanded = if (isOpen) expanded - category.id else expanded + category.id
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                idea.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f).padding(top = ClearSpacing.small)
-                            )
-                            OptionsMenu(
-                                contentDescription = "Optionen für ${idea.title}",
-                                onEdit = { onEdit(category.id, idea.id) },
-                                onDelete = { toDelete = idea }
+                            Icon(
+                                category.icon, contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(category.title, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                when (list.size) {
+                                    0 -> "Noch keine Ideen"
+                                    1 -> "1 Idee"
+                                    else -> "${list.size} Ideen"
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            if (isOpen) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = if (isOpen) "Zuklappen" else "Aufklappen",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
+                }
+                if (isOpen) {
+                    list.forEach { idea ->
+                        IdeaRow(
+                            idea = idea,
+                            caption = null,
+                            onEdit = { onEdit(category.id, idea.id) },
+                            onDelete = { toDelete = idea }
+                        )
+                    }
+                    TextButton(
+                        onClick = { onAdd(category.id) },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) { Text("Idee zu „${category.title}“ hinzufügen") }
                 }
             }
         }
@@ -119,3 +203,32 @@ fun IdeasManageScreen(
         )
     }
 }
+
+@Composable
+private fun IdeaRow(idea: PersonalIdea, caption: String?, onEdit: () -> Unit, onDelete: () -> Unit) {
+    ClearCard(onClick = onEdit) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)
+        ) {
+            Column(modifier = Modifier.weight(1f).padding(vertical = 4.dp)) {
+                Text(idea.title, style = MaterialTheme.typography.bodyLarge)
+                if (caption != null) {
+                    Text(
+                        caption,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            OptionsMenu(
+                contentDescription = "Optionen für ${idea.title}",
+                onEdit = onEdit,
+                onDelete = onDelete
+            )
+        }
+    }
+}
+
+private val expandedSaver = listSaver<Set<String>, String>(save = { it.toList() }, restore = { it.toSet() })

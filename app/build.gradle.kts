@@ -37,6 +37,11 @@ android {
     }
 }
 
+// Room legt hier das Datenbankschema je Version ab (zum Pruefen der Migrationen)
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

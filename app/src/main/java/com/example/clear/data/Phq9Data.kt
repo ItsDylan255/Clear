@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * Ein ausgefuellter PHQ-9. q1 bis q9 sind die Punkte (0 bis 3), total die Summe.
- * yearMonth = Jahr * 100 + Monat (zum Beispiel 202610). Pro Monat gibt es hoechstens einen.
+ * yearMonth = Jahr * 100 + Monat (zum Beispiel 202610). Zwischen zwei Ergebnissen liegen mindestens 14 Tage.
  */
 @Entity(tableName = "phq9_results")
 data class Phq9Result(

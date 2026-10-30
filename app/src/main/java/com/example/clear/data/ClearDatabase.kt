@@ -15,7 +15,7 @@ import androidx.room.RoomDatabase
         WarningSign::class, WsasResult::class
     ],
     version = 19,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class ClearDatabase : RoomDatabase() {
     abstract fun personalIdeaDao(): PersonalIdeaDao

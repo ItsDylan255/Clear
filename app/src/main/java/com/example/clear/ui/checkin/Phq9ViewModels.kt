@@ -23,7 +23,7 @@ internal fun currentYearMonth(): Int {
     return month.year * 100 + month.monthValue
 }
 
-/** Status des monatlichen Fragebogens. available: fuer diesen Monat noch nicht ausgefuellt. */
+/** Status des PHQ-9. available: seit dem letzten Ausfuellen sind mindestens 14 Tage vergangen. */
 class Phq9HubViewModel(app: Application) : AndroidViewModel(app) {
     private val dao = ClearDatabase.getInstance(app).phq9Dao()
 

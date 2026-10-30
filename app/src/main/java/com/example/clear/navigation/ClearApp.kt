@@ -480,7 +480,7 @@ fun ClearApp() {
                 composable(AnkerRoutes.IDEAS) {
                     IdeasManageScreen(
                         onBack = { navController.popBackStack() },
-                        onAdd = { navController.navigate(CheckInRoutes.editor(CheckInCategory.Energy.id)) },
+                        onAdd = { categoryId -> navController.navigate(CheckInRoutes.editor(categoryId)) },
                         onEdit = { categoryId, ideaId ->
                             navController.navigate(CheckInRoutes.editor(categoryId, ideaId))
                         }

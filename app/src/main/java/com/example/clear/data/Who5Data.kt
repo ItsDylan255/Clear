@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * Ein ausgefuellter WHO-5. q1 bis q5 sind die Punkte (0 bis 5), total die Summe (0 bis 25).
- * yearMonth = Jahr * 100 + Monat (zum Beispiel 202610). Pro Monat gibt es hoechstens einen.
+ * yearMonth = Jahr * 100 + Monat (zum Beispiel 202610). Zwischen zwei Ergebnissen liegen mindestens 14 Tage.
  */
 @Entity(tableName = "who5_results")
 data class Who5Result(

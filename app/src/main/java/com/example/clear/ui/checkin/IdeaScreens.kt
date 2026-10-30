@@ -12,16 +12,21 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.domain.CategoryLevel
 import com.example.clear.model.CheckInCategory
 import com.example.clear.ui.akut.ExerciseStatsViewModel
 import com.example.clear.ui.akut.formatAverage
@@ -49,6 +54,7 @@ fun IdeaDetailScreen(
     val stats by statsViewModel.stats.collectAsState()
     val runningMap by ActiveIdeas.running.collectAsState()
     val idea = state.idea
+    var showOthers by rememberSaveable { mutableStateOf(false) }
 
     ClearDetailScreen(title = idea?.title ?: "Idee", onBack = onBack) {
         when {
@@ -59,7 +65,8 @@ fun IdeaDetailScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             else -> {
-                val level = levels?.get(idea.categoryId)?.level.toIdeaLevel()
+                val currentLevel = levels?.get(idea.categoryId)?.level ?: CategoryLevel.High
+                val level = currentLevel.toIdeaLevel()
                 val running = runningMap.containsKey(idea.id)
                 val text = idea.textFor(level)
 
@@ -72,6 +79,7 @@ fun IdeaDetailScreen(
                     )
                 }
                 ClearCard {
+                    Text(levelName(currentLevel), style = MaterialTheme.typography.titleMedium)
                     Text(
                         if (text.isNotBlank()) text
                         else "Für dieses Level fehlt noch ein Text. Du kannst ihn im Anker-Tab ergänzen.",
@@ -85,6 +93,28 @@ fun IdeaDetailScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+
+                // Die anderen Varianten (Level) der Idee, nur bei Bedarf
+                val others = listOf(CategoryLevel.High, CategoryLevel.Medium, CategoryLevel.Low)
+                    .filter { it != currentLevel }
+                TextButton(
+                    onClick = { showOthers = !showOthers },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) { Text(if (showOthers) "Andere Varianten ausblenden" else "Andere Varianten anzeigen") }
+                if (showOthers) {
+                    others.forEach { variant ->
+                        val variantText = idea.textFor(variant.toIdeaLevel())
+                        ClearCard {
+                            Text(levelName(variant), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                if (variantText.isNotBlank()) variantText else "Dafür gibt es noch keinen Text.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (variantText.isNotBlank()) MaterialTheme.colorScheme.onSurface
+                                else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
 
                 if (running) {

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Status des monatlichen WHO-5. available: fuer diesen Monat noch nicht ausgefuellt. */
+/** Status des WHO-5. available: seit dem letzten Ausfuellen sind mindestens 14 Tage vergangen. */
 class Who5HubViewModel(app: Application) : AndroidViewModel(app) {
     private val dao = ClearDatabase.getInstance(app).who5Dao()
 
