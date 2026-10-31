@@ -272,13 +272,17 @@ private fun timeLabel(date: LocalDate, rangeDays: Int): String? = when (rangeDay
             "${weekday.getDisplayName(DateTextStyle.SHORT, Locale.ENGLISH).take(2)} ${date.dayOfMonth}"
         )
     }
-    30 -> if (date.toEpochDay() % 5L == 0L) "${date.dayOfMonth}.${date.monthValue}." else null
-    90 -> if (date.toEpochDay() % 14L == 0L) "${date.dayOfMonth}.${date.monthValue}." else null
+    30 -> if (date.toEpochDay() % 5L == 0L) dayMonth(date) else null
+    90 -> if (date.toEpochDay() % 14L == 0L) dayMonth(date) else null
     else -> if (date.dayOfMonth == 1 && date.monthValue % 2 == 1) {
         val month = date.month.getDisplayName(DateTextStyle.SHORT, AppLanguage.locale).removeSuffix(".")
         if (date.monthValue == 1) "$month ${date.year % 100}" else month
     } else null
 }
+
+/** "4.10." auf Deutsch, "10/4" auf Englisch. */
+private fun dayMonth(date: LocalDate): String =
+    tr("${date.dayOfMonth}.${date.monthValue}.", "${date.monthValue}/${date.dayOfMonth}")
 
 /** Uebersicht: alle Bereiche und Frageboegen. Jeder Eintrag oeffnet sein eigenes Diagramm. */
 @Composable
