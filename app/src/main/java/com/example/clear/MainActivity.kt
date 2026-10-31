@@ -1,5 +1,6 @@
 package com.example.clear
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -16,8 +17,13 @@ import com.example.clear.navigation.ClearApp
 import com.example.clear.ui.theme.ClearTheme
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguage.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppLanguage.init(this)
         ThemePreferences.init(this)
         setContent {
             val mode by ThemePreferences.mode.collectAsState()

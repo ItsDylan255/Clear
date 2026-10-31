@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -37,10 +38,19 @@ fun QuestionnairesScreen(
     val who5Available by who5ViewModel.available.collectAsState()
     val wsasAvailable by wsasViewModel.available.collectAsState()
 
-    ClearDetailScreen(title = "Fragebögen", onBack = onBack) {
-        QuestionnaireCard("PHQ-9", "Neun Fragen zu den letzten zwei Wochen", phqAvailable, onOpenPhq)
-        QuestionnaireCard("WHO-5", "Fünf Fragen zu deinem Wohlbefinden", who5Available, onOpenWho5)
-        QuestionnaireCard("WSAS", "Fünf Fragen dazu, wie sehr dich deine Probleme im Alltag beeinträchtigen", wsasAvailable, onOpenWsas)
+    ClearDetailScreen(title = tr("Fragebögen", "Questionnaires"), onBack = onBack) {
+        QuestionnaireCard("PHQ-9", tr(
+            "Neun Fragen zu den letzten zwei Wochen",
+            "Nine questions about the last two weeks"
+        ), phqAvailable, onOpenPhq)
+        QuestionnaireCard("WHO-5", tr(
+            "Fünf Fragen zu deinem Wohlbefinden",
+            "Five questions about your well-being"
+        ), who5Available, onOpenWho5)
+        QuestionnaireCard("WSAS", tr(
+            "Fünf Fragen dazu, wie sehr dich deine Probleme im Alltag beeinträchtigen",
+            "Five questions about how much your problems affect your daily life"
+        ), wsasAvailable, onOpenWsas)
     }
 }
 
@@ -60,7 +70,7 @@ private fun QuestionnaireCard(title: String, description: String, available: Boo
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    if (available) "Bereit" else "Gerade erst ausgefüllt",
+                    if (available) tr("Bereit", "Ready") else tr("Gerade erst ausgefüllt", "Just filled in"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)

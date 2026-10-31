@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.tr
 import com.example.clear.ui.anker.EmergencyCardViewModel
 import com.example.clear.ui.anker.WarningSignsViewModel
 import com.example.clear.ui.components.ClearCard
@@ -43,28 +44,28 @@ fun EmergencyCardScreen(
     val c = card
     val signList = signs.orEmpty()
 
-    ClearDetailScreen(title = "Notfallkarte", onBack = onBack) {
-        PhoneCard("Notruf", "112", "")
-        PhoneCard("Telefonseelsorge", "0800 111 0 111", "")
+    ClearDetailScreen(title = tr("Notfallkarte", "Emergency card"), onBack = onBack) {
+        PhoneCard(tr("Notruf", "Emergency number"), "112", "")
+        PhoneCard(tr("Telefonseelsorge", "Crisis line (Telefonseelsorge, Germany)"), "0800 111 0 111", "")
 
         if (c != null) {
             if (c.contactName.isNotBlank() || c.contactPhone.isNotBlank()) {
                 PhoneCard(
-                    title = c.contactName.ifBlank { "Meine Notfallperson" },
+                    title = c.contactName.ifBlank { tr("Meine Notfallperson", "My emergency contact") },
                     number = c.contactPhone,
                     description = c.contactNote
                 )
             }
             if (c.safetyPlan.isNotBlank()) {
                 ClearCard {
-                    Text("Mein Plan", style = MaterialTheme.typography.titleMedium)
+                    Text(tr("Mein Plan", "My plan"), style = MaterialTheme.typography.titleMedium)
                     Text(c.safetyPlan, style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }
         if (signList.isNotEmpty()) {
             ClearCard {
-                Text("Meine Warnzeichen", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Meine Warnzeichen", "My warning signs"), style = MaterialTheme.typography.titleMedium)
                 signList.forEach { sign ->
                     Text("• ${sign.text}", style = MaterialTheme.typography.bodyLarge)
                 }
@@ -106,7 +107,7 @@ private fun PhoneCard(title: String, number: String, description: String) {
                     horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)
                 ) {
                     Icon(Icons.Filled.Phone, contentDescription = null)
-                    Text("Anrufen")
+                    Text(tr("Anrufen", "Call"))
                 }
             }
         }

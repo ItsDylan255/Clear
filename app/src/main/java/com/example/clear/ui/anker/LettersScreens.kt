@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.AppLanguage
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
@@ -30,12 +31,12 @@ import com.example.clear.ui.components.EmotionTagDialog
 import com.example.clear.ui.components.EmptyHintCard
 import com.example.clear.ui.components.emotionTagsLabel
 import com.example.clear.model.EmotionTag
+import com.example.clear.tr
 import java.text.DateFormat
 import java.util.Date
-import java.util.Locale
 
 private fun formatDate(timestamp: Long): String =
-    DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.GERMANY).format(Date(timestamp))
+    DateFormat.getDateInstance(DateFormat.MEDIUM, AppLanguage.locale).format(Date(timestamp))
 
 @Composable
 fun LettersScreen(
@@ -48,11 +49,14 @@ fun LettersScreen(
     val list = letters
 
     ClearDetailScreen(
-        title = viewModel.emotionName?.let { "Briefe · $it" } ?: "Briefe an mich selbst",
+        title = viewModel.emotionName?.let { tr("Briefe · $it", "Letters · $it") } ?: tr("Briefe an mich selbst", "Letters to myself"),
         onBack = onBack
     ) {
         Text(
-            "Schreib dir Worte, wenn es dir gut geht. Lies sie, wenn du sie brauchst.",
+            tr(
+                "Schreib dir Worte, wenn es dir gut geht. Lies sie, wenn du sie brauchst.",
+                "Write yourself words when you are doing well. Read them when you need them."
+            ),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -70,7 +74,7 @@ fun LettersScreen(
                 }
             }
         }
-        AddButton("Brief schreiben", onAdd)
+        AddButton(tr("Brief schreiben", "Write a letter"), onAdd)
     }
 }
 
@@ -98,18 +102,21 @@ fun LetterReaderScreen(
                 onClick = { onEdit(letter.id) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text("Bearbeiten") }
+            ) { Text(tr("Bearbeiten", "Edit")) }
             TextButton(
                 onClick = { confirmDelete = true },
                 modifier = Modifier.heightIn(min = 48.dp)
-            ) { Text("Löschen") }
+            ) { Text(tr("Löschen", "Delete")) }
         }
     }
 
     if (confirmDelete && letter != null) {
         ConfirmDeleteDialog(
-            title = "Brief löschen?",
-            message = "„${letter.title}“ wird dauerhaft gelöscht." + deleteNote(letter.emotionTags),
+            title = tr("Brief löschen?", "Delete letter?"),
+            message = tr(
+                "„${letter.title}“ wird dauerhaft gelöscht.",
+                "“${letter.title}” will be deleted permanently."
+            ) + deleteNote(letter.emotionTags),
             onConfirm = {
                 confirmDelete = false
                 viewModel.delete(letter, onDone = onBack)
@@ -124,7 +131,7 @@ fun LetterEditorScreen(onClose: () -> Unit, viewModel: LetterEditorViewModel = v
     val s by viewModel.state.collectAsState()
     Box(modifier = Modifier.imePadding()) {
         ClearDetailScreen(
-            title = if (s.isNew) "Neuer Brief" else "Brief bearbeiten",
+            title = if (s.isNew) tr("Neuer Brief", "New letter") else tr("Brief bearbeiten", "Edit letter"),
             onBack = onClose
         ) {
             if (s.isLoading) {
@@ -133,18 +140,24 @@ fun LetterEditorScreen(onClose: () -> Unit, viewModel: LetterEditorViewModel = v
                 OutlinedTextField(
                     value = s.title,
                     onValueChange = viewModel::onTitleChange,
-                    label = { Text("Titel") },
+                    label = { Text(tr("Titel", "Title")) },
                     isError = s.titleError,
-                    supportingText = { if (s.titleError) Text("Bitte gib einen Titel ein.") },
+                    supportingText = { if (s.titleError) Text(tr(
+                        "Bitte gib einen Titel ein.",
+                        "Please enter a title."
+                    )) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = s.text,
                     onValueChange = viewModel::onTextChange,
-                    label = { Text("Dein Brief") },
+                    label = { Text(tr("Dein Brief", "Your letter")) },
                     isError = s.textError,
-                    supportingText = { if (s.textError) Text("Bitte schreib etwas auf.") },
+                    supportingText = { if (s.textError) Text(tr(
+                        "Bitte schreib etwas auf.",
+                        "Please write something."
+                    )) },
                     minLines = 8,
                     modifier = Modifier.fillMaxWidth()
                 )

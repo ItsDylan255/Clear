@@ -49,6 +49,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.tr
 import com.example.clear.ui.anker.EveningEntryViewModel
 import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearSurfaceSoft
@@ -77,10 +78,10 @@ fun CheckInFlowScreen(
     Column(modifier = Modifier.fillMaxSize().imePadding().padding(horizontal = ClearSpacing.large)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) {
-                Icon(Icons.Filled.Close, contentDescription = "Check-in beenden")
+                Icon(Icons.Filled.Close, contentDescription = tr("Check-in beenden", "Close check-in"))
             }
             Text(
-                if (eveningStep) "Zum Schluss" else "Frage ${state.index + 1} von ${state.categories.size}",
+                if (eveningStep) tr("Zum Schluss", "Finally") else tr("Frage ${state.index + 1} von ${state.categories.size}", "Question ${state.index + 1} of ${state.categories.size}"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -128,7 +129,7 @@ fun CheckInFlowScreen(
                 TextButton(
                     onClick = { if (eveningStep) eveningStep = false else viewModel.previous() },
                     modifier = Modifier.heightIn(min = 56.dp)
-                ) { Text("Zurück") }
+                ) { Text(tr("Zurück", "Back")) }
             }
             Button(
                 onClick = {
@@ -141,7 +142,7 @@ fun CheckInFlowScreen(
                 modifier = Modifier.heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
             ) {
-                Text(if (eveningStep) "Fertig" else "Weiter")
+                Text(if (eveningStep) tr("Fertig", "Done") else tr("Weiter", "Next"))
             }
         }
     }
@@ -193,7 +194,7 @@ private fun ScaleButton(value: Int, isSelected: Boolean, onSelect: (Int) -> Unit
             .background(background)
             .then(if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier)
             .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(value) })
-            .semantics { contentDescription = "$value von 10" },
+            .semantics { contentDescription = tr("$value von 10", "$value of 10") },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -223,35 +224,41 @@ private fun scaleColor(value: Int): Color {
 private fun EveningStepFields(viewModel: EveningEntryViewModel) {
     val draft by viewModel.draft.collectAsState()
     Text(
-        "Erfolge und gute Dinge",
+        tr("Erfolge und gute Dinge", "Successes and good things"),
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Text(
-        "Alles ist freiwillig. Ein Stichwort reicht, auch winzige Dinge zählen.",
+        tr(
+            "Alles ist freiwillig. Ein Stichwort reicht, auch winzige Dinge zählen.",
+            "Everything is optional. A keyword is enough, and even tiny things count."
+        ),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     OutlinedTextField(
         value = draft.success,
         onValueChange = viewModel::onSuccessChange,
-        label = { Text("Was habe ich heute geschafft?") },
+        label = { Text(tr("Was habe ich heute geschafft?", "What did I get done today?")) },
         minLines = 2,
         modifier = Modifier.fillMaxWidth()
     )
-    Text("Was war heute gut oder okay?", style = MaterialTheme.typography.titleMedium)
+    Text(tr(
+        "Was war heute gut oder okay?",
+        "What was good or okay today?"
+    ), style = MaterialTheme.typography.titleMedium)
     repeat(3) { index ->
         OutlinedTextField(
             value = draft.goodTexts[index],
             onValueChange = { viewModel.onGoodTextChange(index, it) },
-            label = { Text("Gutes ${index + 1}") },
+            label = { Text(tr("Gutes ${index + 1}", "Good thing ${index + 1}")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
             value = draft.goodReasons[index],
             onValueChange = { viewModel.onGoodReasonChange(index, it) },
-            label = { Text("Warum ist das passiert? (optional)") },
+            label = { Text(tr("Warum ist das passiert? (optional)", "Why did it happen? (optional)")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )

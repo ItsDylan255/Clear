@@ -34,12 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
 
-private val weekdayLabels = listOf("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
+private val weekdayLabels: List<String> get() = listOf(tr("Mo", "Mo"), tr("Di", "Tu"), tr("Mi", "We"), tr("Do", "Th"), tr("Fr", "Fr"), tr("Sa", "Sa"), tr("So", "Su"))
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -67,7 +68,7 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
         else viewModel.setEnabled(true)
     }
 
-    ClearDetailScreen(title = "Zitat-Erinnerungen", onBack = onBack) {
+    ClearDetailScreen(title = tr("Zitat-Erinnerungen", "Quote reminders"), onBack = onBack) {
         ClearCard {
             Row(
                 modifier = Modifier
@@ -81,7 +82,7 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Erinnerungen aktivieren", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Erinnerungen aktivieren", "Turn on reminders"), style = MaterialTheme.typography.titleMedium)
                 Switch(checked = settings.enabled, onCheckedChange = null)
             }
         }
@@ -89,8 +90,12 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
         if (permissionDenied) {
             ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
-                    "Ohne Erlaubnis kann Clear keine Erinnerungen senden. " +
-                        "Du kannst sie später in den Systemeinstellungen erteilen.",
+                    tr(
+                        "Ohne Erlaubnis kann Clear keine Erinnerungen senden. " +
+                            "Du kannst sie später in den Systemeinstellungen erteilen.",
+                        "Without permission, Clear can't send reminders. " +
+                            "You can grant it later in the system settings."
+                    ),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -98,8 +103,12 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
         if (settings.enabled && !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
             ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
-                    "Benachrichtigungen sind für Clear in den Systemeinstellungen ausgeschaltet. " +
-                        "Du bekommst deshalb keine Erinnerungen.",
+                    tr(
+                        "Benachrichtigungen sind für Clear in den Systemeinstellungen ausgeschaltet. " +
+                            "Du bekommst deshalb keine Erinnerungen.",
+                        "Notifications for Clear are turned off in the system settings. " +
+                            "So you won't get any reminders."
+                    ),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -119,9 +128,12 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
                 horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Zufällige Zeiten", style = MaterialTheme.typography.titleMedium)
+                    Text(tr("Zufällige Zeiten", "Random times"), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Innerhalb eines Zeitfensters, nicht immer zur selben Uhrzeit.",
+                        tr(
+                            "Innerhalb eines Zeitfensters, nicht immer zur selben Uhrzeit.",
+                            "Within a time window, not always at the same time."
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -131,7 +143,7 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
         }
 
         if (settings.randomWindow) {
-            Text("Zeitfenster", style = MaterialTheme.typography.titleMedium)
+            Text(tr("Zeitfenster", "Time window"), style = MaterialTheme.typography.titleMedium)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)
@@ -146,7 +158,7 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
                     },
                     modifier = Modifier.weight(1f).heightIn(min = 56.dp),
                     shape = MaterialTheme.shapes.large
-                ) { Text("Ab %02d:%02d".format(settings.hour, settings.minute)) }
+                ) { Text(tr("Ab %02d:%02d", "From %02d:%02d").format(settings.hour, settings.minute)) }
                 OutlinedButton(
                     onClick = {
                         TimePickerDialog(
@@ -157,16 +169,19 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
                     },
                     modifier = Modifier.weight(1f).heightIn(min = 56.dp),
                     shape = MaterialTheme.shapes.large
-                ) { Text("Bis %02d:%02d".format(settings.endHour, settings.endMinute)) }
+                ) { Text(tr("Bis %02d:%02d", "Until %02d:%02d").format(settings.endHour, settings.endMinute)) }
             }
             if (settings.endHour * 60 + settings.endMinute <= settings.hour * 60 + settings.minute) {
                 Text(
-                    "Das Ende sollte nach dem Start liegen.",
+                    tr("Das Ende sollte nach dem Start liegen.", "The end should be after the start."),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Text("Wie viele Erinnerungen pro Tag?", style = MaterialTheme.typography.titleMedium)
+            Text(tr(
+                "Wie viele Erinnerungen pro Tag?",
+                "How many reminders per day?"
+            ), style = MaterialTheme.typography.titleMedium)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
                 (1..5).forEach { count ->
                     FilterChip(
@@ -177,7 +192,7 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
                 }
             }
         } else {
-            Text("Uhrzeit", style = MaterialTheme.typography.titleMedium)
+            Text(tr("Uhrzeit", "Time"), style = MaterialTheme.typography.titleMedium)
             OutlinedButton(
                 onClick = {
                     TimePickerDialog(
@@ -188,10 +203,10 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
                 },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text("%02d:%02d Uhr".format(settings.hour, settings.minute)) }
+            ) { Text(tr("%02d:%02d Uhr", "%02d:%02d").format(settings.hour, settings.minute)) }
         }
 
-        Text("Wochentage", style = MaterialTheme.typography.titleMedium)
+        Text(tr("Wochentage", "Weekdays"), style = MaterialTheme.typography.titleMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
             weekdayLabels.forEachIndexed { index, label ->
                 FilterChip(
@@ -202,11 +217,14 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
             }
         }
 
-        Text("Welche Zitate?", style = MaterialTheme.typography.titleMedium)
+        Text(tr("Welche Zitate?", "Which quotes?"), style = MaterialTheme.typography.titleMedium)
         if (state.quotes.isEmpty()) {
             ClearCard {
                 Text(
-                    "Lege zuerst unter „Zitate und Gedanken“ ein Zitat an.",
+                    tr(
+                        "Lege zuerst unter „Zitate und Gedanken“ ein Zitat an.",
+                        "First add a quote under “Quotes and thoughts”."
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -234,7 +252,10 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = viewMode
             }
             if (settings.enabled && state.selectedIds.isEmpty()) {
                 Text(
-                    "Wähle mindestens ein Zitat aus, sonst zeigt Clear nichts an.",
+                    tr(
+                        "Wähle mindestens ein Zitat aus, sonst zeigt Clear nichts an.",
+                        "Choose at least one quote, otherwise Clear won't show anything."
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

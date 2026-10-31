@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearCard as ClearCardColor
 import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearSurfaceSoft
@@ -66,7 +67,7 @@ fun CheckInHistoryScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück", "Back"))
             }
         }
         BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
@@ -84,7 +85,7 @@ fun CheckInHistoryScreen(
                     .padding(horizontal = ClearSpacing.large, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(gap)
             ) {
-                Text("Verlauf", style = MaterialTheme.typography.headlineMedium)
+                Text(tr("Verlauf", "History"), style = MaterialTheme.typography.headlineMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -94,7 +95,7 @@ fun CheckInHistoryScreen(
                         FilterChip(
                             selected = option == days,
                             onClick = { viewModel.selectDays(option) },
-                            label = { Text("$option Tage") },
+                            label = { Text(tr("$option Tage", "$option days")) },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -147,11 +148,11 @@ private fun TrendCard(item: CategoryTrend, height: Dp) {
 }
 
 private fun trendLabel(trend: Trend): String = when (trend) {
-    Trend.None -> "Noch keine Werte"
-    Trend.Single -> "Ein Wert"
-    Trend.Up -> "↑ gestiegen"
-    Trend.Down -> "↓ gesunken"
-    Trend.Flat -> "→ gleich geblieben"
+    Trend.None -> tr("Noch keine Werte", "No values yet")
+    Trend.Single -> tr("Ein Wert", "One value")
+    Trend.Up -> tr("↑ gestiegen", "↑ up")
+    Trend.Down -> tr("↓ gesunken", "↓ down")
+    Trend.Flat -> tr("→ gleich geblieben", "→ unchanged")
 }
 
 /** Kleiner Linienverlauf. Skala fest 1 bis 10, damit die Bereiche vergleichbar bleiben. */

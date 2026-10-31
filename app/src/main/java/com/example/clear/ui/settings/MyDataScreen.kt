@@ -22,6 +22,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.DataWiper
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
@@ -60,14 +61,20 @@ fun MyDataScreen(onBack: () -> Unit, viewModel: MyDataViewModel = viewModel()) {
     val state by viewModel.state.collectAsState()
     var confirm by remember { mutableStateOf(false) }
 
-    ClearDetailScreen(title = "Meine Daten", onBack = onBack) {
+    ClearDetailScreen(title = tr("Meine Daten", "My data"), onBack = onBack) {
         if (state.deleted) {
-            ClearCard { Text("Alle Daten wurden gelöscht.", style = MaterialTheme.typography.bodyLarge) }
+            ClearCard { Text(tr(
+                "Alle Daten wurden gelöscht.",
+                "All data has been deleted."
+            ), style = MaterialTheme.typography.bodyLarge) }
         }
         if (state.failed) {
             ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
-                    "Beim Löschen ist ein Fehler aufgetreten. Bitte versuche es noch einmal.",
+                    tr(
+                        "Beim Löschen ist ein Fehler aufgetreten. Bitte versuche es noch einmal.",
+                        "An error occurred while deleting. Please try again."
+                    ),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -80,26 +87,31 @@ fun MyDataScreen(onBack: () -> Unit, viewModel: MyDataViewModel = viewModel()) {
             shape = MaterialTheme.shapes.large,
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
-        ) { Text(if (state.isDeleting) "Wird gelöscht …" else "Alle meine Daten löschen") }
+        ) { Text(if (state.isDeleting) tr("Wird gelöscht …", "Deleting …") else tr("Alle meine Daten löschen", "Delete all my data")) }
     }
 
     if (confirm) {
         AlertDialog(
             onDismissRequest = { confirm = false },
-            title = { Text("Alle Daten löschen?") },
+            title = { Text(tr("Alle Daten löschen?", "Delete all data?")) },
             text = {
                 Text(
-                    "Alles wird dauerhaft von diesem Handy gelöscht: Check-ins, Fragebögen, Ideen, " +
-                        "Zitate, Briefe, Bilder, Musik, Notfallkarte und Erinnerungen. " +
-                        "Das lässt sich nicht rückgängig machen."
+                    tr(
+                        "Alles wird dauerhaft von diesem Handy gelöscht: Check-ins, Fragebögen, Ideen, " +
+                            "Zitate, Briefe, Bilder, Musik, Notfallkarte und Erinnerungen. " +
+                            "Das lässt sich nicht rückgängig machen.",
+                        "Everything will be permanently deleted from this phone: check-ins, questionnaires, ideas, " +
+                            "quotes, letters, images, music, emergency card and reminders. " +
+                            "This can't be undone."
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = { confirm = false; viewModel.deleteAll() }) {
-                    Text("Alles löschen")
+                    Text(tr("Alles löschen", "Delete everything"))
                 }
             },
-            dismissButton = { TextButton(onClick = { confirm = false }) { Text("Abbrechen") } }
+            dismissButton = { TextButton(onClick = { confirm = false }) { Text(tr("Abbrechen", "Cancel")) } }
         )
     }
 }

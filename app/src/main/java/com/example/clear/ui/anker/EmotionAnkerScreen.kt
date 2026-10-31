@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.AppLanguage
 import coil.compose.AsyncImage
 import com.example.clear.data.AnchorImage
 import com.example.clear.data.FileStore
@@ -53,12 +54,12 @@ import com.example.clear.data.Quote
 import com.example.clear.model.MusicMode
 import com.example.clear.model.Situation
 import com.example.clear.playback.MusicPlayer
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearCard as ClearCardColor
 import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearTextDark
 import java.text.DateFormat
 import java.util.Date
-import java.util.Locale
 
 // Hoehenanteile der Bereiche, von oben nach unten: Musik, Bilder, Zitate, Briefe.
 // Fehlt ein Typ, bleibt sein Platz frei (die anderen behalten ihre Groesse).
@@ -68,7 +69,7 @@ private const val W_QUOTE = 1.0f
 private const val W_LETTER = 0.8f
 
 private fun formatDate(timestamp: Long): String =
-    DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.GERMANY).format(Date(timestamp))
+    DateFormat.getDateInstance(DateFormat.MEDIUM, AppLanguage.locale).format(Date(timestamp))
 
 /**
  * Ruhige Ansicht der persoenlichen Inhalte zu einer Emotion. Kein Scrollen: jeder vorhandene
@@ -96,7 +97,7 @@ fun EmotionAnkerScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück", "Back"))
             }
         }
         Column(
@@ -111,7 +112,10 @@ fun EmotionAnkerScreen(
             if (content != null) {
                 if (content.isEmpty) {
                     Text(
-                        "Hier ist noch nichts gespeichert. Du kannst Inhalte unter Mein Anker hinzufügen.",
+                        tr(
+                            "Hier ist noch nichts gespeichert. Du kannst Inhalte unter Mein Anker hinzufügen.",
+                            "Nothing saved here yet. You can add content under My Anchor."
+                        ),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -186,7 +190,10 @@ private fun <T> PreviewSection(
         ) {
             SectionHeader(
                 icon, label,
-                if (items.size > 1) "${pager.currentPage + 1} von ${items.size}" else null
+                if (items.size > 1) tr(
+                    "${pager.currentPage + 1} von ${items.size}",
+                    "${pager.currentPage + 1} of ${items.size}"
+                ) else null
             )
             HorizontalPager(
                 state = pager,
@@ -229,8 +236,11 @@ private fun MusicSection(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             SectionHeader(
-                Icons.Outlined.MusicNote, "Musik",
-                if (tracks.size > 1) "${pager.currentPage + 1} von ${tracks.size}" else null
+                Icons.Outlined.MusicNote, tr("Musik", "Music"),
+                if (tracks.size > 1) tr(
+                    "${pager.currentPage + 1} von ${tracks.size}",
+                    "${pager.currentPage + 1} of ${tracks.size}"
+                ) else null
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -255,7 +265,7 @@ private fun MusicSection(
             }
             if (tracks.isEmpty()) {
                 Text(
-                    "Keine Musik für diese Auswahl.",
+                    tr("Keine Musik für diese Auswahl.", "No music for this selection."),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -282,7 +292,7 @@ private fun MusicSection(
                             Icon(
                                 if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                 contentDescription =
-                                    if (isPlaying) "Pause: ${track.title}" else "Abspielen: ${track.title}"
+                                    if (isPlaying) tr("Pause: ${track.title}", "Pause: ${track.title}") else tr("Abspielen: ${track.title}", "Play: ${track.title}")
                             )
                         }
                         Text(
@@ -292,7 +302,7 @@ private fun MusicSection(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable(onClickLabel = "Öffnen") {
+                                .clickable(onClickLabel = tr("Öffnen", "Open")) {
                                     onOpen(track.id, tracks.map { it.id })
                                 }
                         )
@@ -306,9 +316,9 @@ private fun MusicSection(
 
 @Composable
 private fun QuotePreview(quotes: List<Quote>, modifier: Modifier, onOpen: (Long, List<Long>) -> Unit) {
-    PreviewSection(Icons.Outlined.FormatQuote, "Zitate", quotes, modifier) { quote ->
+    PreviewSection(Icons.Outlined.FormatQuote, tr("Zitate", "Quotes"), quotes, modifier) { quote ->
         BoxWithConstraints(
-            modifier = Modifier.fillMaxSize().clickable(onClickLabel = "Öffnen") {
+            modifier = Modifier.fillMaxSize().clickable(onClickLabel = tr("Öffnen", "Open")) {
                 onOpen(quote.id, quotes.map { it.id })
             }
         ) {
@@ -345,23 +355,23 @@ private fun QuotePreview(quotes: List<Quote>, modifier: Modifier, onOpen: (Long,
 @Composable
 private fun ImagePreview(images: List<AnchorImage>, modifier: Modifier, onOpen: (Long, List<Long>) -> Unit) {
     val context = LocalContext.current
-    PreviewSection(Icons.Outlined.Image, "Bilder", images, modifier) { image ->
+    PreviewSection(Icons.Outlined.Image, tr("Bilder", "Images"), images, modifier) { image ->
         val file = remember(image.fileName) {
             FileStore.file(context, FileStore.IMAGES, image.fileName)
         }
         if (file.exists()) {
             AsyncImage(
                 model = file,
-                contentDescription = image.caption ?: "Dein Bild",
+                contentDescription = image.caption ?: tr("Dein Bild", "Your image"),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(MaterialTheme.shapes.small)
-                    .clickable(onClickLabel = "Öffnen") { onOpen(image.id, images.map { it.id }) }
+                    .clickable(onClickLabel = tr("Öffnen", "Open")) { onOpen(image.id, images.map { it.id }) }
             )
         } else {
             Text(
-                "Diese Bilddatei wurde nicht gefunden.",
+                tr("Diese Bilddatei wurde nicht gefunden.", "This image file was not found."),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -371,9 +381,9 @@ private fun ImagePreview(images: List<AnchorImage>, modifier: Modifier, onOpen: 
 
 @Composable
 private fun LetterPreview(letters: List<Letter>, modifier: Modifier, onOpen: (Long, List<Long>) -> Unit) {
-    PreviewSection(Icons.Outlined.Mail, "Briefe", letters, modifier) { letter ->
+    PreviewSection(Icons.Outlined.Mail, tr("Briefe", "Letters"), letters, modifier) { letter ->
         Column(
-            modifier = Modifier.fillMaxSize().clickable(onClickLabel = "Öffnen") {
+            modifier = Modifier.fillMaxSize().clickable(onClickLabel = tr("Öffnen", "Open")) {
                 onOpen(letter.id, letters.map { it.id })
             },
             verticalArrangement = Arrangement.Center

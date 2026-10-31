@@ -1,15 +1,19 @@
 package com.example.clear.model
 
+import com.example.clear.tr
+
 /** Emotionen, denen du Zitate, Bilder und Musik zuordnen kannst. Entsprechen den Akut-Situationen. */
-enum class EmotionTag(val id: String, val title: String) {
-    Anxiety("anxiety", "Angst"),
-    Panic("panic", "Panik"),
-    Anger("anger", "Wut"),
-    Rumination("rumination", "Grübeln"),
-    Sadness("sadness", "Traurigkeit"),
-    Overwhelm("overwhelm", "Überforderung"),
-    Insomnia("insomnia", "Schlaflosigkeit"),
-    Loneliness("loneliness", "Einsamkeit");
+enum class EmotionTag(val id: String, private val titleDe: String, private val titleEn: String) {
+    Anxiety("anxiety", "Angst", "Anxiety"),
+    Panic("panic", "Panik", "Panic"),
+    Anger("anger", "Wut", "Anger"),
+    Rumination("rumination", "Grübeln", "Rumination"),
+    Sadness("sadness", "Traurigkeit", "Sadness"),
+    Overwhelm("overwhelm", "Überforderung", "Overwhelm"),
+    Insomnia("insomnia", "Schlaflosigkeit", "Insomnia"),
+    Loneliness("loneliness", "Einsamkeit", "Loneliness");
+
+    val title: String get() = tr(titleDe, titleEn)
 
     companion object {
         /** "anxiety,panic" -> {Anxiety, Panic}. Unbekannte Eintraege werden ignoriert. */

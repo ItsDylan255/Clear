@@ -14,6 +14,7 @@ import com.example.clear.MainActivity
 import com.example.clear.R
 import com.example.clear.data.ClearDatabase
 import com.example.clear.data.PersonalIdeaRepository
+import com.example.clear.tr
 import com.example.clear.ui.checkin.ActiveIdeas
 
 /**
@@ -21,7 +22,8 @@ import com.example.clear.ui.checkin.ActiveIdeas
  * Sie sind als "laufend" markiert und bleiben, bis die Idee beendet ist. Android erlaubt dem
  * System und manchmal auch dir, laufende Benachrichtigungen wegzuwischen. Beim naechsten
  * Oeffnen der App (sync) erscheinen sie dann wieder.
- * Antippen oeffnet die Beschreibung, "Beenden" fuehrt direkt zur Bewertung "Wie fuehlst du dich jetzt?".
+ * Antippen oeffnet die Beschreibung, "Beenden" fuehrt direkt zur Bewertung "Wie fuehlst du dich jetzt?",
+ * "Abbrechen" beendet die Idee ohne Bewertung.
  */
 object ExerciseNotifier {
     const val EXTRA_IDEA_ID = "clear_idea_id"
@@ -51,8 +53,8 @@ object ExerciseNotifier {
 
     private fun ensureChannel(context: Context) {
         val channel = NotificationChannel(
-            CHANNEL_ID, "Laufende Ideen", NotificationManager.IMPORTANCE_LOW
-        ).apply { description = "Zeigt, welche Ideen gerade laufen" }
+            CHANNEL_ID, tr("Laufende Ideen", "Running ideas"), NotificationManager.IMPORTANCE_LOW
+        ).apply { description = tr("Zeigt, welche Ideen gerade laufen", "Shows which ideas are running right now") }
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
@@ -63,6 +65,13 @@ object ExerciseNotifier {
                 .putExtra(EXTRA_IDEA_ID, ideaId)
                 .putExtra(EXTRA_ACTION, action)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+    private fun cancelIntentFor(context: Context, ideaId: Long, requestCode: Int): PendingIntent =
+        PendingIntent.getBroadcast(
+            context, requestCode,
+            Intent(context, IdeaCancelReceiver::class.java).putExtra(EXTRA_IDEA_ID, ideaId),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
@@ -78,9 +87,10 @@ object ExerciseNotifier {
         val notification = NotificationCompat.Builder(app, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
-            .setContentText("Läuft gerade")
+            .setContentText(tr("Läuft gerade", "Running now"))
             .setContentIntent(intentFor(app, ideaId, ACTION_OPEN, id * 2))
-            .addAction(0, "Beenden", intentFor(app, ideaId, ACTION_END, id * 2 + 1))
+            .addAction(0, tr("Beenden", "End"), intentFor(app, ideaId, ACTION_END, id * 2 + 1))
+            .addAction(0, tr("Abbrechen", "Cancel"), cancelIntentFor(app, ideaId, id))
             .setGroup(GROUP_KEY)
             .setOngoing(true)
             .setAutoCancel(false)
@@ -114,9 +124,9 @@ object ExerciseNotifier {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
                 when (count) {
-                    0 -> "Ideen laufen"
-                    1 -> "1 Idee läuft"
-                    else -> "$count Ideen laufen"
+                    0 -> tr("Ideen laufen", "Ideas running")
+                    1 -> tr("1 Idee läuft", "1 idea running")
+                    else -> tr("$count Ideen laufen", "$count ideas running")
                 }
             )
             .setStyle(style)

@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.clear.tr
 import com.example.clear.ui.theme.isClearDark
 
 /** Warmes Terrakotta fuer Hinweise rund um Hilfe. Nicht alarmierend. Passt sich dem Design an. */
@@ -22,6 +23,6 @@ val ClearWarningSoft: Color
 fun EmergencyLink(onClick: () -> Unit) {
     TextButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp)) {
         Icon(Icons.Filled.Phone, contentDescription = null)
-        Text("Notfallkarte öffnen", modifier = Modifier.padding(start = 8.dp))
+        Text(tr("Notfallkarte öffnen", "Open emergency card"), modifier = Modifier.padding(start = 8.dp))
     }
 }

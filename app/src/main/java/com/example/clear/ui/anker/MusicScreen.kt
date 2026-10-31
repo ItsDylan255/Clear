@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.MusicTrack
 import com.example.clear.model.MusicMode
+import com.example.clear.tr
 import com.example.clear.ui.akut.ClearWarningSoft
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
@@ -61,7 +62,7 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
     }
 
     ClearDetailScreen(
-        title = viewModel.emotionName?.let { "Musik · $it" } ?: "Meine Musik",
+        title = viewModel.emotionName?.let { tr("Musik · $it", "Music · $it") } ?: tr("Meine Musik", "My music"),
         onBack = onBack
     ) {
         playback.message?.let { text ->
@@ -85,29 +86,39 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
                             Icon(
                                 if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                 contentDescription =
-                                    if (isPlaying) "Pause: ${track.title}" else "Abspielen: ${track.title}"
+                                    if (isPlaying) tr("Pause: ${track.title}", "Pause: ${track.title}") else tr("Abspielen: ${track.title}", "Play: ${track.title}")
                             )
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text(track.title, style = MaterialTheme.typography.titleMedium)
                             TextButton(onClick = { modeFor = track }) {
                                 Text(
-                                    MusicMode.parse(track.moodGoals)?.title ?: "Art der Musik wählen",
+                                    MusicMode.parse(track.moodGoals)?.title ?: tr(
+                                        "Art der Musik wählen",
+                                        "Choose type of music"
+                                    ),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }
                         IconButton(onClick = { toDelete = track }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Löschen: ${track.title}")
+                            Icon(Icons.Filled.Delete, contentDescription = tr(
+                                "Löschen: ${track.title}",
+                                "Delete: ${track.title}"
+                            ))
                         }
                     }
                 }
             }
         }
-        AddButton("Musik hinzufügen") { showAddMode = true }
+        AddButton(tr("Musik hinzufügen", "Add music")) { showAddMode = true }
         Text(
-            "Die Datei wird in Clear gespeichert und bleibt nur auf deinem Handy. " +
-                "Die Wiedergabe läuft, solange diese Seite offen ist.",
+            tr(
+                "Die Datei wird in Clear gespeichert und bleibt nur auf deinem Handy. " +
+                    "Die Wiedergabe läuft, solange diese Seite offen ist.",
+                "The file is saved in Clear and stays only on your phone. " +
+                    "Playback continues while this page is open."
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -115,7 +126,7 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
 
     if (showAddMode) {
         MusicModeDialog(
-            title = "Wofür ist diese Musik?",
+            title = tr("Wofür ist diese Musik?", "What is this music for?"),
             onPick = { mode ->
                 showAddMode = false
                 pendingModeId = mode.id
@@ -126,15 +137,18 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
     }
     modeFor?.let { track ->
         MusicModeDialog(
-            title = "Wofür ist diese Musik?",
+            title = tr("Wofür ist diese Musik?", "What is this music for?"),
             onPick = { mode -> viewModel.updateMode(track, mode); modeFor = null },
             onDismiss = { modeFor = null }
         )
     }
     toDelete?.let { track ->
         ConfirmDeleteDialog(
-            title = "Musik löschen?",
-            message = "„${track.title}“ wird aus Clear entfernt. Dein Original bleibt unberührt." +
+            title = tr("Musik löschen?", "Delete music?"),
+            message = tr(
+                "„${track.title}“ wird aus Clear entfernt. Dein Original bleibt unberührt.",
+                "“${track.title}” will be removed from Clear. Your original stays untouched."
+            ) +
                 deleteNote(track.emotionTags),
             onConfirm = { viewModel.delete(track); toDelete = null },
             onDismiss = { toDelete = null }
@@ -160,6 +174,6 @@ private fun MusicModeDialog(title: String, onPick: (MusicMode) -> Unit, onDismis
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen", "Cancel")) } }
     )
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.model.CheckInCategory
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
 
@@ -37,7 +38,7 @@ fun IdeaEditorScreen(
     // imePadding: Inhalt rutscht ueber die Tastatur
     Box(modifier = Modifier.imePadding()) {
         ClearDetailScreen(
-            title = if (s.isNew) "Eigene Idee" else "Idee bearbeiten",
+            title = if (s.isNew) tr("Eigene Idee", "Your own idea") else tr("Idee bearbeiten", "Edit idea"),
             onBack = onClose
         ) {
             if (s.isLoading) {
@@ -46,14 +47,17 @@ fun IdeaEditorScreen(
                 OutlinedTextField(
                     value = s.title,
                     onValueChange = viewModel::onTitleChange,
-                    label = { Text("Titel") },
+                    label = { Text(tr("Titel", "Title")) },
                     isError = s.titleError,
-                    supportingText = { if (s.titleError) Text("Bitte gib einen Titel ein.") },
+                    supportingText = { if (s.titleError) Text(tr(
+                        "Bitte gib einen Titel ein.",
+                        "Please enter a title."
+                    )) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Text("Bereich", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Bereich", "Area"), style = MaterialTheme.typography.titleMedium)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
                     CheckInCategory.entries.forEach { category ->
                         FilterChip(
@@ -64,21 +68,24 @@ fun IdeaEditorScreen(
                     }
                 }
 
-                Text("Was gilt in welchem Zustand?", style = MaterialTheme.typography.titleMedium)
+                Text(tr(
+                    "Was gilt in welchem Zustand?",
+                    "What applies in which state?"
+                ), style = MaterialTheme.typography.titleMedium)
                 StateField(
-                    label = "Hoch",
+                    label = tr("Hoch", "High"),
                     value = s.textNormal,
                     onChange = viewModel::onNormalChange,
                     isError = s.normalError
                 )
                 StateField(
-                    label = "Mittel",
+                    label = tr("Mittel", "Medium"),
                     value = s.textSinking,
                     onChange = viewModel::onSinkingChange,
                     isError = s.sinkingError
                 )
                 StateField(
-                    label = "Niedrig",
+                    label = tr("Niedrig", "Low"),
                     value = s.textSevere,
                     onChange = viewModel::onSevereChange,
                     isError = s.severeError
@@ -89,13 +96,13 @@ fun IdeaEditorScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 56.dp)) {
-                        Text("Abbrechen")
+                        Text(tr("Abbrechen", "Cancel"))
                     }
                     Button(
                         onClick = { viewModel.save(onClose) },
                         modifier = Modifier.heightIn(min = 56.dp),
                         shape = MaterialTheme.shapes.large
-                    ) { Text("Speichern") }
+                    ) { Text(tr("Speichern", "Save")) }
                 }
             }
         }
@@ -115,7 +122,7 @@ private fun StateField(
         onValueChange = onChange,
         label = { Text(label) },
         isError = isError,
-        supportingText = { if (isError) Text("Bitte ergänze diesen Text.") },
+        supportingText = { if (isError) Text(tr("Bitte ergänze diesen Text.", "Please fill in this text.")) },
         minLines = 2,
         modifier = Modifier.fillMaxWidth()
     )

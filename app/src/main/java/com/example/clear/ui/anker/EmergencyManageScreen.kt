@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -44,20 +45,20 @@ fun EmergencyManageScreen(
     }.orEmpty()
     val planSummary = c?.safetyPlan.orEmpty()
 
-    ClearDetailScreen(title = "Notfallkarte", onBack = onBack) {
+    ClearDetailScreen(title = tr("Notfallkarte", "Emergency card"), onBack = onBack) {
         EmergencyEntryCard(
-            title = "Notfallperson",
-            summary = personSummary.ifBlank { "Noch niemand eingetragen" },
+            title = tr("Notfallperson", "Emergency contact"),
+            summary = personSummary.ifBlank { tr("Noch niemand eingetragen", "No one added yet") },
             onClick = onEditPerson
         )
         EmergencyEntryCard(
-            title = "Notfallplan",
-            summary = planSummary.ifBlank { "Noch kein Plan eingetragen" },
+            title = tr("Notfallplan", "Emergency plan"),
+            summary = planSummary.ifBlank { tr("Noch kein Plan eingetragen", "No plan added yet") },
             onClick = onEditPlan
         )
         EmergencyEntryCard(
-            title = "Warnzeichen",
-            summary = if (signList.isEmpty()) "Noch keine Warnzeichen eingetragen"
+            title = tr("Warnzeichen", "Warning signs"),
+            summary = if (signList.isEmpty()) tr("Noch keine Warnzeichen eingetragen", "No warning signs added yet")
             else signList.joinToString(", ") { it.text },
             onClick = onEditWarningSigns
         )

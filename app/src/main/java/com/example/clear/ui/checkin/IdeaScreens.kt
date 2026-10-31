@@ -8,9 +8,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.domain.CategoryLevel
 import com.example.clear.model.CheckInCategory
+import com.example.clear.tr
 import com.example.clear.ui.akut.ExerciseStatsViewModel
 import com.example.clear.ui.akut.formatAverage
 import com.example.clear.ui.components.ClearCard
@@ -36,7 +39,8 @@ import com.example.clear.ui.theme.ClearSurfaceSoft
 
 /**
  * Beschreibung einer Idee. "Starten" fragt zuerst, wie du dich fuehlst, und bringt dich dann
- * hierher zurueck. Solange die Idee laeuft, kannst du sie hier oder in der Benachrichtigung beenden.
+ * hierher zurueck. Solange die Idee laeuft, kannst du sie hier oder in der Benachrichtigung beenden
+ * oder ohne Bewertung abbrechen.
  */
 @Composable
 fun IdeaDetailScreen(
@@ -55,12 +59,13 @@ fun IdeaDetailScreen(
     val runningMap by ActiveIdeas.running.collectAsState()
     val idea = state.idea
     var showOthers by rememberSaveable { mutableStateOf(false) }
+    var confirmCancel by rememberSaveable { mutableStateOf(false) }
 
-    ClearDetailScreen(title = idea?.title ?: "Idee", onBack = onBack) {
+    ClearDetailScreen(title = idea?.title ?: tr("Idee", "Idea"), onBack = onBack) {
         when {
             state.isLoading -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
             idea == null -> Text(
-                "Diese Idee gibt es nicht mehr.",
+                tr("Diese Idee gibt es nicht mehr.", "This idea no longer exists."),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -82,14 +87,20 @@ fun IdeaDetailScreen(
                     Text(levelName(currentLevel), style = MaterialTheme.typography.titleMedium)
                     Text(
                         if (text.isNotBlank()) text
-                        else "Für dieses Level fehlt noch ein Text. Du kannst ihn im Anker-Tab ergänzen.",
+                        else tr(
+                            "Für dieses Level fehlt noch ein Text. Du kannst ihn im Anker-Tab ergänzen.",
+                            "There is no text for this level yet. You can add it in the Anchor tab."
+                        ),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
                 stats[ActiveIdeas.key(idea.id)]?.let { stat ->
                     Text(
-                        "Im Durchschnitt: ${formatAverage(stat.average)} bei ${stat.count} " +
-                            if (stat.count == 1) "Durchlauf" else "Durchläufen",
+                        tr(
+                            "Im Durchschnitt: ${formatAverage(stat.average)} bei ${stat.count} ",
+                            "On average: ${formatAverage(stat.average)} over ${stat.count} "
+                        ) +
+                            if (stat.count == 1) tr("Durchlauf", "run") else tr("Durchläufen", "runs"),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -101,14 +112,17 @@ fun IdeaDetailScreen(
                 TextButton(
                     onClick = { showOthers = !showOthers },
                     modifier = Modifier.heightIn(min = 48.dp)
-                ) { Text(if (showOthers) "Andere Varianten ausblenden" else "Andere Varianten anzeigen") }
+                ) { Text(if (showOthers) tr("Andere Varianten ausblenden", "Hide other variants") else tr("Andere Varianten anzeigen", "Show other variants")) }
                 if (showOthers) {
                     others.forEach { variant ->
                         val variantText = idea.textFor(variant.toIdeaLevel())
                         ClearCard {
                             Text(levelName(variant), style = MaterialTheme.typography.titleMedium)
                             Text(
-                                if (variantText.isNotBlank()) variantText else "Dafür gibt es noch keinen Text.",
+                                if (variantText.isNotBlank()) variantText else tr(
+                                    "Dafür gibt es noch keinen Text.",
+                                    "There is no text for this yet."
+                                ),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (variantText.isNotBlank()) MaterialTheme.colorScheme.onSurface
                                 else MaterialTheme.colorScheme.onSurfaceVariant
@@ -119,9 +133,15 @@ fun IdeaDetailScreen(
 
                 if (running) {
                     ClearCard(containerColor = ClearSurfaceSoft) {
-                        Text("Diese Idee läuft gerade.", style = MaterialTheme.typography.titleMedium)
+                        Text(tr(
+                            "Diese Idee läuft gerade.",
+                            "This idea is running right now."
+                        ), style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Du siehst sie auch in der Benachrichtigungsleiste und kannst sie dort beenden.",
+                            tr(
+                                "Du siehst sie auch in der Benachrichtigungsleiste und kannst sie dort beenden.",
+                                "You can also see it in the notification bar and end it there."
+                            ),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -129,13 +149,42 @@ fun IdeaDetailScreen(
                         onClick = { onEnd(idea.id) },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         shape = MaterialTheme.shapes.large
-                    ) { Text("Beenden") }
+                    ) { Text(tr("Beenden", "End")) }
+                    OutlinedButton(
+                        onClick = { confirmCancel = true },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        shape = MaterialTheme.shapes.large
+                    ) { Text(tr("Abbrechen", "Cancel")) }
+                    if (confirmCancel) {
+                        AlertDialog(
+                            onDismissRequest = { confirmCancel = false },
+                            title = { Text(tr("Idee abbrechen?", "Cancel idea?")) },
+                            text = {
+                                Text(tr(
+                                    "Die Idee endet ohne Bewertung. Dieser Durchlauf wird nicht gespeichert.",
+                                    "The idea ends without a rating. This run won't be saved."
+                                ))
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    confirmCancel = false
+                                    viewModel.cancel()
+                                }) { Text(tr("Abbrechen", "Cancel")) }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { confirmCancel = false }) { Text(tr(
+                                    "Weiterlaufen lassen",
+                                    "Keep running"
+                                )) }
+                            }
+                        )
+                    }
                 } else {
                     Button(
                         onClick = { onStart(idea.id) },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         shape = MaterialTheme.shapes.large
-                    ) { Text("Starten") }
+                    ) { Text(tr("Starten", "Start")) }
                 }
             }
         }
@@ -166,23 +215,29 @@ fun IdeaRateScreen(
     }
 
     ClearDetailScreen(
-        title = s.idea?.title ?: "Idee",
+        title = s.idea?.title ?: tr("Idee", "Idea"),
         onBack = onBack
     ) {
         val result = s.result
         when {
             s.isLoading -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
             s.idea == null -> Text(
-                "Diese Idee gibt es nicht mehr.",
+                tr("Diese Idee gibt es nicht mehr.", "This idea no longer exists."),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             result != null -> {
                 ClearCard(containerColor = ClearSurfaceSoft) {
-                    Text("Von ${result.first} auf ${result.second}", style = MaterialTheme.typography.headlineMedium)
+                    Text(tr(
+                        "Von ${result.first} auf ${result.second}",
+                        "From ${result.first} to ${result.second}"
+                    ), style = MaterialTheme.typography.headlineMedium)
                     s.average?.let { average ->
                         Text(
-                            "Im Durchschnitt bei dieser Idee: ${formatAverage(average)}",
+                            tr(
+                                "Im Durchschnitt bei dieser Idee: ${formatAverage(average)}",
+                                "Average for this idea: ${formatAverage(average)}"
+                            ),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -192,23 +247,23 @@ fun IdeaRateScreen(
                     onClick = onDone,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     shape = MaterialTheme.shapes.large
-                ) { Text("Fertig") }
+                ) { Text(tr("Fertig", "Done")) }
             }
             else -> {
                 Text(
-                    if (viewModel.isBefore) "Wie fühlst du dich gerade?" else "Wie fühlst du dich jetzt?",
+                    if (viewModel.isBefore) tr("Wie fühlst du dich gerade?", "How do you feel right now?") else tr("Wie fühlst du dich jetzt?", "How do you feel now?"),
                     style = MaterialTheme.typography.titleLarge
                 )
                 ScaleSelector(
                     selected = s.mood, onSelect = viewModel::select,
-                    lowLabel = "sehr schlecht", highLabel = "sehr gut"
+                    lowLabel = tr("sehr schlecht", "very bad"), highLabel = tr("sehr gut", "very good")
                 )
                 Button(
                     onClick = { confirm() },
                     enabled = s.mood != null,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     shape = MaterialTheme.shapes.large
-                ) { Text(if (viewModel.isBefore) "Starten" else "Beenden") }
+                ) { Text(if (viewModel.isBefore) tr("Starten", "Start") else tr("Beenden", "End")) }
             }
         }
     }

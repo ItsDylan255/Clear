@@ -32,6 +32,11 @@ class IdeaDetailViewModel(app: Application, handle: SavedStateHandle) : AndroidV
             _state.value = IdeaDetailState(isLoading = false, idea = repository.get(ideaId))
         }
     }
+
+    /** Bricht die laufende Idee ohne Bewertung ab. */
+    fun cancel() {
+        viewModelScope.launch { IdeaSessions.cancel(getApplication(), ideaId) }
+    }
 }
 
 data class IdeaRateState(
@@ -86,15 +91,7 @@ class IdeaRateViewModel(app: Application, handle: SavedStateHandle) : AndroidVie
                 }
                 onStarted()
             } else {
-                var result: Pair<Int, Int>? = null
-                val open = dao.getOpen(key)
-                if (open != null) {
-                    dao.update(open.copy(endedAt = now, moodAfter = mood))
-                    result = open.moodBefore to mood
-                }
-                ActiveIdeas.end(app, ideaId)
-                ExerciseNotifier.cancel(app, ideaId)
-                if (ActiveIdeas.running.value.isEmpty()) DoNotDisturb.exit(app)
+                val result = IdeaSessions.end(app, ideaId, mood)
                 val completed = dao.observeCompleted(key).first()
                 val average = if (completed.isEmpty()) null
                 else completed.map { (it.moodAfter ?: it.moodBefore) - it.moodBefore }.average()

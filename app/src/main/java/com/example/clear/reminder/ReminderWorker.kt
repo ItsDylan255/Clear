@@ -13,6 +13,7 @@ import androidx.work.WorkerParameters
 import com.example.clear.MainActivity
 import com.example.clear.R
 import com.example.clear.data.ClearDatabase
+import com.example.clear.tr
 import com.example.clear.ui.checkin.isQuestionnaireAvailable
 import kotlinx.coroutines.flow.first
 import java.time.Instant
@@ -32,20 +33,26 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         when (id) {
             ReminderScheduler.MEDITATION_ID -> showNotification(
                 channelId = "meditation_reminders",
-                channelName = "Meditations-Erinnerungen",
-                channelDescription = "Freiwillige Erinnerungen ans Meditieren",
+                channelName = tr("Meditations-Erinnerungen", "Meditation reminders"),
+                channelDescription = tr("Freiwillige Erinnerungen ans Meditieren", "Optional reminders to meditate"),
                 notificationId = 2,
-                text = "Ein ruhiger Moment für dich? Wenn du magst, nimm dir Zeit zum Meditieren."
+                text = tr(
+                    "Ein ruhiger Moment für dich? Wenn du magst, nimm dir Zeit zum Meditieren.",
+                    "A quiet moment for you? If you like, take some time to meditate."
+                )
             )
             ReminderScheduler.PHQ_ID -> {
                 // Taeglich, sobald seit dem letzten Ausfuellen mindestens 14 Tage vergangen sind
                 val latest = ClearDatabase.getInstance(applicationContext).phq9Dao().getLatest()?.createdAt
                 if (isQuestionnaireAvailable(latest)) showNotification(
                     channelId = "phq_reminders",
-                    channelName = "PHQ-9-Erinnerungen",
-                    channelDescription = "Freiwillige Erinnerung an den PHQ-9",
+                    channelName = tr("PHQ-9-Erinnerungen", "PHQ-9 reminders"),
+                    channelDescription = tr("Freiwillige Erinnerung an den PHQ-9", "Optional reminder for the PHQ-9"),
                     notificationId = 5,
-                    text = "Dein PHQ-9 ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür."
+                    text = tr(
+                        "Dein PHQ-9 ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür.",
+                        "Your PHQ-9 is ready again. If you like, take a moment for it."
+                    )
                 )
             }
             ReminderScheduler.WHO5_ID -> {
@@ -53,20 +60,26 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 val latest = ClearDatabase.getInstance(applicationContext).who5Dao().getLatest()?.createdAt
                 if (isQuestionnaireAvailable(latest)) showNotification(
                     channelId = "who5_reminders",
-                    channelName = "WHO-5-Erinnerungen",
-                    channelDescription = "Freiwillige Erinnerung an den WHO-5",
+                    channelName = tr("WHO-5-Erinnerungen", "WHO-5 reminders"),
+                    channelDescription = tr("Freiwillige Erinnerung an den WHO-5", "Optional reminder for the WHO-5"),
                     notificationId = 7,
-                    text = "Dein WHO-5 ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür."
+                    text = tr(
+                        "Dein WHO-5 ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür.",
+                        "Your WHO-5 is ready again. If you like, take a moment for it."
+                    )
                 )
             }
             ReminderScheduler.WSAS_ID -> {
                 val latest = ClearDatabase.getInstance(applicationContext).wsasDao().getLatest()?.createdAt
                 if (isQuestionnaireAvailable(latest)) showNotification(
                     channelId = "wsas_reminders",
-                    channelName = "WSAS-Erinnerungen",
-                    channelDescription = "Freiwillige Erinnerung an die WSAS",
+                    channelName = tr("WSAS-Erinnerungen", "WSAS reminders"),
+                    channelDescription = tr("Freiwillige Erinnerung an die WSAS", "Optional reminder for the WSAS"),
                     notificationId = 8,
-                    text = "Deine WSAS ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür."
+                    text = tr(
+                        "Deine WSAS ist wieder bereit. Wenn du magst, nimm dir einen Moment dafür.",
+                        "Your WSAS is ready again. If you like, take a moment for it."
+                    )
                 )
             }
             ReminderScheduler.EVENING_ID -> {
@@ -76,19 +89,31 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     .eveningDao().countForDay(today)
                 if (entriesToday == 0) showNotification(
                     channelId = "evening_reminders",
-                    channelName = "Abend-Erinnerungen",
-                    channelDescription = "Freiwillige Erinnerungen an Erfolge und gute Dinge",
+                    channelName = tr("Abend-Erinnerungen", "Evening reminders"),
+                    channelDescription = tr(
+                        "Freiwillige Erinnerungen an Erfolge und gute Dinge",
+                        "Optional reminders about successes and good things"
+                    ),
                     notificationId = 4,
-                    text = "Was war heute gut oder okay? Wenn du magst, trag es kurz ein."
+                    text = tr(
+                        "Was war heute gut oder okay? Wenn du magst, trag es kurz ein.",
+                        "What was good or okay today? If you like, jot it down."
+                    )
                 )
             }
             ReminderScheduler.CHECKIN_ID -> {
                 if (!checkedInToday()) showNotification(
                     channelId = "checkin_reminders",
-                    channelName = "Check-in-Erinnerungen",
-                    channelDescription = "Freiwillige Erinnerungen an den Check-in",
+                    channelName = tr("Check-in-Erinnerungen", "Check-in reminders"),
+                    channelDescription = tr(
+                        "Freiwillige Erinnerungen an den Check-in",
+                        "Optional reminders for your check-in"
+                    ),
                     notificationId = 3,
-                    text = "Wenn du magst: Nimm dir einen Moment für deinen Check-in."
+                    text = tr(
+                        "Wenn du magst: Nimm dir einen Moment für deinen Check-in.",
+                        "If you like: take a moment for your check-in."
+                    )
                 )
             }
             else -> {
@@ -99,8 +124,11 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     else "${quote.text}\n– ${quote.author}"
                     showNotification(
                         channelId = "quote_reminders",
-                        channelName = "Zitat-Erinnerungen",
-                        channelDescription = "Freiwillige Erinnerungen an deine Zitate",
+                        channelName = tr("Zitat-Erinnerungen", "Quote reminders"),
+                        channelDescription = tr(
+                            "Freiwillige Erinnerungen an deine Zitate",
+                            "Optional reminders with your quotes"
+                        ),
                         notificationId = 1,
                         text = text
                     )

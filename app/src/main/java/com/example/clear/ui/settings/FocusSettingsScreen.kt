@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.clear.reminder.DoNotDisturb
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
@@ -44,7 +45,7 @@ fun FocusSettingsScreen(onBack: () -> Unit) {
         accessLauncher.launch(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
     }
 
-    ClearDetailScreen(title = "Nicht stören", onBack = onBack) {
+    ClearDetailScreen(title = tr("Nicht stören", "Do Not Disturb"), onBack = onBack) {
         ClearCard {
             Row(
                 modifier = Modifier
@@ -62,7 +63,10 @@ fun FocusSettingsScreen(onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Bei Ideen automatisch", style = MaterialTheme.typography.titleMedium)
+                Text(tr(
+                    "Bei Ideen automatisch",
+                    "Automatically during ideas"
+                ), style = MaterialTheme.typography.titleMedium)
                 Switch(checked = enabled, onCheckedChange = null)
             }
         }
@@ -70,8 +74,12 @@ fun FocusSettingsScreen(onBack: () -> Unit) {
         if (enabled && !hasAccess) {
             ClearCard(containerColor = ClearNoticeSoft) {
                 Text(
-                    "Dafür braucht Clear deine Erlaubnis in den Systemeinstellungen " +
-                        "(Zugriff auf „Nicht stören“). Ohne sie bleibt dein Handy unverändert.",
+                    tr(
+                        "Dafür braucht Clear deine Erlaubnis in den Systemeinstellungen " +
+                            "(Zugriff auf „Nicht stören“). Ohne sie bleibt dein Handy unverändert.",
+                        "For this, Clear needs your permission in the system settings " +
+                            "(access to “Do Not Disturb”). Without it, your phone stays unchanged."
+                    ),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -79,7 +87,7 @@ fun FocusSettingsScreen(onBack: () -> Unit) {
                 onClick = { openAccessSettings() },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text("Zugriff erlauben") }
+            ) { Text(tr("Zugriff erlauben", "Allow access")) }
         }
     }
 }

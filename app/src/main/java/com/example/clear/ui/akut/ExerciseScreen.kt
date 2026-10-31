@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.clear.model.Exercise
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -65,6 +66,6 @@ fun ExerciseScreen(
             onClick = onBack,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("Zurück zur Auswahl") }
+        ) { Text(tr("Zurück zur Auswahl", "Back to the selection")) }
     }
 }

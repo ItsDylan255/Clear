@@ -9,6 +9,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.example.clear.tr
 import com.google.common.collect.ImmutableList
 
 /**
@@ -34,7 +35,7 @@ class MusicPlaybackService : MediaSessionService() {
 
         // Stopp-Taste in der Benachrichtigung (nutzt den normalen Player-Befehl "stop")
         val stopButton = CommandButton.Builder(CommandButton.ICON_STOP)
-            .setDisplayName("Stopp")
+            .setDisplayName(tr("Stopp", "Stop"))
             .setPlayerCommand(Player.COMMAND_STOP)
             .build()
 

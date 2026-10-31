@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -39,15 +40,18 @@ fun AnkerManageScreen(
     onBack: () -> Unit,
     onOpenType: (AnkerType) -> Unit
 ) {
-    ClearDetailScreen(title = "Inhalte verwalten", onBack = onBack) {
+    ClearDetailScreen(title = tr("Inhalte verwalten", "Manage content"), onBack = onBack) {
         ManageCard(Icons.Outlined.FormatQuote, AnkerType.Quotes.title,
-            "Worte, die dir guttun") { onOpenType(AnkerType.Quotes) }
+            tr("Worte, die dir guttun", "Words that do you good")) { onOpenType(AnkerType.Quotes) }
         ManageCard(Icons.Outlined.Image, AnkerType.Images.title,
-            "Bilder von sicheren Orten und Menschen") { onOpenType(AnkerType.Images) }
+            tr(
+                "Bilder von sicheren Orten und Menschen",
+                "Images of safe places and people"
+            )) { onOpenType(AnkerType.Images) }
         ManageCard(Icons.Outlined.MusicNote, AnkerType.Music.title,
-            "Musik, die dich beruhigt") { onOpenType(AnkerType.Music) }
+            tr("Musik, die dich beruhigt", "Music that calms you")) { onOpenType(AnkerType.Music) }
         ManageCard(Icons.Outlined.Mail, AnkerType.Letters.title,
-            "Texte, die du dir selbst schreibst") { onOpenType(AnkerType.Letters) }
+            tr("Texte, die du dir selbst schreibst", "Texts you write to yourself")) { onOpenType(AnkerType.Letters) }
     }
 }
 

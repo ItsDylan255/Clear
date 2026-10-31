@@ -42,6 +42,7 @@ import com.example.clear.data.ClearDatabase
 import com.example.clear.data.PersonalIdea
 import com.example.clear.data.PersonalIdeaRepository
 import com.example.clear.model.CheckInCategory
+import com.example.clear.tr
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
@@ -88,18 +89,18 @@ fun IdeasManageScreen(
     var toDelete by remember { mutableStateOf<PersonalIdea?>(null) }
     val map = ideas
 
-    ClearDetailScreen(title = "Ideen verwalten", onBack = onBack) {
-        AddButton("Idee hinzufügen") { onAdd(CheckInCategory.entries.first().id) }
+    ClearDetailScreen(title = tr("Ideen verwalten", "Manage ideas"), onBack = onBack) {
+        AddButton(tr("Idee hinzufügen", "Add idea")) { onAdd(CheckInCategory.entries.first().id) }
 
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            label = { Text("Suchen") },
+            label = { Text(tr("Suchen", "Search")) },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             trailingIcon = {
                 if (query.isNotEmpty()) {
                     IconButton(onClick = { query = "" }) {
-                        Icon(Icons.Filled.Close, contentDescription = "Suche löschen")
+                        Icon(Icons.Filled.Close, contentDescription = tr("Suche löschen", "Clear search"))
                     }
                 }
             },
@@ -118,7 +119,7 @@ fun IdeasManageScreen(
             }
             if (matches.isEmpty()) {
                 Text(
-                    "Dazu wurde nichts gefunden.",
+                    tr("Dazu wurde nichts gefunden.", "Nothing found."),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -161,9 +162,9 @@ fun IdeasManageScreen(
                             Text(category.title, style = MaterialTheme.typography.titleMedium)
                             Text(
                                 when (list.size) {
-                                    0 -> "Noch keine Ideen"
-                                    1 -> "1 Idee"
-                                    else -> "${list.size} Ideen"
+                                    0 -> tr("Noch keine Ideen", "No ideas yet")
+                                    1 -> tr("1 Idee", "1 idea")
+                                    else -> tr("${list.size} Ideen", "${list.size} ideas")
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -171,7 +172,7 @@ fun IdeasManageScreen(
                         }
                         Icon(
                             if (isOpen) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = if (isOpen) "Zuklappen" else "Aufklappen",
+                            contentDescription = if (isOpen) tr("Zuklappen", "Collapse") else tr("Aufklappen", "Expand"),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -188,7 +189,7 @@ fun IdeasManageScreen(
                     TextButton(
                         onClick = { onAdd(category.id) },
                         modifier = Modifier.heightIn(min = 48.dp)
-                    ) { Text("Idee zu „${category.title}“ hinzufügen") }
+                    ) { Text(tr("Idee zu „${category.title}“ hinzufügen", "Add idea to “${category.title}”")) }
                 }
             }
         }
@@ -196,8 +197,8 @@ fun IdeasManageScreen(
 
     toDelete?.let { idea ->
         ConfirmDeleteDialog(
-            title = "Idee löschen?",
-            message = "„${idea.title}“ wird dauerhaft gelöscht.",
+            title = tr("Idee löschen?", "Delete idea?"),
+            message = tr("„${idea.title}“ wird dauerhaft gelöscht.", "“${idea.title}” will be deleted permanently."),
             onConfirm = { viewModel.delete(idea); toDelete = null },
             onDismiss = { toDelete = null }
         )
@@ -223,7 +224,7 @@ private fun IdeaRow(idea: PersonalIdea, caption: String?, onEdit: () -> Unit, on
                 }
             }
             OptionsMenu(
-                contentDescription = "Optionen für ${idea.title}",
+                contentDescription = tr("Optionen für ${idea.title}", "Options for ${idea.title}"),
                 onEdit = onEdit,
                 onDelete = onDelete
             )

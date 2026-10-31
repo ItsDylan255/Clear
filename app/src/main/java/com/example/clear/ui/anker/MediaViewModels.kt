@@ -17,6 +17,7 @@ import com.example.clear.model.EmotionTag
 import com.example.clear.model.MusicMode
 import com.example.clear.model.Situations
 import com.example.clear.reminder.ReminderScheduler
+import com.example.clear.tr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +50,7 @@ class ImagesViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
         viewModelScope.launch {
             val fileName = FileStore.import(context, uri, FileStore.IMAGES)
             if (fileName == null) {
-                _message.value = "Das Bild konnte nicht gespeichert werden."
+                _message.value = tr("Das Bild konnte nicht gespeichert werden.", "The image could not be saved.")
             } else {
                 _message.value = null
                 dao.insert(
@@ -117,9 +118,12 @@ class MusicViewModel(app: Application, handle: SavedStateHandle) : AndroidViewMo
         viewModelScope.launch {
             val fileName = FileStore.import(context, uri, FileStore.MUSIC)
             if (fileName == null) {
-                _playback.update { it.copy(message = "Die Musik konnte nicht gespeichert werden.") }
+                _playback.update { it.copy(message = tr(
+                    "Die Musik konnte nicht gespeichert werden.",
+                    "The music could not be saved."
+                )) }
             } else {
-                val title = FileStore.displayName(context, uri)?.substringBeforeLast('.') ?: "Musik"
+                val title = FileStore.displayName(context, uri)?.substringBeforeLast('.') ?: tr("Musik", "Music")
                 dao.insert(
                     MusicTrack(
                         fileName = fileName, title = title, createdAt = System.currentTimeMillis(),
@@ -147,7 +151,10 @@ class MusicViewModel(app: Application, handle: SavedStateHandle) : AndroidViewMo
         stopPlayback()
         val file = FileStore.file(context, FileStore.MUSIC, track.fileName)
         if (!file.exists()) {
-            _playback.value = PlaybackState(message = "Diese Datei wurde nicht gefunden. Du kannst den Eintrag löschen.")
+            _playback.value = PlaybackState(message = tr(
+                "Diese Datei wurde nicht gefunden. Du kannst den Eintrag löschen.",
+                "This file was not found. You can delete the entry."
+            ))
             return
         }
         try {
@@ -161,7 +168,10 @@ class MusicViewModel(app: Application, handle: SavedStateHandle) : AndroidViewMo
             mp.setOnCompletionListener { stopPlayback() }
             mp.setOnErrorListener { _, _, _ ->
                 stopPlayback()
-                _playback.value = PlaybackState(message = "Die Datei konnte nicht abgespielt werden.")
+                _playback.value = PlaybackState(message = tr(
+                    "Die Datei konnte nicht abgespielt werden.",
+                    "The file could not be played."
+                ))
                 true
             }
             player = mp
@@ -169,7 +179,10 @@ class MusicViewModel(app: Application, handle: SavedStateHandle) : AndroidViewMo
             mp.prepareAsync()
         } catch (e: Exception) {
             stopPlayback()
-            _playback.value = PlaybackState(message = "Die Datei konnte nicht abgespielt werden.")
+            _playback.value = PlaybackState(message = tr(
+                "Die Datei konnte nicht abgespielt werden.",
+                "The file could not be played."
+            ))
         }
     }
 

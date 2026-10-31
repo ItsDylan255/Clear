@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.clear.model.Meditation
 import com.example.clear.playback.MeditationPlayer
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearNoticeSoft
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
@@ -70,7 +71,7 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück", "Back"))
             }
         }
         Column(
@@ -99,10 +100,14 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
 
         if (!audioAvailable) {
             ClearCard {
-                Text("Noch keine Audiodatei", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Noch keine Audiodatei", "No audio file yet"), style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Für diese Meditation ist noch keine Aufnahme vorhanden. " +
-                        "Sobald sie eingebunden ist, kannst du sie hier abspielen.",
+                    tr(
+                        "Für diese Meditation ist noch keine Aufnahme vorhanden. " +
+                            "Sobald sie eingebunden ist, kannst du sie hier abspielen.",
+                        "There is no recording for this meditation yet. " +
+                            "As soon as it is added, you can play it here."
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -149,7 +154,7 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
                     enabled = audioAvailable && isCurrent,
                     modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(Icons.Outlined.Replay, contentDescription = "15 Sekunden zurück")
+                    Icon(Icons.Outlined.Replay, contentDescription = tr("15 Sekunden zurück", "Back 15 seconds"))
                 }
                 FilledIconButton(
                     onClick = {
@@ -161,7 +166,7 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
                 ) {
                     Icon(
                         if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Abspielen",
+                        contentDescription = if (isPlaying) tr("Pause", "Pause") else tr("Abspielen", "Play"),
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -170,7 +175,7 @@ fun MeditationPlayerScreen(meditation: Meditation, onBack: () -> Unit) {
                     enabled = audioAvailable && isCurrent,
                     modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(Icons.Filled.Stop, contentDescription = "Stopp")
+                    Icon(Icons.Filled.Stop, contentDescription = tr("Stopp", "Stop"))
                 }
             }
         }

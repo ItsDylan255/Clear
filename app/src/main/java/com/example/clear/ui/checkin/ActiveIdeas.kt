@@ -1,6 +1,7 @@
 package com.example.clear.ui.checkin
 
 import android.content.Context
+import com.example.clear.watch.WatchSync
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,12 +50,14 @@ object ActiveIdeas {
         load(context)
         _running.value = _running.value + (ideaId to Running(ideaId, startedAt))
         persist(context)
+        WatchSync.update(context)
     }
 
     fun end(context: Context, ideaId: Long) {
         load(context)
         _running.value = _running.value - ideaId
         persist(context)
+        WatchSync.update(context)
     }
 
     /** Beendet alle laufenden Ideen und loescht den gespeicherten Stand (beim Loeschen aller Daten). */
@@ -62,6 +65,7 @@ object ActiveIdeas {
         loaded = true
         _running.value = emptyMap()
         prefs(context).edit().clear().apply()
+        WatchSync.update(context)
     }
 
     private fun persist(context: Context) {

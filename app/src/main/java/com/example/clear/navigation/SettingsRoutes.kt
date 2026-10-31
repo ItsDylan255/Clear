@@ -4,6 +4,7 @@ package com.example.clear.navigation
 object SettingsRoutes {
     const val START = "einstellungen_start"
     const val APPEARANCE = "einstellungen_darstellung"
+    const val LANGUAGE = "einstellungen_sprache"
     const val REMINDERS = "einstellungen_erinnerungen"
     const val QUOTE_REMINDERS = "einstellungen_zitat_erinnerungen"
     const val MY_DATA = "einstellungen_meine_daten"

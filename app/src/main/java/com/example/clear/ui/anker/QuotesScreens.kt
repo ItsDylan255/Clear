@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.Quote
 import com.example.clear.model.EmotionTag
+import com.example.clear.tr
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
@@ -48,11 +49,11 @@ fun QuotesScreen(
     var toDelete by remember { mutableStateOf<Quote?>(null) }
 
     ClearDetailScreen(
-        title = viewModel.emotionName?.let { "Zitate · $it" } ?: "Zitate und Gedanken",
+        title = viewModel.emotionName?.let { tr("Zitate · $it", "Quotes · $it") } ?: tr("Zitate und Gedanken", "Quotes and thoughts"),
         onBack = onBack
     ) {
         Text(
-            "Worte, die dir guttun.",
+            tr("Worte, die dir guttun.", "Words that do you good."),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -78,7 +79,7 @@ fun QuotesScreen(
                             }
                         }
                         OptionsMenu(
-                            contentDescription = "Optionen für dieses Zitat",
+                            contentDescription = tr("Optionen für dieses Zitat", "Options for this quote"),
                             onEdit = { onEdit(quote.id) },
                             onDelete = { toDelete = quote }
                         )
@@ -86,13 +87,16 @@ fun QuotesScreen(
                 }
             }
         }
-        AddButton("Zitat hinzufügen", onAdd)
+        AddButton(tr("Zitat hinzufügen", "Add quote"), onAdd)
     }
 
     toDelete?.let { quote ->
         ConfirmDeleteDialog(
-            title = "Zitat löschen?",
-            message = "Dieses Zitat wird dauerhaft gelöscht." + deleteNote(quote.emotionTags),
+            title = tr("Zitat löschen?", "Delete quote?"),
+            message = tr(
+                "Dieses Zitat wird dauerhaft gelöscht.",
+                "This quote will be deleted permanently."
+            ) + deleteNote(quote.emotionTags),
             onConfirm = { viewModel.delete(quote); toDelete = null },
             onDismiss = { toDelete = null }
         )
@@ -104,7 +108,7 @@ fun QuoteEditorScreen(onClose: () -> Unit, viewModel: QuoteEditorViewModel = vie
     val s by viewModel.state.collectAsState()
     Box(modifier = Modifier.imePadding()) {
         ClearDetailScreen(
-            title = if (s.isNew) "Neues Zitat" else "Zitat bearbeiten",
+            title = if (s.isNew) tr("Neues Zitat", "New quote") else tr("Zitat bearbeiten", "Edit quote"),
             onBack = onClose
         ) {
             if (s.isLoading) {
@@ -113,16 +117,19 @@ fun QuoteEditorScreen(onClose: () -> Unit, viewModel: QuoteEditorViewModel = vie
                 OutlinedTextField(
                     value = s.text,
                     onValueChange = viewModel::onTextChange,
-                    label = { Text("Zitat oder Gedanke") },
+                    label = { Text(tr("Zitat oder Gedanke", "Quote or thought")) },
                     isError = s.textError,
-                    supportingText = { if (s.textError) Text("Bitte schreib etwas auf.") },
+                    supportingText = { if (s.textError) Text(tr(
+                        "Bitte schreib etwas auf.",
+                        "Please write something."
+                    )) },
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = s.author,
                     onValueChange = viewModel::onAuthorChange,
-                    label = { Text("Von (optional)") },
+                    label = { Text(tr("Von (optional)", "By (optional)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )

@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearDetailScreen
 
 @Composable
@@ -22,34 +23,49 @@ fun ReminderSettingsScreen(
     onOpenWsasReminder: () -> Unit,
     onOpenEveningReminder: () -> Unit
 ) {
-    ClearDetailScreen(title = "Erinnerungen", onBack = onBack) {
+    ClearDetailScreen(title = tr("Erinnerungen", "Reminders"), onBack = onBack) {
         SettingsCard(
-            Icons.Outlined.Eco, "Check-in-Erinnerung",
-            "Ein sanfter Hinweis auf deinen Check-in", onOpenCheckInReminder
+            Icons.Outlined.Eco, tr("Check-in-Erinnerung", "Check-in reminder"),
+            tr("Ein sanfter Hinweis auf deinen Check-in", "A gentle nudge for your check-in"), onOpenCheckInReminder
         )
         SettingsCard(
-            Icons.Outlined.Info, "PHQ-9-Erinnerung",
-            "Ein Hinweis, wenn der PHQ-9 wieder bereit ist", onOpenPhqReminder
+            Icons.Outlined.Info, tr("PHQ-9-Erinnerung", "PHQ-9 reminder"),
+            tr(
+                "Ein Hinweis, wenn der PHQ-9 wieder bereit ist",
+                "A note when the PHQ-9 is ready again"
+            ), onOpenPhqReminder
         )
         SettingsCard(
-            Icons.Outlined.Info, "WHO-5-Erinnerung",
-            "Ein Hinweis, wenn der WHO-5 wieder bereit ist", onOpenWho5Reminder
+            Icons.Outlined.Info, tr("WHO-5-Erinnerung", "WHO-5 reminder"),
+            tr(
+                "Ein Hinweis, wenn der WHO-5 wieder bereit ist",
+                "A note when the WHO-5 is ready again"
+            ), onOpenWho5Reminder
         )
         SettingsCard(
-            Icons.Outlined.Info, "WSAS-Erinnerung",
-            "Ein Hinweis, wenn die WSAS wieder bereit ist", onOpenWsasReminder
+            Icons.Outlined.Info, tr("WSAS-Erinnerung", "WSAS reminder"),
+            tr(
+                "Ein Hinweis, wenn die WSAS wieder bereit ist",
+                "A note when the WSAS is ready again"
+            ), onOpenWsasReminder
         )
         SettingsCard(
-            Icons.Outlined.WbSunny, "Abend-Erinnerung",
-            "Ein Hinweis auf Erfolge und gute Dinge", onOpenEveningReminder
+            Icons.Outlined.WbSunny, tr("Abend-Erinnerung", "Evening reminder"),
+            tr(
+                "Ein Hinweis auf Erfolge und gute Dinge",
+                "A note about successes and good things"
+            ), onOpenEveningReminder
         )
         SettingsCard(
-            Icons.Outlined.SelfImprovement, "Meditations-Erinnerung",
-            "Ein sanfter Hinweis aufs Meditieren", onOpenMeditationReminder
+            Icons.Outlined.SelfImprovement, tr("Meditations-Erinnerung", "Meditation reminder"),
+            tr("Ein sanfter Hinweis aufs Meditieren", "A gentle nudge to meditate"), onOpenMeditationReminder
         )
         SettingsCard(
-            Icons.Outlined.FormatQuote, "Zitat-Erinnerungen",
-            "Ein Zitat von dir zur gewählten Zeit", onOpenQuoteReminders
+            Icons.Outlined.FormatQuote, tr("Zitat-Erinnerungen", "Quote reminders"),
+            tr(
+                "Ein Zitat von dir zur gewählten Zeit",
+                "One of your quotes at the time you choose"
+            ), onOpenQuoteReminders
         )
     }
 }

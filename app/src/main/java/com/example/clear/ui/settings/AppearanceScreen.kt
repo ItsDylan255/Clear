@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.clear.data.ThemeMode
 import com.example.clear.data.ThemePreferences
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -26,9 +27,9 @@ import com.example.clear.ui.theme.ClearSpacing
 fun AppearanceScreen(onBack: () -> Unit) {
     val mode by ThemePreferences.mode.collectAsState()
 
-    ClearDetailScreen(title = "Darstellung", onBack = onBack) {
+    ClearDetailScreen(title = tr("Darstellung", "Appearance"), onBack = onBack) {
         Text(
-            "Wähle, wie Clear aussehen soll.",
+            tr("Wähle, wie Clear aussehen soll.", "Choose how Clear should look."),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

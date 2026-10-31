@@ -41,6 +41,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.AppLanguage
 import coil.compose.AsyncImage
 import com.example.clear.data.AnchorImage
 import com.example.clear.data.ClearDatabase
@@ -49,6 +50,7 @@ import com.example.clear.data.Letter
 import com.example.clear.data.MusicTrack
 import com.example.clear.data.Quote
 import com.example.clear.playback.MusicPlayer
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.theme.ClearSpacing
 import kotlinx.coroutines.flow.Flow
@@ -58,7 +60,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.text.DateFormat
 import java.util.Date
-import java.util.Locale
 
 /**
  * Liefert die Elemente einer Einzelansicht in der Reihenfolge der Uebersicht.
@@ -86,7 +87,7 @@ class AnkerItemViewModel(app: Application, handle: SavedStateHandle) : AndroidVi
 }
 
 private fun formatDate(timestamp: Long): String =
-    DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.GERMANY).format(Date(timestamp))
+    DateFormat.getDateInstance(DateFormat.MEDIUM, AppLanguage.locale).format(Date(timestamp))
 
 /**
  * Gemeinsamer Rahmen: Zurueck-Pfeil und "2 von 5", darunter die Elemente zum Wischen.
@@ -107,7 +108,10 @@ private fun <T> PagedViewer(
                 initialPage = startIndex.coerceIn(0, items.size - 1),
                 pageCount = { items.size }
             )
-            ViewerHeader(onBack, if (items.size > 1) "${pager.currentPage + 1} von ${items.size}" else null)
+            ViewerHeader(onBack, if (items.size > 1) tr(
+                "${pager.currentPage + 1} von ${items.size}",
+                "${pager.currentPage + 1} of ${items.size}"
+            ) else null)
             HorizontalPager(
                 state = pager,
                 modifier = Modifier.weight(1f).fillMaxWidth()
@@ -123,7 +127,7 @@ private fun ViewerHeader(onBack: () -> Unit, position: String?) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück", "Back"))
         }
         Spacer(Modifier.weight(1f))
         if (position != null) {
@@ -186,13 +190,13 @@ fun ImageViewScreen(onBack: () -> Unit, viewModel: AnkerItemViewModel = viewMode
                 if (file.exists()) {
                     AsyncImage(
                         model = file,
-                        contentDescription = current.caption ?: "Dein Bild",
+                        contentDescription = current.caption ?: tr("Dein Bild", "Your image"),
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.medium)
                     )
                 } else {
                     Text(
-                        "Diese Bilddatei wurde nicht gefunden.",
+                        tr("Diese Bilddatei wurde nicht gefunden.", "This image file was not found."),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -245,7 +249,7 @@ fun TrackViewScreen(onBack: () -> Unit, viewModel: AnkerItemViewModel = viewMode
                 ) {
                     Icon(
                         if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Abspielen",
+                        contentDescription = if (isPlaying) tr("Pause", "Pause") else tr("Abspielen", "Play"),
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -254,7 +258,7 @@ fun TrackViewScreen(onBack: () -> Unit, viewModel: AnkerItemViewModel = viewMode
                     enabled = isCurrent,
                     modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(Icons.Filled.Stop, contentDescription = "Stopp")
+                    Icon(Icons.Filled.Stop, contentDescription = tr("Stopp", "Stop"))
                 }
             }
             player.message?.let { text ->

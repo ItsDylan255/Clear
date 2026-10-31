@@ -3,7 +3,9 @@ package com.example.clear.ui.akut
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.clear.AppLanguage
 import com.example.clear.data.ClearDatabase
+import com.example.clear.tr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,13 +14,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 /** Durchschnittliche Veraenderung der Stimmung (danach minus davor) einer Uebung. */
 data class ExerciseStat(val average: Double, val count: Int)
 
 /** "Ø +1,5" fuer die Anzeige. */
-fun formatAverage(value: Double): String = "Ø " + String.format(Locale.GERMANY, "%+.1f", value)
+fun formatAverage(value: Double): String = tr("Ø ", "avg ") + String.format(AppLanguage.locale, "%+.1f", value)
 
 /** Durchschnitte aller Uebungen fuer die Auswahlliste. */
 class ExerciseStatsViewModel(app: Application) : AndroidViewModel(app) {

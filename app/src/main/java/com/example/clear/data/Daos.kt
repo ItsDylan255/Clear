@@ -33,4 +33,7 @@ interface CheckInDao {
     // Wird spaeter fuer die Auswertung gebraucht
     @Query("SELECT * FROM check_ins ORDER BY timestamp DESC")
     fun observeAll(): Flow<List<CheckInEntry>>
+
+    @Query("SELECT * FROM check_ins ORDER BY timestamp DESC LIMIT 1")
+    suspend fun getLatest(): CheckInEntry?
 }

@@ -4,10 +4,12 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.WorkManager
+import com.example.clear.AppLanguage
 import com.example.clear.reminder.ActiveIdeasService
 import com.example.clear.reminder.DoNotDisturb
 import com.example.clear.reminder.ExerciseNotifier
 import com.example.clear.ui.checkin.ActiveIdeas
+import com.example.clear.watch.WatchSync
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -40,10 +42,14 @@ object DataWiper {
 
         // 4. Kleine Einstellungen zuruecksetzen
         ThemePreferences.reset()
+        AppLanguage.reset(app)
         DoNotDisturb.setEnabled(app, false)
         // "clear_active_exercise" und "clear_defaults" gibt es nur noch bei Installationen aelterer Versionen
         listOf("clear_active_ideas", "clear_active_exercise", "clear_defaults").forEach { name ->
             app.getSharedPreferences(name, Context.MODE_PRIVATE).edit().clear().apply()
         }
+
+        // 5. Der Uhr den leeren Stand schicken
+        WatchSync.publish(app)
     }
 }

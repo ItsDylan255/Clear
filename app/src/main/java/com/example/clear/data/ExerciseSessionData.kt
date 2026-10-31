@@ -1,6 +1,7 @@
 package com.example.clear.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
@@ -27,6 +28,7 @@ data class ExerciseSession(
 interface ExerciseSessionDao {
     @Insert suspend fun insert(session: ExerciseSession): Long
     @Update suspend fun update(session: ExerciseSession)
+    @Delete suspend fun delete(session: ExerciseSession)
 
     /** Der neueste noch nicht beendete Durchlauf dieser Uebung. */
     @Query(

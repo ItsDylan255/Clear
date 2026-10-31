@@ -41,7 +41,9 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.AppLanguage
 import com.example.clear.model.CheckInCategory
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearLevelHigh
@@ -55,7 +57,7 @@ import java.time.ZoneId
 import java.time.format.TextStyle as DateTextStyle
 import java.util.Locale
 
-private val rangeOptions = listOf(7 to "7 Tage", 30 to "30 Tage", 90 to "90 Tage", 365 to "Jahr")
+private val rangeOptions: List<Pair<Int, String>> get() = listOf(7 to tr("7 Tage", "7 days"), 30 to tr("30 Tage", "30 days"), 90 to tr("90 Tage", "90 days"), 365 to tr("Jahr", "Year"))
 private const val DAY_MS = 86_400_000L
 
 /**
@@ -69,7 +71,7 @@ fun HistoryChartScreen(onBack: () -> Unit, viewModel: HistoryChartViewModel = vi
     var rangeDays by rememberSaveable { mutableIntStateOf(30) }
     val d = data
 
-    ClearDetailScreen(title = d?.title ?: "Verlauf", onBack = onBack) {
+    ClearDetailScreen(title = d?.title ?: tr("Verlauf", "History"), onBack = onBack) {
         if (d != null) {
             if (d.allowRange) {
                 Row(
@@ -90,7 +92,10 @@ fun HistoryChartScreen(onBack: () -> Unit, viewModel: HistoryChartViewModel = vi
             if (d.points.isEmpty()) {
                 ClearCard {
                     Text(
-                        "Hier ist noch nichts gespeichert. Sobald du Werte einträgst, erscheint hier ihr Verlauf.",
+                        tr(
+                            "Hier ist noch nichts gespeichert. Sobald du Werte einträgst, erscheint hier ihr Verlauf.",
+                            "Nothing saved here yet. As soon as you enter values, their history appears here."
+                        ),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -100,7 +105,7 @@ fun HistoryChartScreen(onBack: () -> Unit, viewModel: HistoryChartViewModel = vi
                     HistoryChart(d, if (d.allowRange) rangeDays else 365)
                 }
 
-                Text("Werte", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Werte", "Values"), style = MaterialTheme.typography.titleMedium)
                 ClearCard {
                     d.points.asReversed().take(30).forEach { point ->
                         Row(
@@ -124,7 +129,7 @@ fun HistoryChartScreen(onBack: () -> Unit, viewModel: HistoryChartViewModel = vi
                     }
                     if (d.points.size > 30) {
                         Text(
-                            "Es werden die letzten 30 Werte aufgelistet.",
+                            tr("Es werden die letzten 30 Werte aufgelistet.", "The last 30 values are listed."),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -262,12 +267,15 @@ private fun HistoryChart(data: ChartData, rangeDays: Int) {
 private fun timeLabel(date: LocalDate, rangeDays: Int): String? = when (rangeDays) {
     7 -> {
         val weekday: DayOfWeek = date.dayOfWeek
-        "${weekday.getDisplayName(DateTextStyle.SHORT, Locale.GERMANY).take(2)} ${date.dayOfMonth}."
+        tr(
+            "${weekday.getDisplayName(DateTextStyle.SHORT, Locale.GERMANY).take(2)} ${date.dayOfMonth}.",
+            "${weekday.getDisplayName(DateTextStyle.SHORT, Locale.ENGLISH).take(2)} ${date.dayOfMonth}"
+        )
     }
     30 -> if (date.toEpochDay() % 5L == 0L) "${date.dayOfMonth}.${date.monthValue}." else null
     90 -> if (date.toEpochDay() % 14L == 0L) "${date.dayOfMonth}.${date.monthValue}." else null
     else -> if (date.dayOfMonth == 1 && date.monthValue % 2 == 1) {
-        val month = date.month.getDisplayName(DateTextStyle.SHORT, Locale.GERMANY).removeSuffix(".")
+        val month = date.month.getDisplayName(DateTextStyle.SHORT, AppLanguage.locale).removeSuffix(".")
         if (date.monthValue == 1) "$month ${date.year % 100}" else month
     } else null
 }
@@ -275,17 +283,20 @@ private fun timeLabel(date: LocalDate, rangeDays: Int): String? = when (rangeDay
 /** Uebersicht: alle Bereiche und Frageboegen. Jeder Eintrag oeffnet sein eigenes Diagramm. */
 @Composable
 fun HistoryOverviewScreen(onBack: () -> Unit, onOpen: (kind: String) -> Unit) {
-    ClearDetailScreen(title = "Verlauf", onBack = onBack) {
+    ClearDetailScreen(title = tr("Verlauf", "History"), onBack = onBack) {
         Text(
-            "Wähle einen Bereich oder einen Fragebogen, um den Verlauf als Diagramm zu sehen.",
+            tr(
+                "Wähle einen Bereich oder einen Fragebogen, um den Verlauf als Diagramm zu sehen.",
+                "Choose an area or a questionnaire to see its history as a chart."
+            ),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Text("Bereiche", style = MaterialTheme.typography.titleMedium)
+        Text(tr("Bereiche", "Areas"), style = MaterialTheme.typography.titleMedium)
         CheckInCategory.entries.forEach { category ->
             OverviewRow(category.title) { onOpen(category.id) }
         }
-        Text("Fragebögen", style = MaterialTheme.typography.titleMedium)
+        Text(tr("Fragebögen", "Questionnaires"), style = MaterialTheme.typography.titleMedium)
         OverviewRow("PHQ-9") { onOpen("phq9") }
         OverviewRow("WHO-5") { onOpen("who5") }
         OverviewRow("WSAS") { onOpen("wsas") }

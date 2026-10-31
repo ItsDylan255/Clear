@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearSpacing
 
 /** Drei-Punkte-Menue mit "Bearbeiten" und "Loeschen". */
@@ -36,8 +37,8 @@ fun OptionsMenu(contentDescription: String, onEdit: () -> Unit, onDelete: () -> 
             Icon(Icons.Filled.MoreVert, contentDescription = contentDescription)
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(text = { Text("Bearbeiten" ) }, onClick = { open = false; onEdit() })
-            DropdownMenuItem(text = { Text("Löschen") }, onClick = { open = false; onDelete() })
+            DropdownMenuItem(text = { Text(tr("Bearbeiten", "Edit") ) }, onClick = { open = false; onEdit() })
+            DropdownMenuItem(text = { Text(tr("Löschen", "Delete")) }, onClick = { open = false; onDelete() })
         }
     }
 }
@@ -54,8 +55,8 @@ fun ConfirmDeleteDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Text(message) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Löschen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } }
+        confirmButton = { TextButton(onClick = onConfirm) { Text(tr("Löschen", "Delete")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen", "Cancel")) } }
     )
 }
 
@@ -64,7 +65,10 @@ fun ConfirmDeleteDialog(
 fun EmptyHintCard() {
     ClearCard {
         Text(
-            "Hier ist noch nichts gespeichert. Du kannst jederzeit etwas hinzufügen.",
+            tr(
+                "Hier ist noch nichts gespeichert. Du kannst jederzeit etwas hinzufügen.",
+                "Nothing saved here yet. You can add something at any time."
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -89,12 +93,12 @@ fun AddButton(text: String, onClick: () -> Unit) {
 fun EditorButtons(onCancel: () -> Unit, onSave: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         TextButton(onClick = onCancel, modifier = Modifier.heightIn(min = 56.dp)) {
-            Text("Abbrechen")
+            Text(tr("Abbrechen", "Cancel"))
         }
         Button(
             onClick = onSave,
             modifier = Modifier.heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("Speichern") }
+        ) { Text(tr("Speichern", "Save")) }
     }
 }

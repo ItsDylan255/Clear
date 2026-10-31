@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.WsasResult
 import com.example.clear.model.Wsas
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -69,10 +70,17 @@ fun WsasHubScreen(
         ClearCard(containerColor = ClearSurfaceSoft) {
             Text(
                 if (available || latest == null)
-                    "Die WSAS ist bereit. Sie hat fünf Fragen dazu, wie stark deine Probleme dich im Alltag beeinträchtigen."
-                else "Du hast die WSAS vor Kurzem ausgefüllt. " +
-                    "Die nächste ist frühestens am ${nextAvailableLabel(latest.createdAt)} möglich " +
-                    "(mindestens zwei Wochen Abstand).",
+                    tr(
+                        "Die WSAS ist bereit. Sie hat fünf Fragen dazu, wie stark deine Probleme dich im Alltag beeinträchtigen.",
+                        "The WSAS is ready. It has five questions about how much your problems affect your daily life."
+                    )
+                else tr("Du hast die WSAS vor Kurzem ausgefüllt. ", "You filled in the WSAS recently. ") +
+                    tr(
+                        "Die nächste ist frühestens am ${nextAvailableLabel(latest.createdAt)} möglich " +
+                            "(mindestens zwei Wochen Abstand).",
+                        "The next one is available on ${nextAvailableLabel(latest.createdAt)} at the earliest " +
+                            "(at least two weeks apart)."
+                    ),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -81,16 +89,22 @@ fun WsasHubScreen(
             enabled = available,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("WSAS starten") }
+        ) { Text(tr("WSAS starten", "Start WSAS")) }
 
         if (latest != null) {
             ClearCard {
                 Text(
-                    "Letztes Ergebnis · ${dateLabel(latest.createdAt)}",
+                    tr(
+                        "Letztes Ergebnis · ${dateLabel(latest.createdAt)}",
+                        "Last result · ${dateLabel(latest.createdAt)}"
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text("${latest.total} von ${Wsas.MAX_TOTAL}", style = MaterialTheme.typography.titleLarge)
+                Text(tr(
+                    "${latest.total} von ${Wsas.MAX_TOTAL}",
+                    "${latest.total} of ${Wsas.MAX_TOTAL}"
+                ), style = MaterialTheme.typography.titleLarge)
                 Text(Wsas.band(latest.total), style = MaterialTheme.typography.bodyLarge)
             }
         }
@@ -99,7 +113,7 @@ fun WsasHubScreen(
                 onClick = onOpenHistory,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text("Verlauf ansehen") }
+            ) { Text(tr("Verlauf ansehen", "View history")) }
         }
     }
 }
@@ -131,10 +145,10 @@ fun WsasTestScreen(
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = ClearSpacing.large)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) {
-                Icon(Icons.Filled.Close, contentDescription = "WSAS beenden")
+                Icon(Icons.Filled.Close, contentDescription = tr("WSAS beenden", "Close WSAS"))
             }
             Text(
-                "Frage ${s.index + 1} von ${Wsas.COUNT}",
+                tr("Frage ${s.index + 1} von ${Wsas.COUNT}", "Question ${s.index + 1} of ${Wsas.COUNT}"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -176,14 +190,14 @@ fun WsasTestScreen(
                 TextButton(
                     onClick = viewModel::previous,
                     modifier = Modifier.heightIn(min = 56.dp)
-                ) { Text("Zurück") }
+                ) { Text(tr("Zurück", "Back")) }
             }
             Button(
                 onClick = { if (s.isLast) viewModel.finish() else viewModel.next() },
                 enabled = s.selected != null,
                 modifier = Modifier.heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text(if (s.isLast) "Fertig" else "Weiter") }
+            ) { Text(if (s.isLast) tr("Fertig", "Done") else tr("Weiter", "Next")) }
         }
     }
 }
@@ -208,7 +222,7 @@ private fun NumberButton(value: Int, isSelected: Boolean, onSelect: (Int) -> Uni
             .clip(CircleShape)
             .background(if (isSelected) MaterialTheme.colorScheme.primary else ClearSurfaceSoft)
             .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(value) })
-            .semantics { contentDescription = "$value von 8" },
+            .semantics { contentDescription = tr("$value von 8", "$value of 8") },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -229,15 +243,23 @@ private fun WsasResultContent(summary: WsasSummary, onDone: () -> Unit) {
             .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
     ) {
-        Text("Dein Ergebnis", style = MaterialTheme.typography.headlineMedium)
+        Text(tr("Dein Ergebnis", "Your result"), style = MaterialTheme.typography.headlineMedium)
         ClearCard(containerColor = ClearSurfaceSoft) {
-            Text("${summary.total} von ${Wsas.MAX_TOTAL}", style = MaterialTheme.typography.headlineMedium)
+            Text(tr(
+                "${summary.total} von ${Wsas.MAX_TOTAL}",
+                "${summary.total} of ${Wsas.MAX_TOTAL}"
+            ), style = MaterialTheme.typography.headlineMedium)
             Text(summary.band, style = MaterialTheme.typography.titleMedium)
         }
         Text(
-            "Ein niedrigerer Wert bedeutet weniger Beeinträchtigung. Das ist eine Momentaufnahme und " +
-                "keine Diagnose. Bei Fragen oder wenn es dir schlecht geht, sprich gern mit einer " +
-                "vertrauten Person oder einer Fachperson.",
+            tr(
+                "Ein niedrigerer Wert bedeutet weniger Beeinträchtigung. Das ist eine Momentaufnahme und " +
+                    "keine Diagnose. Bei Fragen oder wenn es dir schlecht geht, sprich gern mit einer " +
+                    "vertrauten Person oder einer Fachperson.",
+                "A lower score means less impairment. This is a snapshot and " +
+                    "not a diagnosis. If you have questions or are not doing well, feel free to talk to " +
+                    "someone you trust or a professional."
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -245,12 +267,15 @@ private fun WsasResultContent(summary: WsasSummary, onDone: () -> Unit) {
         val changes = summary.changes
         if (changes == null) {
             Text(
-                "Das war deine erste WSAS. Beim nächsten Mal siehst du hier, was sich verändert hat.",
+                tr(
+                    "Das war deine erste WSAS. Beim nächsten Mal siehst du hier, was sich verändert hat.",
+                    "This was your first WSAS. Next time you'll see here what has changed."
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
-            Text("Seit dem letzten Mal", style = MaterialTheme.typography.titleMedium)
+            Text(tr("Seit dem letzten Mal", "Since last time"), style = MaterialTheme.typography.titleMedium)
             ClearCard {
                 changes.forEach { change ->
                     Row(
@@ -276,7 +301,7 @@ private fun WsasResultContent(summary: WsasSummary, onDone: () -> Unit) {
             onClick = onDone,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("Fertig") }
+        ) { Text(tr("Fertig", "Done")) }
     }
 }
 
@@ -287,17 +312,20 @@ fun WsasHistoryScreen(onBack: () -> Unit, viewModel: WsasHistoryViewModel = view
     val results by viewModel.results.collectAsState()
     val list = results
 
-    ClearDetailScreen(title = "Verlauf WSAS", onBack = onBack) {
+    ClearDetailScreen(title = tr("Verlauf WSAS", "WSAS history"), onBack = onBack) {
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
             list.isEmpty() -> Text(
-                "Hier ist noch nichts gespeichert.",
+                tr("Hier ist noch nichts gespeichert.", "Nothing saved here yet."),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             else -> {
                 ClearCard {
-                    Text("Beeinträchtigung (0 bis 40)", style = MaterialTheme.typography.titleMedium)
+                    Text(tr(
+                        "Beeinträchtigung (0 bis 40)",
+                        "Impairment (0 to 40)"
+                    ), style = MaterialTheme.typography.titleMedium)
                     PhqChart(
                         values = list.map { it.total },
                         maxValue = Wsas.MAX_TOTAL,
@@ -322,7 +350,7 @@ fun WsasHistoryScreen(onBack: () -> Unit, viewModel: WsasHistoryViewModel = view
                     }
                 }
 
-                Text("Einzelne Bereiche", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Einzelne Bereiche", "Individual areas"), style = MaterialTheme.typography.titleMedium)
                 Wsas.shortTitles.forEachIndexed { index, title ->
                     WsasQuestionHistoryCard(title, list, index)
                 }
@@ -345,7 +373,7 @@ private fun WsasQuestionHistoryCard(title: String, results: List<WsasResult>, in
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Zuletzt: $latest von ${Wsas.MAX_ANSWER}",
+                    tr("Zuletzt: $latest von ${Wsas.MAX_ANSWER}", "Last: $latest of ${Wsas.MAX_ANSWER}"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

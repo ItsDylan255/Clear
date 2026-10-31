@@ -34,6 +34,7 @@ import com.example.clear.domain.CategoryLevel
 import com.example.clear.domain.CategoryLevelInfo
 import com.example.clear.domain.LevelCalculator
 import com.example.clear.model.CheckInCategory
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearCard as ClearCardColor
 import com.example.clear.ui.theme.ClearLevelHighAccent
 import com.example.clear.ui.theme.ClearLevelLow
@@ -67,7 +68,7 @@ fun CheckInStartScreen(
             .padding(horizontal = ClearSpacing.large)
             .padding(top = ClearSpacing.medium, bottom = ClearSpacing.medium)
     ) {
-        Text("Bereiche", style = MaterialTheme.typography.headlineMedium)
+        Text(tr("Bereiche", "Areas"), style = MaterialTheme.typography.headlineMedium)
         if (overall != null && overallLevel != null) {
             Row(
                 modifier = Modifier.padding(top = 2.dp),
@@ -76,14 +77,17 @@ fun CheckInStartScreen(
             ) {
                 LevelDot(overallLevel)
                 Text(
-                    "Alle Bereiche: Ø ${formatAverage(overall)} · ${levelName(overallLevel)}",
+                    tr(
+                        "Alle Bereiche: Ø ${formatAverage(overall)} · ${levelName(overallLevel)}",
+                        "All areas: avg ${formatAverage(overall)} · ${levelName(overallLevel)}"
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
             Text(
-                "Noch keine Werte in den letzten 14 Tagen",
+                tr("Noch keine Werte in den letzten 14 Tagen", "No values in the last 14 days"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp)

@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearSpacing
 
 /** Grundlayout jeder Hauptseite: Titel, optionaler Einfuehrungstext, scrollbarer Inhalt. */
@@ -112,7 +113,7 @@ fun ClearDetailScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück", "Back"))
             }
         }
         Column(

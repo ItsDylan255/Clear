@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.clear.model.Situation
 import com.example.clear.model.Situations
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearFitCard
 import com.example.clear.ui.components.ClearFitScreen
 import com.example.clear.ui.components.ClearTile
@@ -46,7 +47,7 @@ fun AkutScreen(
     // Alles passt auf eine Seite: "Allgemein", vier Reihen Emotionen, zwei Karten unten
     val tileRows = (if (unknown != null) 1 else 0) + rows.size
     ClearFitScreen(
-        title = "Akut",
+        title = tr("Akut", "Acute"),
         weightSum = tileRows + 2 * 0.9f,
         gaps = tileRows + 2 - 1
     ) { unit ->
@@ -79,7 +80,7 @@ fun AkutScreen(
 
         ClearFitCard(
             icon = Icons.Outlined.Psychology,
-            title = "Gedankenprotokoll",
+            title = tr("Gedankenprotokoll", "Thought record"),
             subtitle = null,
             compact = compactCards,
             onClick = onOpenThoughts,
@@ -87,7 +88,7 @@ fun AkutScreen(
         )
         ClearFitCard(
             icon = Icons.Filled.Phone,
-            title = "Notfallkarte",
+            title = tr("Notfallkarte", "Emergency card"),
             subtitle = null,
             compact = compactCards,
             onClick = onOpenEmergency,

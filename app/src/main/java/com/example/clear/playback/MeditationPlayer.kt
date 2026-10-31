@@ -13,6 +13,7 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.clear.model.Meditation
+import com.example.clear.tr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -69,7 +70,10 @@ object MeditationPlayer {
             if (_state.value.meditationId != null) {
                 progressJob?.cancel()
                 _state.value =
-                    MeditationPlayerState(message = "Die Aufnahme konnte nicht abgespielt werden.")
+                    MeditationPlayerState(message = tr(
+                        "Die Aufnahme konnte nicht abgespielt werden.",
+                        "The recording could not be played."
+                    ))
             }
         }
     }
@@ -87,7 +91,10 @@ object MeditationPlayer {
         val resId = resourceId(context, meditation)
         if (resId == 0) {
             _state.value =
-                MeditationPlayerState(message = "Für diese Meditation ist noch keine Aufnahme vorhanden.")
+                MeditationPlayerState(message = tr(
+                    "Für diese Meditation ist noch keine Aufnahme vorhanden.",
+                    "There is no recording for this meditation yet."
+                ))
             return
         }
         MusicPlayer.stop()
@@ -170,7 +177,10 @@ object MeditationPlayer {
                 action(connected)
             } catch (e: Exception) {
                 _state.value =
-                    MeditationPlayerState(message = "Die Aufnahme konnte nicht gestartet werden.")
+                    MeditationPlayerState(message = tr(
+                        "Die Aufnahme konnte nicht gestartet werden.",
+                        "The recording could not be started."
+                    ))
             }
         }, ContextCompat.getMainExecutor(app))
     }

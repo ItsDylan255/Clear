@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.components.EditorButtons
 
@@ -27,24 +28,24 @@ fun EmergencyPersonEditScreen(
 ) {
     val s by viewModel.state.collectAsState()
     Box(modifier = Modifier.imePadding()) {
-        ClearDetailScreen(title = "Notfallperson", onBack = onClose) {
+        ClearDetailScreen(title = tr("Notfallperson", "Emergency contact"), onBack = onClose) {
             if (s.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp))
             } else {
                 OutlinedTextField(
                     value = s.name, onValueChange = viewModel::onNameChange,
-                    label = { Text("Name deiner Notfallperson") },
+                    label = { Text(tr("Name deiner Notfallperson", "Name of your emergency contact")) },
                     singleLine = true, modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = s.phone, onValueChange = viewModel::onPhoneChange,
-                    label = { Text("Telefonnummer") },
+                    label = { Text(tr("Telefonnummer", "Phone number")) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true, modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = s.note, onValueChange = viewModel::onNoteChange,
-                    label = { Text("Hinweis (optional)") },
+                    label = { Text(tr("Hinweis (optional)", "Note (optional)")) },
                     singleLine = true, modifier = Modifier.fillMaxWidth()
                 )
                 EditorButtons(onCancel = onClose, onSave = { viewModel.save(onClose) })
@@ -61,13 +62,13 @@ fun EmergencyPlanEditScreen(
 ) {
     val s by viewModel.state.collectAsState()
     Box(modifier = Modifier.imePadding()) {
-        ClearDetailScreen(title = "Notfallplan", onBack = onClose) {
+        ClearDetailScreen(title = tr("Notfallplan", "Emergency plan"), onBack = onClose) {
             if (s.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp))
             } else {
                 OutlinedTextField(
                     value = s.plan, onValueChange = viewModel::onPlanChange,
-                    label = { Text("Mein Plan") },
+                    label = { Text(tr("Mein Plan", "My plan")) },
                     minLines = 5, modifier = Modifier.fillMaxWidth()
                 )
                 EditorButtons(onCancel = onClose, onSave = { viewModel.save(onClose) })

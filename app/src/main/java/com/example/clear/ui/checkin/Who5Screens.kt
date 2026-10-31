@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.Who5Result
 import com.example.clear.model.Who5
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -63,9 +64,18 @@ fun Who5HubScreen(
     ClearDetailScreen(title = "WHO-5", onBack = onBack) {
         ClearCard(containerColor = ClearSurfaceSoft) {
             Text(
-                if (available || latest == null) "Der WHO-5 ist bereit. Er hat fünf Fragen zu deinem Wohlbefinden."
-                else "Du hast den WHO-5 vor Kurzem ausgefüllt. Der nächste ist " +
-                    "frühestens am ${nextAvailableLabel(latest.createdAt)} möglich (mindestens zwei Wochen Abstand).",
+                if (available || latest == null) tr(
+                    "Der WHO-5 ist bereit. Er hat fünf Fragen zu deinem Wohlbefinden.",
+                    "The WHO-5 is ready. It has five questions about your well-being."
+                )
+                else tr(
+                    "Du hast den WHO-5 vor Kurzem ausgefüllt. Der nächste ist ",
+                    "You filled in the WHO-5 recently. The next one is "
+                ) +
+                    tr(
+                        "frühestens am ${nextAvailableLabel(latest.createdAt)} möglich (mindestens zwei Wochen Abstand).",
+                        "available on ${nextAvailableLabel(latest.createdAt)} at the earliest (at least two weeks apart)."
+                    ),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -74,16 +84,22 @@ fun Who5HubScreen(
             enabled = available,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("WHO-5 starten") }
+        ) { Text(tr("WHO-5 starten", "Start WHO-5")) }
 
         if (latest != null) {
             ClearCard {
                 Text(
-                    "Letztes Ergebnis · ${dateLabel(latest.createdAt)}",
+                    tr(
+                        "Letztes Ergebnis · ${dateLabel(latest.createdAt)}",
+                        "Last result · ${dateLabel(latest.createdAt)}"
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text("${latest.percent} von ${Who5.MAX_PERCENT}", style = MaterialTheme.typography.titleLarge)
+                Text(tr(
+                    "${latest.percent} von ${Who5.MAX_PERCENT}",
+                    "${latest.percent} of ${Who5.MAX_PERCENT}"
+                ), style = MaterialTheme.typography.titleLarge)
                 Text(Who5.band(latest.percent), style = MaterialTheme.typography.bodyLarge)
             }
         }
@@ -92,7 +108,7 @@ fun Who5HubScreen(
                 onClick = onOpenHistory,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text("Verlauf ansehen") }
+            ) { Text(tr("Verlauf ansehen", "View history")) }
         }
     }
 }
@@ -124,10 +140,10 @@ fun Who5TestScreen(
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = ClearSpacing.large)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) {
-                Icon(Icons.Filled.Close, contentDescription = "WHO-5 beenden")
+                Icon(Icons.Filled.Close, contentDescription = tr("WHO-5 beenden", "Close WHO-5"))
             }
             Text(
-                "Frage ${s.index + 1} von ${Who5.COUNT}",
+                tr("Frage ${s.index + 1} von ${Who5.COUNT}", "Question ${s.index + 1} of ${Who5.COUNT}"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -180,14 +196,14 @@ fun Who5TestScreen(
                 TextButton(
                     onClick = viewModel::previous,
                     modifier = Modifier.heightIn(min = 56.dp)
-                ) { Text("Zurück") }
+                ) { Text(tr("Zurück", "Back")) }
             }
             Button(
                 onClick = { if (s.isLast) viewModel.finish() else viewModel.next() },
                 enabled = s.selected != null,
                 modifier = Modifier.heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text(if (s.isLast) "Fertig" else "Weiter") }
+            ) { Text(if (s.isLast) tr("Fertig", "Done") else tr("Weiter", "Next")) }
         }
     }
 }
@@ -201,14 +217,21 @@ private fun Who5ResultContent(summary: Who5Summary, onDone: () -> Unit) {
             .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
     ) {
-        Text("Dein Ergebnis", style = MaterialTheme.typography.headlineMedium)
+        Text(tr("Dein Ergebnis", "Your result"), style = MaterialTheme.typography.headlineMedium)
         ClearCard(containerColor = ClearSurfaceSoft) {
-            Text("${summary.percent} von ${Who5.MAX_PERCENT}", style = MaterialTheme.typography.headlineMedium)
+            Text(tr(
+                "${summary.percent} von ${Who5.MAX_PERCENT}",
+                "${summary.percent} of ${Who5.MAX_PERCENT}"
+            ), style = MaterialTheme.typography.headlineMedium)
             Text(summary.band, style = MaterialTheme.typography.titleMedium)
         }
         Text(
-            "Das ist eine Momentaufnahme und keine Diagnose. Bei Fragen oder wenn es dir schlecht geht, " +
-                "sprich gern mit einer vertrauten Person oder einer Fachperson.",
+            tr(
+                "Das ist eine Momentaufnahme und keine Diagnose. Bei Fragen oder wenn es dir schlecht geht, " +
+                    "sprich gern mit einer vertrauten Person oder einer Fachperson.",
+                "This is a snapshot, not a diagnosis. If you have questions or are not doing well, " +
+                    "feel free to talk to someone you trust or a professional."
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -216,12 +239,15 @@ private fun Who5ResultContent(summary: Who5Summary, onDone: () -> Unit) {
         val changes = summary.changes
         if (changes == null) {
             Text(
-                "Das war dein erster WHO-5. Ab dem nächsten Monat siehst du hier, was sich verändert hat.",
+                tr(
+                    "Das war dein erster WHO-5. Ab dem nächsten Monat siehst du hier, was sich verändert hat.",
+                    "This was your first WHO-5. Next time you'll see here what has changed."
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
-            Text("Seit dem letzten Mal", style = MaterialTheme.typography.titleMedium)
+            Text(tr("Seit dem letzten Mal", "Since last time"), style = MaterialTheme.typography.titleMedium)
             ClearCard {
                 changes.forEach { change ->
                     Row(
@@ -247,7 +273,7 @@ private fun Who5ResultContent(summary: Who5Summary, onDone: () -> Unit) {
             onClick = onDone,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("Fertig") }
+        ) { Text(tr("Fertig", "Done")) }
     }
 }
 
@@ -258,17 +284,20 @@ fun Who5HistoryScreen(onBack: () -> Unit, viewModel: Who5HistoryViewModel = view
     val results by viewModel.results.collectAsState()
     val list = results
 
-    ClearDetailScreen(title = "Verlauf WHO-5", onBack = onBack) {
+    ClearDetailScreen(title = tr("Verlauf WHO-5", "WHO-5 history"), onBack = onBack) {
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
             list.isEmpty() -> Text(
-                "Hier ist noch nichts gespeichert.",
+                tr("Hier ist noch nichts gespeichert.", "Nothing saved here yet."),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             else -> {
                 ClearCard {
-                    Text("Wohlbefinden (0 bis 100)", style = MaterialTheme.typography.titleMedium)
+                    Text(tr(
+                        "Wohlbefinden (0 bis 100)",
+                        "Well-being (0 to 100)"
+                    ), style = MaterialTheme.typography.titleMedium)
                     PhqChart(
                         values = list.map { it.percent },
                         maxValue = Who5.MAX_PERCENT,
@@ -293,7 +322,7 @@ fun Who5HistoryScreen(onBack: () -> Unit, viewModel: Who5HistoryViewModel = view
                     }
                 }
 
-                Text("Einzelne Fragen", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Einzelne Fragen", "Individual questions"), style = MaterialTheme.typography.titleMedium)
                 Who5.shortTitles.forEachIndexed { index, title ->
                     Who5QuestionHistoryCard(title, list, index)
                 }

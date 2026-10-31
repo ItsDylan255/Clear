@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.clear.model.Situations
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearDetailScreen
 
 /**
@@ -27,7 +28,7 @@ fun AnkerEmotionPickScreen(
 
     ClearDetailScreen(title = type.title, onBack = onBack) {
         Text(
-            "Für welche Emotion?",
+            tr("Für welche Emotion?", "For which emotion?"),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

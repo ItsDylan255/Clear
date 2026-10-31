@@ -40,6 +40,7 @@ import com.example.clear.model.Meditations
 import com.example.clear.model.Situations
 import com.example.clear.ui.akut.AkutScreen
 import com.example.clear.reminder.ExerciseNotifier
+import com.example.clear.tr
 import com.example.clear.ui.akut.EmergencyCardScreen
 import com.example.clear.ui.akut.ExerciseScreen
 import com.example.clear.ui.akut.ThoughtDetailScreen
@@ -85,6 +86,7 @@ import com.example.clear.ui.checkin.IdeaEditorScreen
 import com.example.clear.ui.meditation.MeditationPlayerScreen
 import com.example.clear.ui.meditation.MeditationScreen
 import com.example.clear.ui.settings.AppearanceScreen
+import com.example.clear.ui.settings.LanguageScreen
 import com.example.clear.ui.settings.CheckInReminderScreen
 import com.example.clear.ui.settings.EveningReminderScreen
 import com.example.clear.ui.settings.Phq9ReminderScreen
@@ -99,6 +101,7 @@ import com.example.clear.ui.theme.ClearPrimary
 import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
 import com.example.clear.ui.theme.ClearTextSecondary
+import com.example.clear.watch.WatchSync
 
 // Eigene Route fuer die Notfallkarte-Bearbeitung, wenn sie aus dem Akut-Tab geoeffnet wird.
 // So bleibt der Akut-Tab in der Leiste markiert.
@@ -126,7 +129,7 @@ private const val CHECKIN_IDEA_RATE = "checkin_idee_bewertung/{ideaId}/{mode}"
 private fun ideaRoute(id: Long) = "checkin_idee/$id"
 private fun ideaRateRoute(id: Long, mode: String) = "checkin_idee_bewertung/$id/$mode"
 
-private fun Context.findActivity(): Activity? {
+fun Context.findActivity(): Activity? {
     var current = this
     while (current is ContextWrapper) {
         if (current is Activity) return current
@@ -146,13 +149,24 @@ private val routesWithoutBottomBar = setOf(
 private const val HOME_START = "home_start"
 
 /** Die sechs Reiter. Home ist neu, der frühere Check-in-Reiter heisst jetzt "Bereiche". */
-private enum class AppTab(val route: String, val label: String, val icon: ImageVector) {
-    Home("tab_home", "Home", Icons.Outlined.Home),
-    CheckIn(MainTab.CheckIn.route, "Bereiche", Icons.Outlined.GridView),
-    Meditieren(MainTab.Meditieren.route, MainTab.Meditieren.label, MainTab.Meditieren.icon),
-    Akut(MainTab.Akut.route, MainTab.Akut.label, MainTab.Akut.icon),
-    Anker(MainTab.Anker.route, MainTab.Anker.label, MainTab.Anker.icon),
-    Einstellungen(MainTab.Einstellungen.route, MainTab.Einstellungen.label, MainTab.Einstellungen.icon)
+private enum class AppTab(val route: String, val icon: ImageVector) {
+    Home("tab_home", Icons.Outlined.Home),
+    CheckIn(MainTab.CheckIn.route, Icons.Outlined.GridView),
+    Meditieren(MainTab.Meditieren.route, MainTab.Meditieren.icon),
+    Akut(MainTab.Akut.route, MainTab.Akut.icon),
+    Anker(MainTab.Anker.route, MainTab.Anker.icon),
+    Einstellungen(MainTab.Einstellungen.route, MainTab.Einstellungen.icon);
+
+    /** Beschriftung in der eingestellten Sprache. */
+    val label: String
+        get() = when (this) {
+            Home -> "Home"
+            CheckIn -> tr("Bereiche", "Areas")
+            Meditieren -> MainTab.Meditieren.label
+            Akut -> MainTab.Akut.label
+            Anker -> MainTab.Anker.label
+            Einstellungen -> MainTab.Einstellungen.label
+        }
 }
 
 // Startseite jedes Tabs. Wird fuer "erneut auf den Tab tippen" gebraucht.
@@ -180,6 +194,7 @@ fun ClearApp() {
             .deleteNotificationChannel("experiments_running")
         ExerciseNotifier.cancelLegacy(appContext)
         ExerciseNotifier.sync(appContext)
+        WatchSync.update(appContext)
 
         val launchIntent = appContext.findActivity()?.intent
         val ideaId = launchIntent?.getLongExtra(ExerciseNotifier.EXTRA_IDEA_ID, -1L) ?: -1L
@@ -615,6 +630,7 @@ fun ClearApp() {
                 composable(SettingsRoutes.START) {
                     SettingsScreen(
                         onOpenAppearance = { navController.navigate(SettingsRoutes.APPEARANCE) },
+                        onOpenLanguage = { navController.navigate(SettingsRoutes.LANGUAGE) },
                         onOpenReminders = { navController.navigate(SettingsRoutes.REMINDERS) },
                         onOpenFocus = { navController.navigate(SettingsRoutes.FOCUS) },
                         onOpenMyData = { navController.navigate(SettingsRoutes.MY_DATA) }
@@ -625,6 +641,9 @@ fun ClearApp() {
                 }
                 composable(SettingsRoutes.APPEARANCE) {
                     AppearanceScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.LANGUAGE) {
+                    LanguageScreen(onBack = { navController.popBackStack() })
                 }
                 composable(SettingsRoutes.REMINDERS) {
                     ReminderSettingsScreen(

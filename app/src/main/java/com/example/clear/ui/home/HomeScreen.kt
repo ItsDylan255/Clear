@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.ClearDatabase
 import com.example.clear.data.PersonalIdeaRepository
+import com.example.clear.tr
 import com.example.clear.ui.checkin.ActiveIdeas
 import com.example.clear.ui.checkin.CheckInWarningsViewModel
 import com.example.clear.ui.checkin.Phq9HubViewModel
@@ -82,9 +83,9 @@ fun HomeScreen(
     val greeting = remember {
         val hour = LocalTime.now().hour
         when {
-            hour < 11 -> "Guten Morgen"
-            hour < 18 -> "Guten Tag"
-            else -> "Guten Abend"
+            hour < 11 -> tr("Guten Morgen", "Good morning")
+            hour < 18 -> tr("Guten Tag", "Good afternoon")
+            else -> tr("Guten Abend", "Good evening")
         }
     }
     val ready = listOfNotNull(
@@ -95,13 +96,13 @@ fun HomeScreen(
         // Check-in
         ClearCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
             Text(
-                "Dein Check-in",
+                tr("Dein Check-in", "Your check-in"),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             if (checkedInToday) {
                 Text(
-                    "Du hast heute schon eingecheckt.",
+                    tr("Du hast heute schon eingecheckt.", "You have already checked in today."),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -111,23 +112,23 @@ fun HomeScreen(
                     onClick = onOpenHistory,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     shape = MaterialTheme.shapes.large
-                ) { Text("Verlauf ansehen") }
+                ) { Text(tr("Verlauf ansehen", "View history")) }
             } else {
                 Button(
                     onClick = onStartCheckIn,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     shape = MaterialTheme.shapes.large
-                ) { Text("Check-in starten") }
+                ) { Text(tr("Check-in starten", "Start check-in")) }
                 TextButton(
                     onClick = onOpenHistory,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                ) { Text("Verlauf ansehen") }
+                ) { Text(tr("Verlauf ansehen", "View history")) }
             }
         }
 
         // Laufende Ideen
         if (running.isNotEmpty()) {
-            Text("Läuft gerade", style = MaterialTheme.typography.titleMedium)
+            Text(tr("Läuft gerade", "Running now"), style = MaterialTheme.typography.titleMedium)
             running.forEach { (id, title) ->
                 ClearCard(onClick = { onOpenIdea(id) }) {
                     Row(
@@ -138,7 +139,7 @@ fun HomeScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(title, style = MaterialTheme.typography.titleMedium)
                             Text(
-                                "Tippen zum Ansehen oder Beenden",
+                                tr("Tippen zum Ansehen oder Beenden", "Tap to view, end or cancel"),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -161,10 +162,10 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Fragebögen", style = MaterialTheme.typography.titleMedium)
+                    Text(tr("Fragebögen", "Questionnaires"), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        if (ready.isEmpty()) "Gerade ist alles erledigt"
-                        else "Bereit: ${ready.joinToString(", ")}",
+                        if (ready.isEmpty()) tr("Gerade ist alles erledigt", "All done for now")
+                        else tr("Bereit: ", "Ready: ") + ready.joinToString(", "),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

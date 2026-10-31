@@ -46,24 +46,25 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.AppLanguage
 import com.example.clear.data.Phq9Result
 import com.example.clear.model.Phq9
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearSurfaceSoft
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 internal fun monthLabel(yearMonth: Int): String =
     YearMonth.of(yearMonth / 100, yearMonth % 100)
-        .format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.GERMANY))
+        .format(DateTimeFormatter.ofPattern("MMMM yyyy", AppLanguage.locale))
 
 internal fun changeLabel(previous: Int, current: Int): String = when {
-    current > previous -> "↑ gestiegen"
-    current < previous -> "↓ gesunken"
-    else -> "→ gleich geblieben"
+    current > previous -> tr("↑ gestiegen", "↑ up")
+    current < previous -> tr("↓ gesunken", "↓ down")
+    else -> tr("→ gleich geblieben", "→ unchanged")
 }
 
 // ---------- Uebersicht ----------
@@ -83,9 +84,18 @@ fun Phq9HubScreen(
     ClearDetailScreen(title = "PHQ-9", onBack = onBack) {
         ClearCard(containerColor = ClearSurfaceSoft) {
             Text(
-                if (available || latest == null) "Der PHQ-9 ist bereit. Er hat neun Fragen."
-                else "Du hast den PHQ-9 vor Kurzem ausgefüllt. Der nächste ist " +
-                    "frühestens am ${nextAvailableLabel(latest.createdAt)} möglich (mindestens zwei Wochen Abstand).",
+                if (available || latest == null) tr(
+                    "Der PHQ-9 ist bereit. Er hat neun Fragen.",
+                    "The PHQ-9 is ready. It has nine questions."
+                )
+                else tr(
+                    "Du hast den PHQ-9 vor Kurzem ausgefüllt. Der nächste ist ",
+                    "You filled in the PHQ-9 recently. The next one is "
+                ) +
+                    tr(
+                        "frühestens am ${nextAvailableLabel(latest.createdAt)} möglich (mindestens zwei Wochen Abstand).",
+                        "available on ${nextAvailableLabel(latest.createdAt)} at the earliest (at least two weeks apart)."
+                    ),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -94,16 +104,22 @@ fun Phq9HubScreen(
             enabled = available,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("Fragebogen starten") }
+        ) { Text(tr("Fragebogen starten", "Start questionnaire")) }
 
         if (latest != null) {
             ClearCard {
                 Text(
-                    "Letztes Ergebnis · ${dateLabel(latest.createdAt)}",
+                    tr(
+                        "Letztes Ergebnis · ${dateLabel(latest.createdAt)}",
+                        "Last result · ${dateLabel(latest.createdAt)}"
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text("${latest.total} von ${Phq9.MAX_TOTAL}", style = MaterialTheme.typography.titleLarge)
+                Text(tr(
+                    "${latest.total} von ${Phq9.MAX_TOTAL}",
+                    "${latest.total} of ${Phq9.MAX_TOTAL}"
+                ), style = MaterialTheme.typography.titleLarge)
                 Text(Phq9.band(latest.total), style = MaterialTheme.typography.bodyLarge)
             }
         }
@@ -112,7 +128,7 @@ fun Phq9HubScreen(
                 onClick = onOpenHistory,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text("Verlauf ansehen") }
+            ) { Text(tr("Verlauf ansehen", "View history")) }
         }
     }
 }
@@ -144,10 +160,10 @@ fun Phq9TestScreen(
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = ClearSpacing.large)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) {
-                Icon(Icons.Filled.Close, contentDescription = "Fragebogen beenden")
+                Icon(Icons.Filled.Close, contentDescription = tr("Fragebogen beenden", "Close questionnaire"))
             }
             Text(
-                "Frage ${s.index + 1} von ${Phq9.COUNT}",
+                tr("Frage ${s.index + 1} von ${Phq9.COUNT}", "Question ${s.index + 1} of ${Phq9.COUNT}"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -199,14 +215,14 @@ fun Phq9TestScreen(
                 TextButton(
                     onClick = viewModel::previous,
                     modifier = Modifier.heightIn(min = 56.dp)
-                ) { Text("Zurück") }
+                ) { Text(tr("Zurück", "Back")) }
             }
             Button(
                 onClick = { if (s.isLast) viewModel.finish() else viewModel.next() },
                 enabled = s.selected != null,
                 modifier = Modifier.heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
-            ) { Text(if (s.isLast) "Fertig" else "Weiter") }
+            ) { Text(if (s.isLast) tr("Fertig", "Done") else tr("Weiter", "Next")) }
         }
     }
 }
@@ -220,21 +236,27 @@ private fun Phq9ResultContent(summary: Phq9Summary, onDone: () -> Unit) {
             .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
     ) {
-        Text("Dein Ergebnis", style = MaterialTheme.typography.headlineMedium)
+        Text(tr("Dein Ergebnis", "Your result"), style = MaterialTheme.typography.headlineMedium)
         ClearCard(containerColor = ClearSurfaceSoft) {
-            Text("${summary.total} von ${Phq9.MAX_TOTAL}", style = MaterialTheme.typography.headlineMedium)
+            Text(tr(
+                "${summary.total} von ${Phq9.MAX_TOTAL}",
+                "${summary.total} of ${Phq9.MAX_TOTAL}"
+            ), style = MaterialTheme.typography.headlineMedium)
             Text(summary.band, style = MaterialTheme.typography.titleMedium)
         }
 
         val changes = summary.changes
         if (changes == null) {
             Text(
-                "Das war dein erster Fragebogen. Ab dem nächsten Monat siehst du hier, was sich verändert hat.",
+                tr(
+                    "Das war dein erster Fragebogen. Ab dem nächsten Monat siehst du hier, was sich verändert hat.",
+                    "This was your first questionnaire. Next time you'll see here what has changed."
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
-            Text("Seit dem letzten Mal", style = MaterialTheme.typography.titleMedium)
+            Text(tr("Seit dem letzten Mal", "Since last time"), style = MaterialTheme.typography.titleMedium)
             ClearCard {
                 changes.forEach { change ->
                     Row(
@@ -260,7 +282,7 @@ private fun Phq9ResultContent(summary: Phq9Summary, onDone: () -> Unit) {
             onClick = onDone,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("Fertig") }
+        ) { Text(tr("Fertig", "Done")) }
     }
 }
 
@@ -271,17 +293,17 @@ fun Phq9HistoryScreen(onBack: () -> Unit, viewModel: Phq9HistoryViewModel = view
     val results by viewModel.results.collectAsState()
     val list = results
 
-    ClearDetailScreen(title = "Verlauf Fragebogen", onBack = onBack) {
+    ClearDetailScreen(title = tr("Verlauf Fragebogen", "Questionnaire history"), onBack = onBack) {
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
             list.isEmpty() -> Text(
-                "Hier ist noch nichts gespeichert.",
+                tr("Hier ist noch nichts gespeichert.", "Nothing saved here yet."),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             else -> {
                 ClearCard {
-                    Text("Gesamtpunktzahl", style = MaterialTheme.typography.titleMedium)
+                    Text(tr("Gesamtpunktzahl", "Total score"), style = MaterialTheme.typography.titleMedium)
                     PhqChart(
                         values = list.map { it.total },
                         maxValue = Phq9.MAX_TOTAL,
@@ -306,7 +328,7 @@ fun Phq9HistoryScreen(onBack: () -> Unit, viewModel: Phq9HistoryViewModel = view
                     }
                 }
 
-                Text("Einzelne Fragen", style = MaterialTheme.typography.titleMedium)
+                Text(tr("Einzelne Fragen", "Individual questions"), style = MaterialTheme.typography.titleMedium)
                 Phq9.shortTitles.forEachIndexed { index, title ->
                     QuestionHistoryCard(title, list, index)
                 }

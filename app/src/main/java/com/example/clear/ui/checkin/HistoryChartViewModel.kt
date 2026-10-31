@@ -11,6 +11,7 @@ import com.example.clear.model.CheckInCategory
 import com.example.clear.model.Phq9
 import com.example.clear.model.Who5
 import com.example.clear.model.Wsas
+import com.example.clear.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -74,7 +75,7 @@ class HistoryChartViewModel(app: Application, handle: SavedStateHandle) : Androi
             val category = CheckInCategory.fromId(kind)
             db.checkInDao().observeAll().map { entries ->
                 ChartData(
-                    title = category?.title ?: "Verlauf",
+                    title = category?.title ?: tr("Verlauf", "History"),
                     subtitle = "",
                     points = entries.sortedBy { it.timestamp }.mapNotNull { entry ->
                         valueOf(entry, category)?.let { value ->

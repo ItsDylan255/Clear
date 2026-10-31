@@ -30,8 +30,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.AppLanguage
 import com.example.clear.data.EveningEntry
 import com.example.clear.data.EveningType
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.components.ConfirmDeleteDialog
@@ -41,11 +43,10 @@ import com.example.clear.ui.theme.ClearSpacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.Locale
 
 private fun dayLabel(epochDay: Long): String =
     LocalDate.ofEpochDay(epochDay)
-        .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.GERMANY))
+        .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(AppLanguage.locale))
 
 // ---------- Archiv ----------
 
@@ -60,16 +61,16 @@ fun EveningArchiveScreen(
     var toDelete by remember { mutableStateOf<EveningEntry?>(null) }
     val list = entries
 
-    ClearDetailScreen(title = "Erfolge und gute Dinge", onBack = onBack) {
+    ClearDetailScreen(title = tr("Erfolge und gute Dinge", "Successes and good things"), onBack = onBack) {
         OutlinedTextField(
             value = query,
             onValueChange = viewModel::onQueryChange,
-            label = { Text("Suchen") },
+            label = { Text(tr("Suchen", "Search")) },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             trailingIcon = {
                 if (query.isNotEmpty()) {
                     IconButton(onClick = { viewModel.onQueryChange("") }) {
-                        Icon(Icons.Filled.Close, contentDescription = "Suche löschen")
+                        Icon(Icons.Filled.Close, contentDescription = tr("Suche löschen", "Clear search"))
                     }
                 }
             },
@@ -79,8 +80,11 @@ fun EveningArchiveScreen(
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
             list.isEmpty() -> Text(
-                if (query.isNotBlank()) "Dazu wurde nichts gefunden."
-                else "Hier ist noch nichts gespeichert. Einträge entstehen am Ende deines Check-ins.",
+                if (query.isNotBlank()) tr("Dazu wurde nichts gefunden.", "Nothing found.")
+                else tr(
+                    "Hier ist noch nichts gespeichert. Einträge entstehen am Ende deines Check-ins.",
+                    "Nothing saved here yet. Entries are created at the end of your check-in."
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -97,7 +101,7 @@ fun EveningArchiveScreen(
                                 Text(entry.text, style = MaterialTheme.typography.bodyLarge)
                                 if (!entry.reason.isNullOrBlank()) {
                                     Text(
-                                        "Warum: ${entry.reason}",
+                                        tr("Warum: ${entry.reason}", "Why: ${entry.reason}"),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(top = ClearSpacing.small)
@@ -105,7 +109,7 @@ fun EveningArchiveScreen(
                                 }
                             }
                             OptionsMenu(
-                                contentDescription = "Optionen für diesen Eintrag",
+                                contentDescription = tr("Optionen für diesen Eintrag", "Options for this entry"),
                                 onEdit = { onEdit(entry.id) },
                                 onDelete = { toDelete = entry }
                             )
@@ -119,8 +123,8 @@ fun EveningArchiveScreen(
 
     toDelete?.let { entry ->
         ConfirmDeleteDialog(
-            title = "Eintrag löschen?",
-            message = "Dieser Eintrag wird dauerhaft gelöscht.",
+            title = tr("Eintrag löschen?", "Delete entry?"),
+            message = tr("Dieser Eintrag wird dauerhaft gelöscht.", "This entry will be deleted permanently."),
             onConfirm = { viewModel.delete(entry); toDelete = null },
             onDismiss = { toDelete = null }
         )
@@ -133,33 +137,39 @@ fun EveningArchiveScreen(
 fun EveningEntryScreen(onClose: () -> Unit, viewModel: EveningEntryViewModel = viewModel()) {
     val draft by viewModel.draft.collectAsState()
     Box(modifier = Modifier.imePadding()) {
-        ClearDetailScreen(title = "Heute", onBack = onClose) {
+        ClearDetailScreen(title = tr("Heute", "Today"), onBack = onClose) {
             Text(
-                "Alles ist freiwillig. Ein Stichwort reicht, auch winzige Dinge zählen.",
+                tr(
+                    "Alles ist freiwillig. Ein Stichwort reicht, auch winzige Dinge zählen.",
+                    "Everything is optional. A keyword is enough, and even tiny things count."
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             OutlinedTextField(
                 value = draft.success,
                 onValueChange = viewModel::onSuccessChange,
-                label = { Text("Was habe ich heute geschafft?") },
+                label = { Text(tr("Was habe ich heute geschafft?", "What did I get done today?")) },
                 minLines = 2,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Text("Was war heute gut oder okay?", style = MaterialTheme.typography.titleMedium)
+            Text(tr(
+                "Was war heute gut oder okay?",
+                "What was good or okay today?"
+            ), style = MaterialTheme.typography.titleMedium)
             repeat(3) { index ->
                 OutlinedTextField(
                     value = draft.goodTexts[index],
                     onValueChange = { viewModel.onGoodTextChange(index, it) },
-                    label = { Text("Gutes ${index + 1}") },
+                    label = { Text(tr("Gutes ${index + 1}", "Good thing ${index + 1}")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = draft.goodReasons[index],
                     onValueChange = { viewModel.onGoodReasonChange(index, it) },
-                    label = { Text("Warum ist das passiert? (optional)") },
+                    label = { Text(tr("Warum ist das passiert? (optional)", "Why did it happen? (optional)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -175,7 +185,7 @@ fun EveningEntryScreen(onClose: () -> Unit, viewModel: EveningEntryViewModel = v
 fun EveningEditScreen(onClose: () -> Unit, viewModel: EveningEditViewModel = viewModel()) {
     val s by viewModel.state.collectAsState()
     Box(modifier = Modifier.imePadding()) {
-        ClearDetailScreen(title = "Eintrag bearbeiten", onBack = onClose) {
+        ClearDetailScreen(title = tr("Eintrag bearbeiten", "Edit entry"), onBack = onClose) {
             if (s.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp))
             } else {
@@ -184,12 +194,15 @@ fun EveningEditScreen(onClose: () -> Unit, viewModel: EveningEditViewModel = vie
                     onValueChange = viewModel::onTextChange,
                     label = {
                         Text(
-                            if (s.type == EveningType.SUCCESS) "Was habe ich geschafft?"
-                            else "Was war gut oder okay?"
+                            if (s.type == EveningType.SUCCESS) tr("Was habe ich geschafft?", "What did I get done?")
+                            else tr("Was war gut oder okay?", "What was good or okay?")
                         )
                     },
                     isError = s.textError,
-                    supportingText = { if (s.textError) Text("Bitte schreib etwas auf.") },
+                    supportingText = { if (s.textError) Text(tr(
+                        "Bitte schreib etwas auf.",
+                        "Please write something."
+                    )) },
                     minLines = 2,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -197,7 +210,7 @@ fun EveningEditScreen(onClose: () -> Unit, viewModel: EveningEditViewModel = vie
                     OutlinedTextField(
                         value = s.reason,
                         onValueChange = viewModel::onReasonChange,
-                        label = { Text("Warum ist das passiert? (optional)") },
+                        label = { Text(tr("Warum ist das passiert? (optional)", "Why did it happen? (optional)")) },
                         minLines = 2,
                         modifier = Modifier.fillMaxWidth()
                     )

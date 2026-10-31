@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.clear.model.EmotionTag
+import com.example.clear.tr
 import com.example.clear.ui.theme.ClearSpacing
 
 /** Dialog zum Zuordnen von Emotionen. Ohne Auswahl passt der Eintrag zu jeder Situation. */
@@ -28,11 +29,14 @@ fun EmotionTagDialog(
     var selected by remember { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Wann passt das zu dir?") },
+        title = { Text(tr("Wann passt das zu dir?", "When does this fit for you?")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
                 Text(
-                    "Wähle Emotionen aus. Ohne Auswahl passt der Eintrag zu jeder Situation.",
+                    tr(
+                        "Wähle Emotionen aus. Ohne Auswahl passt der Eintrag zu jeder Situation.",
+                        "Choose emotions. Without a choice, the entry fits every situation."
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -49,8 +53,8 @@ fun EmotionTagDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(selected) }) { Text("Speichern") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } }
+        confirmButton = { TextButton(onClick = { onSave(selected) }) { Text(tr("Speichern", "Save")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen", "Cancel")) } }
     )
 }
 

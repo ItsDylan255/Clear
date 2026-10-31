@@ -1,11 +1,12 @@
 package com.example.clear.ui.checkin
 
+import com.example.clear.AppLanguage
+import com.example.clear.tr
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Locale
 
 /** Zwischen zwei Frageboegen (PHQ-9, WHO-5, WSAS) liegen mindestens zwei Wochen. */
 const val QUESTIONNAIRE_INTERVAL_DAYS = 14L
@@ -23,8 +24,8 @@ internal fun isQuestionnaireAvailable(latestCreatedAt: Long?): Boolean {
 /** Fruehestes Datum fuer den naechsten Fragebogen, zum Beispiel "5. November 2026". */
 internal fun nextAvailableLabel(latestCreatedAt: Long): String =
     dateOf(latestCreatedAt).plusDays(QUESTIONNAIRE_INTERVAL_DAYS)
-        .format(DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.GERMANY))
+        .format(DateTimeFormatter.ofPattern(tr("d. MMMM yyyy", "MMMM d, yyyy"), AppLanguage.locale))
 
 /** Datum eines Ergebnisses, zum Beispiel "22. Okt. 2026". */
 internal fun dateLabel(createdAt: Long): String =
-    dateOf(createdAt).format(DateTimeFormatter.ofPattern("d. MMM yyyy", Locale.GERMANY))
+    dateOf(createdAt).format(DateTimeFormatter.ofPattern(tr("d. MMM yyyy", "MMM d, yyyy"), AppLanguage.locale))

@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.clear.model.Meditation
 import com.example.clear.model.Meditations
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearFillScreen
 import com.example.clear.ui.theme.ClearCard as ClearCardColor
 import com.example.clear.ui.theme.ClearSurfaceSoft
@@ -44,7 +45,7 @@ import com.example.clear.ui.theme.ClearTextDark
 fun MeditationScreen(onOpenMeditation: (Meditation) -> Unit) {
     val rows = Meditations.all.chunked(2)
     ClearFillScreen(
-        title = "Meditieren",
+        title = tr("Meditieren", "Meditate"),
         weightSum = rows.size.toFloat(),
         gaps = rows.size - 1,
         itemSpacing = 10.dp,

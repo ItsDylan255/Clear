@@ -29,6 +29,7 @@ import coil.compose.AsyncImage
 import com.example.clear.data.AnchorImage
 import com.example.clear.data.FileStore
 import com.example.clear.model.EmotionTag
+import com.example.clear.tr
 import com.example.clear.ui.akut.ClearWarningSoft
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
@@ -58,11 +59,11 @@ fun ImagesScreen(
     }
 
     ClearDetailScreen(
-        title = viewModel.emotionName?.let { "Bilder · $it" } ?: "Meine Bilder",
+        title = viewModel.emotionName?.let { tr("Bilder · $it", "Images · $it") } ?: tr("Meine Bilder", "My images"),
         onBack = onBack
     ) {
         Text(
-            "Bilder von sicheren Orten, Menschen und Momenten.",
+            tr("Bilder von sicheren Orten, Menschen und Momenten.", "Images of safe places, people and moments."),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -83,11 +84,14 @@ fun ImagesScreen(
                 )
             }
         }
-        AddButton("Bild hinzufügen") {
+        AddButton(tr("Bild hinzufügen", "Add image")) {
             picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
         Text(
-            "Das Bild wird in Clear gespeichert und bleibt nur auf deinem Handy.",
+            tr(
+                "Das Bild wird in Clear gespeichert und bleibt nur auf deinem Handy.",
+                "The image is saved in Clear and stays only on your phone."
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -95,8 +99,8 @@ fun ImagesScreen(
 
     captionFor?.let { image ->
         TextInputDialog(
-            title = "Beschriftung",
-            label = "Beschriftung (optional)",
+            title = tr("Beschriftung", "Caption"),
+            label = tr("Beschriftung (optional)", "Caption (optional)"),
             initial = image.caption.orEmpty(),
             onConfirm = { viewModel.updateCaption(image.id, it); captionFor = null },
             onDismiss = { captionFor = null }
@@ -104,8 +108,11 @@ fun ImagesScreen(
     }
     toDelete?.let { image ->
         ConfirmDeleteDialog(
-            title = "Bild löschen?",
-            message = "Das Bild wird aus Clear entfernt. Dein Original bleibt unberührt." + deleteNote(image.emotionTags),
+            title = tr("Bild löschen?", "Delete image?"),
+            message = tr(
+                "Das Bild wird aus Clear entfernt. Dein Original bleibt unberührt.",
+                "The image will be removed from Clear. Your original stays untouched."
+            ) + deleteNote(image.emotionTags),
             onConfirm = { viewModel.delete(image); toDelete = null },
             onDismiss = { toDelete = null }
         )
@@ -126,13 +133,16 @@ private fun ImageCard(
         if (file.exists()) {
             AsyncImage(
                 model = file,
-                contentDescription = image.caption ?: "Gespeichertes Bild",
+                contentDescription = image.caption ?: tr("Gespeichertes Bild", "Saved image"),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxWidth().height(180.dp).clip(MaterialTheme.shapes.small)
             )
         } else {
             Text(
-                "Diese Bilddatei wurde nicht gefunden. Du kannst den Eintrag löschen.",
+                tr(
+                    "Diese Bilddatei wurde nicht gefunden. Du kannst den Eintrag löschen.",
+                    "This image file was not found. You can delete the entry."
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -143,13 +153,16 @@ private fun ImageCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                image.caption ?: "Ohne Beschriftung",
+                image.caption ?: tr("Ohne Beschriftung", "No caption"),
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (image.caption == null) MaterialTheme.colorScheme.onSurfaceVariant
                 else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
-            OptionsMenu("Optionen für dieses Bild", onEdit = onEditCaption, onDelete = onDelete)
+            OptionsMenu(tr(
+                "Optionen für dieses Bild",
+                "Options for this image"
+            ), onEdit = onEditCaption, onDelete = onDelete)
         }
     }
 }
@@ -161,19 +174,19 @@ fun ImageViewerScreen(onBack: () -> Unit, viewModel: ImageViewerViewModel = view
     val current = image
     val context = LocalContext.current
 
-    ClearDetailScreen(title = current?.caption ?: "Bild", onBack = onBack) {
+    ClearDetailScreen(title = current?.caption ?: tr("Bild", "Image"), onBack = onBack) {
         if (current != null) {
             val file = FileStore.file(context, FileStore.IMAGES, current.fileName)
             if (file.exists()) {
                 AsyncImage(
                     model = file,
-                    contentDescription = current.caption ?: "Gespeichertes Bild",
+                    contentDescription = current.caption ?: tr("Gespeichertes Bild", "Saved image"),
                     contentScale = ContentScale.FillWidth,
                     modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)
                 )
             } else {
                 Text(
-                    "Diese Bilddatei wurde nicht gefunden.",
+                    tr("Diese Bilddatei wurde nicht gefunden.", "This image file was not found."),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

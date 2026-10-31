@@ -12,6 +12,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.clear.data.FileStore
 import com.example.clear.data.MusicTrack
+import com.example.clear.tr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -62,7 +63,10 @@ object MusicPlayer {
         override fun onPlayerError(error: PlaybackException) {
             if (_state.value.trackId != null) {
                 timerJob?.cancel()
-                _state.value = MusicPlayerState(message = "Die Datei konnte nicht abgespielt werden.")
+                _state.value = MusicPlayerState(message = tr(
+                    "Die Datei konnte nicht abgespielt werden.",
+                    "The file could not be played."
+                ))
             }
         }
     }
@@ -71,7 +75,10 @@ object MusicPlayer {
     fun play(context: Context, track: MusicTrack, minutes: Int?) {
         val file = FileStore.file(context, FileStore.MUSIC, track.fileName)
         if (!file.exists()) {
-            _state.update { it.copy(message = "Diese Musikdatei wurde nicht gefunden.") }
+            _state.update { it.copy(message = tr(
+                "Diese Musikdatei wurde nicht gefunden.",
+                "This music file was not found."
+            )) }
             return
         }
         timerJob?.cancel()
@@ -144,7 +151,10 @@ object MusicPlayer {
                 controller = connected
                 action(connected)
             } catch (e: Exception) {
-                _state.value = MusicPlayerState(message = "Die Musik konnte nicht gestartet werden.")
+                _state.value = MusicPlayerState(message = tr(
+                    "Die Musik konnte nicht gestartet werden.",
+                    "The music could not be started."
+                ))
             }
         }, ContextCompat.getMainExecutor(app))
     }

@@ -24,6 +24,7 @@ import com.example.clear.data.IdeaLevel
 import com.example.clear.data.PersonalIdea
 import com.example.clear.domain.CategoryLevel
 import com.example.clear.model.CheckInCategory
+import com.example.clear.tr
 import com.example.clear.ui.akut.ExerciseStat
 import com.example.clear.ui.akut.ExerciseStatsViewModel
 import com.example.clear.ui.akut.formatAverage
@@ -67,8 +68,12 @@ fun CategoryDetailScreen(
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
             list.isEmpty() -> ClearCard {
                 Text(
-                    "Hier gibt es noch keine Ideen. Du kannst sie im Anker-Tab unter " +
-                        "„Ideen verwalten“ hinzufügen.",
+                    tr(
+                        "Hier gibt es noch keine Ideen. Du kannst sie im Anker-Tab unter " +
+                            "„Ideen verwalten“ hinzufügen.",
+                        "There are no ideas here yet. You can add them in the Anchor tab under " +
+                            "“Manage ideas”."
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -92,7 +97,7 @@ fun CategoryDetailScreen(
             onClick = onOpenHistory,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
-        ) { Text("Verlauf ansehen") }
+        ) { Text(tr("Verlauf ansehen", "View history")) }
     }
 }
 
@@ -130,14 +135,17 @@ private fun IdeaCard(
                 Text(text, style = MaterialTheme.typography.bodyLarge)
             } else {
                 Text(
-                    "Für dieses Level fehlt noch ein Text. Du kannst ihn im Anker-Tab ergänzen.",
+                    tr(
+                        "Für dieses Level fehlt noch ein Text. Du kannst ihn im Anker-Tab ergänzen.",
+                        "There is no text for this level yet. You can add it in the Anchor tab."
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             if (running) {
                 Text(
-                    "Läuft gerade",
+                    tr("Läuft gerade", "Running now"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

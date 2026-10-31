@@ -2,14 +2,21 @@ package com.example.clear.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.clear.tr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class ThemeMode(val label: String, val description: String) {
-    System("Wie dein Handy", "Folgt der Einstellung deines Handys"),
-    Light("Hell", "Warm und ruhig"),
-    Dark("Dunkel", "Schonend für die Augen am Abend")
+enum class ThemeMode(
+    private val labelDe: String, private val labelEn: String,
+    private val descriptionDe: String, private val descriptionEn: String
+) {
+    System("Wie dein Handy", "Same as your phone", "Folgt der Einstellung deines Handys", "Follows your phone's setting"),
+    Light("Hell", "Light", "Warm und ruhig", "Warm and calm"),
+    Dark("Dunkel", "Dark", "Schonend für die Augen am Abend", "Easy on the eyes in the evening");
+
+    val label: String get() = tr(labelDe, labelEn)
+    val description: String get() = tr(descriptionDe, descriptionEn)
 }
 
 /** Merkt sich die gewaehlte Darstellung (kleine Einstellung, keine Datenbank noetig). */

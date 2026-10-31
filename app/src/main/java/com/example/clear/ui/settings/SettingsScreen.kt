@@ -15,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
@@ -28,30 +29,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearScreen
 import com.example.clear.ui.theme.ClearSpacing
 
-/** Einstellungen in drei Gruppen: Darstellung, Erinnerungen, Daten. */
+/** Einstellungen: Darstellung, Sprache, Erinnerungen, Nicht stoeren, Daten. */
 @Composable
 fun SettingsScreen(
     onOpenAppearance: () -> Unit,
+    onOpenLanguage: () -> Unit,
     onOpenReminders: () -> Unit,
     onOpenFocus: () -> Unit,
     onOpenMyData: () -> Unit
 ) {
-    ClearScreen(title = "Einstellungen") {
+    ClearScreen(title = tr("Einstellungen", "Settings")) {
         ClearCard {
-            SettingsRow(Icons.Outlined.Palette, "Darstellung", "Hell, Dunkel oder System", onOpenAppearance)
+            SettingsRow(Icons.Outlined.Palette, tr("Darstellung", "Appearance"), tr("Hell, Dunkel oder System", "Light, dark or system"), onOpenAppearance)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SettingsRow(Icons.Outlined.Language, tr("Sprache", "Language"), tr("Deutsch oder Englisch", "German or English"), onOpenLanguage)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             SettingsRow(
-                Icons.Outlined.Notifications, "Erinnerungen",
-                "Hinweise zu Check-in, Fragebögen und mehr", onOpenReminders
+                Icons.Outlined.Notifications, tr("Erinnerungen", "Reminders"),
+                tr(
+                    "Hinweise zu Check-in, Fragebögen und mehr",
+                    "Reminders for check-in, questionnaires and more"
+                ), onOpenReminders
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            SettingsRow(Icons.Outlined.Bedtime, "Nicht stören", "Bei Ideen automatisch ruhig stellen", onOpenFocus)
+            SettingsRow(Icons.Outlined.Bedtime, tr("Nicht stören", "Do Not Disturb"), tr("Bei Ideen automatisch ruhig stellen", "Silence automatically during ideas"), onOpenFocus)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            SettingsRow(Icons.Outlined.Lock, "Meine Daten", "Verwalten und vollständig löschen", onOpenMyData)
+            SettingsRow(Icons.Outlined.Lock, tr("Meine Daten", "My data"), tr("Verwalten und vollständig löschen", "Manage and delete completely"), onOpenMyData)
         }
     }
 }

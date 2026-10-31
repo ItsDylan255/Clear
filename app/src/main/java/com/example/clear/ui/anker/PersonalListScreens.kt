@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.clear.tr
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
@@ -33,12 +34,15 @@ import com.example.clear.ui.theme.ClearSpacing
 fun WarningSignsScreen(onBack: () -> Unit, viewModel: WarningSignsViewModel = viewModel()) {
     val items by viewModel.items.collectAsState()
     TextListScreen(
-        title = "Meine Warnzeichen",
+        title = tr("Meine Warnzeichen", "My warning signs"),
         intro = "",
-        emptyText = "Hier ist noch nichts gespeichert. Du kannst jederzeit etwas hinzufügen.",
-        addLabel = "Warnzeichen hinzufügen",
-        editTitle = "Warnzeichen",
-        deleteTitle = "Warnzeichen löschen?",
+        emptyText = tr(
+            "Hier ist noch nichts gespeichert. Du kannst jederzeit etwas hinzufügen.",
+            "Nothing saved here yet. You can add something at any time."
+        ),
+        addLabel = tr("Warnzeichen hinzufügen", "Add warning sign"),
+        editTitle = tr("Warnzeichen", "Warning sign"),
+        deleteTitle = tr("Warnzeichen löschen?", "Delete warning sign?"),
         items = items,
         onBack = onBack,
         onAdd = viewModel::add,
@@ -95,7 +99,7 @@ private fun TextListScreen(
                             modifier = Modifier.weight(1f).padding(top = ClearSpacing.small)
                         )
                         OptionsMenu(
-                            contentDescription = "Optionen für diesen Eintrag",
+                            contentDescription = tr("Optionen für diesen Eintrag", "Options for this entry"),
                             onEdit = { editing = item },
                             onDelete = { toDelete = item }
                         )
@@ -107,7 +111,7 @@ private fun TextListScreen(
 
     if (adding) {
         TextEditDialog(
-            title = "$editTitle hinzufügen",
+            title = tr("$editTitle hinzufügen", "Add $editTitle"),
             initial = "",
             onSave = { onAdd(it); adding = false },
             onDismiss = { adding = false }
@@ -115,7 +119,7 @@ private fun TextListScreen(
     }
     editing?.let { item ->
         TextEditDialog(
-            title = "$editTitle bearbeiten",
+            title = tr("$editTitle bearbeiten", "Edit $editTitle"),
             initial = item.text,
             onSave = { onUpdate(item.id, it); editing = null },
             onDismiss = { editing = null }
@@ -124,7 +128,7 @@ private fun TextListScreen(
     toDelete?.let { item ->
         ConfirmDeleteDialog(
             title = deleteTitle,
-            message = "Dieser Eintrag wird dauerhaft gelöscht.",
+            message = tr("Dieser Eintrag wird dauerhaft gelöscht.", "This entry will be deleted permanently."),
             onConfirm = { onDelete(item.id); toDelete = null },
             onDismiss = { toDelete = null }
         )
@@ -151,8 +155,8 @@ private fun TextEditDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = { onSave(text) }, enabled = text.isNotBlank()) { Text("Speichern") }
+            TextButton(onClick = { onSave(text) }, enabled = text.isNotBlank()) { Text(tr("Speichern", "Save")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen", "Cancel")) } }
     )
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.clear.data.CheckInRepository
 import com.example.clear.data.ClearDatabase
 import com.example.clear.model.CheckInCategory
+import com.example.clear.watch.WatchSync
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,6 +54,7 @@ class CheckInViewModel(application: Application) : AndroidViewModel(application)
         saving = true
         viewModelScope.launch {
             repository.save(_state.value.answers)
+            WatchSync.update(getApplication<Application>())
             onDone()
         }
     }

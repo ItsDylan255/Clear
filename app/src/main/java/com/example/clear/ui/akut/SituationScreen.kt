@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.example.clear.model.Exercise
 import com.example.clear.model.ExerciseCategory
 import com.example.clear.model.Situation
+import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -57,7 +58,7 @@ fun SituationScreen(
             ) {
                 Icon(Icons.Outlined.FavoriteBorder, contentDescription = null)
                 Text(
-                    "Mein Anker",
+                    tr("Mein Anker", "My Anchor"),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )

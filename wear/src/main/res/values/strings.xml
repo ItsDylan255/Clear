@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Clear</string>
+    <string name="tile_label">Clear</string>
+    <string name="tile_description">Running ideas and your check-in today</string>
+</resources>
