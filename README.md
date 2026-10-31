@@ -181,6 +181,6 @@ Every text lives in the code in both languages, for example `tr("Beenden", "End"
 
 ## Status
 
-Clear is an early version (1.1.0). Feedback and ideas are welcome in the [issues](https://github.com/ItsDylan255/Clear/issues).
+Clear is an early version (1.1.1). Feedback and ideas are welcome in the [issues](https://github.com/ItsDylan255/Clear/issues).
 
 The screenshots show sample data.
