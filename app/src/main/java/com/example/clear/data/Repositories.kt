@@ -43,3 +43,22 @@ class CheckInRepository(private val dao: CheckInDao) {
         )
     }
 }
+
+/** Eigene Extras-Chips: anlegen, umbenennen, (de)aktivieren. Geloescht wird nie, alte Eintraege behalten ihre Chips. */
+class ExtraChipRepository(private val dao: ExtraChipDao) {
+    fun observeAll(): Flow<List<ExtraChip>> = dao.observeAll()
+
+    /** Legt einen Chip an und gibt seine id zurueck, oder null bei leerem Namen. */
+    suspend fun add(name: String): Long? {
+        val clean = name.trim()
+        if (clean.isEmpty()) return null
+        return dao.insert(ExtraChip(name = clean, createdAt = System.currentTimeMillis()))
+    }
+
+    suspend fun rename(chip: ExtraChip, name: String) {
+        val clean = name.trim()
+        if (clean.isNotEmpty()) dao.update(chip.copy(name = clean))
+    }
+
+    suspend fun setActive(chip: ExtraChip, active: Boolean) = dao.update(chip.copy(active = active))
+}

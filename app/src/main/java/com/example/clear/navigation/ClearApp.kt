@@ -95,6 +95,7 @@ import com.example.clear.ui.checkin.IdeaEditorScreen
 import com.example.clear.ui.meditation.MeditationPlayerScreen
 import com.example.clear.ui.meditation.MeditationScreen
 import com.example.clear.ui.settings.AppearanceScreen
+import com.example.clear.ui.settings.ExtrasSettingsScreen
 import com.example.clear.ui.settings.LanguageScreen
 import com.example.clear.ui.settings.CheckInReminderScreen
 import com.example.clear.ui.settings.EveningReminderScreen
@@ -453,8 +454,12 @@ fun ClearApp() {
                         onOpenLanguage = { navController.navigate(SettingsRoutes.LANGUAGE) },
                         onOpenReminders = { navController.navigate(SettingsRoutes.REMINDERS) },
                         onOpenFocus = { navController.navigate(SettingsRoutes.FOCUS) },
+                        onOpenExtras = { navController.navigate(SettingsRoutes.EXTRAS) },
                         onOpenMyData = { navController.navigate(SettingsRoutes.MY_DATA) }
                     )
+                }
+                composable(SettingsRoutes.EXTRAS) {
+                    ExtrasSettingsScreen(onBack = { navController.popBackStack() })
                 }
                 composable(SettingsRoutes.FOCUS) {
                     FocusSettingsScreen(onBack = { navController.popBackStack() })

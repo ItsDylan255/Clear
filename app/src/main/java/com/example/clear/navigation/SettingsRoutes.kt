@@ -8,6 +8,7 @@ object SettingsRoutes {
     const val REMINDERS = "einstellungen_erinnerungen"
     const val QUOTE_REMINDERS = "einstellungen_zitat_erinnerungen"
     const val MY_DATA = "einstellungen_meine_daten"
+    const val EXTRAS = "einstellungen_extras"
 
 
     const val MEDITATION_REMINDER = "einstellungen_meditation_erinnerung"

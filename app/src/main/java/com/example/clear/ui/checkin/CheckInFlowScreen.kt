@@ -62,14 +62,17 @@ fun CheckInFlowScreen(
     viewModel: CheckInViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    // Nach der letzten Frage folgt "Erfolge und gute Dinge" (alles freiwillig)
+    val chips by viewModel.activeChips.collectAsState()
+    // Reihenfolge: Teil 1 (Kategorien), Teil 2 (Faktenteil), Teil 3 "Erfolge und gute Dinge"
+    var factsStep by rememberSaveable { mutableStateOf(false) }
     var eveningStep by rememberSaveable { mutableStateOf(false) }
     val eveningViewModel: EveningEntryViewModel = viewModel()
 
     // System-Zurueck: erst einen Schritt zurueck, bei der ersten Frage beenden
     BackHandler {
         when {
-            eveningStep -> eveningStep = false
+            eveningStep -> { eveningStep = false; factsStep = true }
+            factsStep -> factsStep = false
             state.isFirst -> onClose()
             else -> viewModel.previous()
         }
@@ -81,13 +84,21 @@ fun CheckInFlowScreen(
                 Icon(Icons.Filled.Close, contentDescription = tr("Check-in beenden", "Close check-in"))
             }
             Text(
-                if (eveningStep) tr("Zum Schluss", "Finally") else tr("Frage ${state.index + 1} von ${state.categories.size}", "Question ${state.index + 1} of ${state.categories.size}"),
+                if (eveningStep) tr("Zum Schluss", "Finally")
+                else if (factsStep) tr("Teil 2 von 3", "Part 2 of 3")
+                else tr("Frage ${state.index + 1} von ${state.categories.size}", "Question ${state.index + 1} of ${state.categories.size}"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         LinearProgressIndicator(
-            progress = { if (eveningStep) 1f else state.progress },
+            progress = {
+                when {
+                    eveningStep -> 1f
+                    factsStep -> 0.9f
+                    else -> state.progress * 0.8f
+                }
+            },
             modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
             color = MaterialTheme.colorScheme.primary,
             trackColor = ClearSurfaceSoft
@@ -102,6 +113,17 @@ fun CheckInFlowScreen(
         ) {
             if (eveningStep) {
                 EveningStepFields(eveningViewModel)
+                return@Column
+            }
+            if (factsStep) {
+                CheckInFactsStep(
+                    facts = state.facts,
+                    chips = chips,
+                    onToggleFact = viewModel::toggleFact,
+                    onToggleDayType = viewModel::toggleDayType,
+                    onToggleExtra = viewModel::toggleExtra,
+                    onAddExtra = viewModel::addExtra
+                )
                 return@Column
             }
             Text(
@@ -123,19 +145,37 @@ fun CheckInFlowScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (state.isFirst && !eveningStep) {
+            if (state.isFirst && !eveningStep && !factsStep) {
                 Spacer(Modifier.size(1.dp))
             } else {
                 TextButton(
-                    onClick = { if (eveningStep) eveningStep = false else viewModel.previous() },
+                    onClick = {
+                        when {
+                            eveningStep -> { eveningStep = false; factsStep = true }
+                            factsStep -> factsStep = false
+                            else -> viewModel.previous()
+                        }
+                    },
                     modifier = Modifier.heightIn(min = 56.dp)
                 ) { Text(tr("Zurück", "Back")) }
+            }
+            if (factsStep) {
+                // Faktenteil ueberspringen: Auswahl verwerfen, weiter zu Teil 3
+                TextButton(
+                    onClick = {
+                        viewModel.clearFacts()
+                        factsStep = false
+                        eveningStep = true
+                    },
+                    modifier = Modifier.heightIn(min = 56.dp)
+                ) { Text(tr("Überspringen", "Skip")) }
             }
             Button(
                 onClick = {
                     when {
                         eveningStep -> viewModel.finish { eveningViewModel.save(onFinished) }
-                        state.isLast -> eveningStep = true
+                        factsStep -> { factsStep = false; eveningStep = true }
+                        state.isLast -> factsStep = true
                         else -> viewModel.next()
                     }
                 },
