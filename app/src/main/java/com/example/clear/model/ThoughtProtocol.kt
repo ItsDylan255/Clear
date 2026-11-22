@@ -50,6 +50,26 @@ enum class ThinkingTrap(
         "emotional_reasoning", "Gefühl als Beweis", "Feeling as proof",
         "„Ich fühle mich schlecht, also ist es so.“ Ein Gefühl ist noch kein Beweis.",
         "“I feel bad, so it must be true.” A feeling is not proof."
+    ),
+    FortuneTelling(
+        "fortune_telling", "Wahrsagen", "Fortune telling",
+        "Du sagst die Zukunft schlecht voraus, zum Beispiel „Ich weiß schon, dass es schiefgeht.“",
+        "You predict a bad future, for example “I already know it will go wrong.”"
+    ),
+    Comparison(
+        "comparison", "Vergleich", "Comparison",
+        "Du misst dich an anderen, zum Beispiel „Andere in meinem Alter haben schon …“.",
+        "You measure yourself against others, for example “Others my age already have …”."
+    ),
+    Overgeneralizing(
+        "overgeneralizing", "Übergeneralisieren", "Overgeneralizing",
+        "Aus einem Erlebnis wird eine Regel, mit Wörtern wie „immer“, „nie“ oder „alle“.",
+        "One experience becomes a rule, with words like “always”, “never” or “everyone”."
+    ),
+    DiscountingPositive(
+        "discounting_positive", "Positives abwerten", "Discounting the positive",
+        "Gutes zählt für dich nicht, zum Beispiel „Das zählt nicht, das war nur Glück.“",
+        "Good things don't count for you, for example “That doesn't count, it was just luck.”"
     );
 
     val title: String get() = tr(titleDe, titleEn)
