@@ -338,7 +338,9 @@ fun ClearApp() {
                         onOpenQuestionnaires = { navController.navigate(CHECKIN_QUESTIONNAIRES) },
                         onOpenIdea = { id -> navController.navigate(ideaRoute(id)) },
                         onOpenAreas = { navController.navigate(CheckInRoutes.START) },
-                        onOpenSettings = { navController.navigate(SettingsRoutes.START) }
+                        onOpenSettings = { navController.navigate(SettingsRoutes.START) },
+                        onOpenEmergencyCard = { navController.navigate(AkutRoutes.EMERGENCY) },
+                        onOpenBadDayPlan = { navController.navigate(ANKER_EMERGENCY_PLAN) }
                     )
                 }
                 composable(CHECKIN_QUESTIONNAIRES) {

@@ -42,6 +42,7 @@ object DataWiper {
 
         // 4. Kleine Einstellungen zuruecksetzen
         ThemePreferences.reset()
+        EarlyWarningStore.reset(app)
         AppLanguage.reset(app)
         DoNotDisturb.setEnabled(app, false)
         // "clear_active_exercise" und "clear_defaults" gibt es nur noch bei Installationen aelterer Versionen

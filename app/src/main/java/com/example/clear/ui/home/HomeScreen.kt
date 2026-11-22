@@ -1,5 +1,12 @@
 package com.example.clear.ui.home
 
+import com.example.clear.ui.theme.ClearNoticeSoft
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.filled.Close
+import android.content.Intent
+import android.content.ActivityNotFoundException
+import androidx.compose.ui.platform.LocalContext
+import com.example.clear.data.EarlyWarningStore
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -82,6 +89,8 @@ fun HomeScreen(
     onOpenIdea: (Long) -> Unit,
     onOpenAreas: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenEmergencyCard: () -> Unit,
+    onOpenBadDayPlan: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
     warningsViewModel: CheckInWarningsViewModel = viewModel(),
     phqViewModel: Phq9HubViewModel = viewModel(),
@@ -108,6 +117,8 @@ fun HomeScreen(
     )
 
     val streak by warningsViewModel.streakDays.collectAsState()
+    val warningVisible by EarlyWarningStore.visible.collectAsState()
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
 
     // Kleine Statuszeile: Datum und, wenn vorhanden, die Check-in-Serie
@@ -130,6 +141,15 @@ fun HomeScreen(
             }
         }
     ) {
+        // Fruehwarnung: sachlich und freundlich, mit drei moeglichen naechsten Schritten
+        if (warningVisible) {
+            EarlyWarningCard(
+                onOpenEmergencyCard = onOpenEmergencyCard,
+                onOpenBadDayPlan = onOpenBadDayPlan,
+                onDismiss = { EarlyWarningStore.dismiss(context) }
+            )
+        }
+
         // Check-in als grosse, ruhige Hauptkarte
         ClearCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
             Column(
@@ -248,5 +268,47 @@ fun HomeScreen(
                 )
             }
         }
+    }
+}
+
+/** Karte der Fruehwarnung auf der Startseite. */
+@Composable
+private fun EarlyWarningCard(
+    onOpenEmergencyCard: () -> Unit,
+    onOpenBadDayPlan: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    ClearCard(containerColor = ClearNoticeSoft) {
+        Row(verticalAlignment = Alignment.Top) {
+            Text(
+                tr("Deine Werte sinken seit zwei Wochen", "Your values have been dropping for two weeks"),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f).padding(top = 8.dp)
+            )
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Filled.Close, contentDescription = tr("Schließen", "Close"))
+            }
+        }
+        Button(
+            onClick = onOpenEmergencyCard,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            shape = CircleShape
+        ) { Text(tr("Notfallkarte öffnen", "Open emergency card")) }
+        OutlinedButton(
+            onClick = onOpenBadDayPlan,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            shape = CircleShape
+        ) { Text(tr("Plan für schlechte Tage öffnen", "Open plan for bad days")) }
+        OutlinedButton(
+            onClick = {
+                // Telefon-App ohne Nummer oeffnen, gewaehlt wird selbst
+                try {
+                    context.startActivity(Intent(Intent.ACTION_DIAL).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                } catch (_: ActivityNotFoundException) { }
+            },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            shape = CircleShape
+        ) { Text(tr("Mach einen Termin bei deinem Hausarzt", "Make an appointment with your doctor")) }
     }
 }

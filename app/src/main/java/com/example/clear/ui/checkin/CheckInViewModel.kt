@@ -1,5 +1,6 @@
 package com.example.clear.ui.checkin
 
+import com.example.clear.data.EarlyWarningStore
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -99,6 +100,7 @@ class CheckInViewModel(application: Application) : AndroidViewModel(application)
         saving = true
         viewModelScope.launch {
             repository.save(_state.value.answers, _state.value.facts)
+            EarlyWarningStore.evaluate(getApplication())
             WatchSync.update(getApplication<Application>())
             onDone()
         }

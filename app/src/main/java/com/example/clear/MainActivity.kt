@@ -1,5 +1,6 @@
 package com.example.clear
 
+import com.example.clear.data.EarlyWarningStore
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         AppLanguage.init(this)
         ThemePreferences.init(this)
+        EarlyWarningStore.init(this)
         setContent {
             val mode by ThemePreferences.mode.collectAsState()
             val systemDark = isSystemInDarkTheme()

@@ -1,5 +1,6 @@
 package com.example.clear.ui.checkin
 
+import com.example.clear.data.EarlyWarningStore
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -80,6 +81,7 @@ class Phq9TestViewModel(app: Application) : AndroidViewModel(app) {
             // Zwischen zwei Frageboegen mindestens 14 Tage
             if (isQuestionnaireAvailable(previous?.createdAt)) {
                 dao.insert(Phq9Result.of(System.currentTimeMillis(), ym, values))
+                EarlyWarningStore.evaluate(getApplication())
             }
             val changes = previous?.answers()?.mapIndexed { i, old -> Phq9Change(i, old, values[i]) }
             _state.update { it.copy(summary = Phq9Summary(values.sum(), Phq9.band(values.sum()), changes)) }
