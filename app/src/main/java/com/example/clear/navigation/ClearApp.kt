@@ -1,5 +1,9 @@
 package com.example.clear.navigation
 
+import com.example.clear.ui.settings.WeeklyReviewReminderScreen
+import com.example.clear.ui.checkin.WeeklyReviewDaysScreen
+import com.example.clear.ui.checkin.WeeklyReviewScreen
+import com.example.clear.MainActivity
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -123,6 +127,8 @@ private val akutView = AnkerViewRoutes("akut_ansicht")
 private val ankerView = AnkerViewRoutes("anker_ansicht")
 // Verlaufsseite im Check-in-Bereich
 private const val CHECKIN_HISTORY = "checkin_verlauf"
+private const val WEEKLY_REVIEW = "wochenrueckblick"
+private const val WEEKLY_REVIEW_DAYS = "wochenrueckblick_tage"
 private const val CHECKIN_HISTORY_CHART = "checkin_verlauf_diagramm/{kind}"
 private fun historyChartRoute(kind: String) = "checkin_verlauf_diagramm/$kind"
 // Monatlicher Fragebogen (PHQ-9) im Check-in-Bereich
@@ -215,6 +221,10 @@ fun ClearApp() {
         WatchSync.update(appContext)
 
         val launchIntent = appContext.findActivity()?.intent
+        if (launchIntent?.getStringExtra(MainActivity.EXTRA_OPEN) == MainActivity.OPEN_WEEKLY_REVIEW) {
+            launchIntent.removeExtra(MainActivity.EXTRA_OPEN)
+            navController.navigate(WEEKLY_REVIEW)
+        }
         val ideaId = launchIntent?.getLongExtra(ExerciseNotifier.EXTRA_IDEA_ID, -1L) ?: -1L
         if (launchIntent != null && ideaId > 0L) {
             val action = launchIntent.getStringExtra(ExerciseNotifier.EXTRA_ACTION)
@@ -376,9 +386,19 @@ fun ClearApp() {
                         onFinished = { navController.popBackStack() }
                     )
                 }
+                composable(WEEKLY_REVIEW) {
+                    WeeklyReviewScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenDays = { navController.navigate(WEEKLY_REVIEW_DAYS) }
+                    )
+                }
+                composable(WEEKLY_REVIEW_DAYS) {
+                    WeeklyReviewDaysScreen(onBack = { navController.popBackStack() })
+                }
                 composable(CHECKIN_HISTORY) {
                     HistoryOverviewScreen(
                         onBack = { navController.popBackStack() },
+                        onOpenWeeklyReview = { navController.navigate(WEEKLY_REVIEW) },
                         onOpen = { kind -> navController.navigate(historyChartRoute(kind)) }
                     )
                 }
@@ -476,6 +496,7 @@ fun ClearApp() {
                         onOpenQuoteReminders = { navController.navigate(SettingsRoutes.QUOTE_REMINDERS) },
                         onOpenMeditationReminder = { navController.navigate(SettingsRoutes.MEDITATION_REMINDER) },
                         onOpenCheckInReminder = { navController.navigate(SettingsRoutes.CHECKIN_REMINDER) },
+                        onOpenWeeklyReviewReminder = { navController.navigate(SettingsRoutes.WEEKLY_REVIEW_REMINDER) },
                         onOpenPhqReminder = { navController.navigate(SettingsRoutes.PHQ_REMINDER) },
                         onOpenWho5Reminder = { navController.navigate(SettingsRoutes.WHO5_REMINDER) },
                         onOpenWsasReminder = { navController.navigate(SettingsRoutes.WSAS_REMINDER) },
@@ -496,6 +517,9 @@ fun ClearApp() {
                 }
                 composable(SettingsRoutes.MEDITATION_REMINDER) {
                     MeditationReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.WEEKLY_REVIEW_REMINDER) {
+                    WeeklyReviewReminderScreen(onBack = { navController.popBackStack() })
                 }
                 composable(SettingsRoutes.CHECKIN_REMINDER) {
                     CheckInReminderScreen(onBack = { navController.popBackStack() })

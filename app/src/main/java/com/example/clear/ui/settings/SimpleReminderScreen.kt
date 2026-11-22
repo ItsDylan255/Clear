@@ -133,6 +133,18 @@ fun WsasReminderScreen(
 )
 
 @Composable
+fun WeeklyReviewReminderScreen(
+    onBack: () -> Unit,
+    viewModel: WeeklyReviewReminderViewModel = viewModel()
+) = SimpleReminderScreen(
+    title = tr("Wochenrückblick", "Weekly review"),
+    intro = "",
+    viewModel = viewModel,
+    onBack = onBack,
+    showWeekdays = false
+)
+
+@Composable
 fun EveningReminderScreen(
     onBack: () -> Unit,
     viewModel: EveningReminderViewModel = viewModel()
@@ -156,7 +168,8 @@ private fun SimpleReminderScreen(
     title: String,
     intro: String,
     viewModel: SimpleReminderViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    showWeekdays: Boolean = true
 ) {
     val settings by viewModel.settings.collectAsState()
     val context = LocalContext.current
@@ -239,14 +252,16 @@ private fun SimpleReminderScreen(
             shape = MaterialTheme.shapes.large
         ) { Text(tr("%02d:%02d Uhr", "%02d:%02d").format(settings.hour, settings.minute)) }
 
-        Text(tr("Wochentage", "Weekdays"), style = MaterialTheme.typography.titleMedium)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
-            weekdayLabels.forEachIndexed { index, label ->
-                FilterChip(
-                    selected = settings.daysMask and (1 shl index) != 0,
-                    onClick = { viewModel.toggleDay(index) },
-                    label = { Text(label) }
-                )
+        if (showWeekdays) {
+            Text(tr("Wochentage", "Weekdays"), style = MaterialTheme.typography.titleMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
+                weekdayLabels.forEachIndexed { index, label ->
+                    FilterChip(
+                        selected = settings.daysMask and (1 shl index) != 0,
+                        onClick = { viewModel.toggleDay(index) },
+                        label = { Text(label) }
+                    )
+                }
             }
         }
     }

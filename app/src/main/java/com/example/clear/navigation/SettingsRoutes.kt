@@ -15,6 +15,8 @@ object SettingsRoutes {
 
     const val CHECKIN_REMINDER = "einstellungen_checkin_erinnerung"
 
+    const val WEEKLY_REVIEW_REMINDER = "einstellungen_wochenrueckblick_erinnerung"
+
     const val FOCUS = "einstellungen_nicht_stoeren"
 
     const val EVENING_REMINDER = "einstellungen_abend_erinnerung"

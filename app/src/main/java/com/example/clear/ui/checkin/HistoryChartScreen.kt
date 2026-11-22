@@ -275,8 +275,17 @@ private fun dayMonth(date: LocalDate): String =
 
 /** Uebersicht: alle Bereiche und Frageboegen. Jeder Eintrag oeffnet sein eigenes Diagramm. */
 @Composable
-fun HistoryOverviewScreen(onBack: () -> Unit, onOpen: (kind: String) -> Unit) {
+fun HistoryOverviewScreen(
+    onBack: () -> Unit,
+    onOpenWeeklyReview: () -> Unit,
+    onOpen: (kind: String) -> Unit,
+    weeklyViewModel: WeeklyReviewViewModel = viewModel()
+) {
+    val weekly by weeklyViewModel.data.collectAsState()
     ClearDetailScreen(title = tr("Verlauf", "History"), onBack = onBack) {
+        if (weekly?.review != null) {
+            OverviewRow(tr("Wochenrückblick", "Weekly review"), onOpenWeeklyReview)
+        }
         Text(tr("Bereiche", "Areas"), style = MaterialTheme.typography.titleMedium)
         CheckInCategory.entries.forEach { category ->
             OverviewRow(category.title) { onOpen(category.id) }

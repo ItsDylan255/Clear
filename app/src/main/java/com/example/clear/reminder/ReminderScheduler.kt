@@ -25,6 +25,7 @@ object ReminderScheduler {
     const val PHQ_ID = 5
     const val WHO5_ID = 6
     const val WSAS_ID = 7
+    const val WEEKLY_REVIEW_ID = 8
     const val KEY_SETTINGS_ID = "settingsId"
 
     private fun workName(settingsId: Int) = when (settingsId) {
@@ -34,6 +35,7 @@ object ReminderScheduler {
         PHQ_ID -> "phq_reminder"
         WHO5_ID -> "who5_reminder"
         WSAS_ID -> "wsas_reminder"
+        WEEKLY_REVIEW_ID -> "weekly_review_reminder"
         else -> "quote_reminder"
     }
 

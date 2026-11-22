@@ -1,5 +1,7 @@
 package com.example.clear.reminder
 
+import java.time.DayOfWeek
+import com.example.clear.domain.WeeklyReviewCalculator
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -101,6 +103,23 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     )
                 )
             }
+            ReminderScheduler.WEEKLY_REVIEW_ID -> {
+                // Sonntags, nur wenn die Woche mindestens drei Check-ins hat
+                val zone = ZoneId.systemDefault()
+                val today = LocalDate.now(zone)
+                val entries = ClearDatabase.getInstance(applicationContext).checkInDao().observeAll().first()
+                val start = WeeklyReviewCalculator.reviewWeekStart(today)
+                if (today.dayOfWeek == DayOfWeek.SUNDAY &&
+                    WeeklyReviewCalculator.countInWeek(entries, start, zone) >= WeeklyReviewCalculator.MIN_CHECK_INS
+                ) showNotification(
+                    channelId = "weekly_review",
+                    channelName = tr("Wochenrückblick", "Weekly review"),
+                    channelDescription = tr("Dein Rückblick am Sonntag", "Your review on Sunday"),
+                    notificationId = 9,
+                    text = tr("Dein Wochenrückblick ist da.", "Your weekly review is ready."),
+                    openTarget = MainActivity.OPEN_WEEKLY_REVIEW
+                )
+            }
             ReminderScheduler.CHECKIN_ID -> {
                 if (!checkedInToday()) showNotification(
                     channelId = "checkin_reminders",
@@ -154,7 +173,8 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         channelName: String,
         channelDescription: String,
         notificationId: Int,
-        text: String
+        text: String,
+        openTarget: String? = null
     ) {
         val manager = NotificationManagerCompat.from(applicationContext)
         if (!manager.areNotificationsEnabled()) return
@@ -168,7 +188,8 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         val openApp = PendingIntent.getActivity(
             applicationContext, notificationId,
             Intent(applicationContext, MainActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                .apply { if (openTarget != null) putExtra(MainActivity.EXTRA_OPEN, openTarget) },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val notification = NotificationCompat.Builder(applicationContext, channelId)

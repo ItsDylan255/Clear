@@ -1,5 +1,6 @@
 package com.example.clear.ui.settings
 
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.FormatQuote
@@ -18,6 +19,7 @@ fun ReminderSettingsScreen(
     onOpenQuoteReminders: () -> Unit,
     onOpenMeditationReminder: () -> Unit,
     onOpenCheckInReminder: () -> Unit,
+    onOpenWeeklyReviewReminder: () -> Unit,
     onOpenPhqReminder: () -> Unit,
     onOpenWho5Reminder: () -> Unit,
     onOpenWsasReminder: () -> Unit,
@@ -27,6 +29,10 @@ fun ReminderSettingsScreen(
         SettingsCard(
             Icons.Outlined.Eco, tr("Check-in-Erinnerung", "Check-in reminder"),
             tr("Ein sanfter Hinweis auf deinen Check-in", "A gentle nudge for your check-in"), onOpenCheckInReminder
+        )
+        SettingsCard(
+            Icons.Outlined.CalendarMonth, tr("Wochenrückblick", "Weekly review"),
+            tr("Sonntags zu deiner Uhrzeit", "Sundays at your time"), onOpenWeeklyReviewReminder
         )
         SettingsCard(
             Icons.Outlined.Info, tr("PHQ-9-Erinnerung", "PHQ-9 reminder"),

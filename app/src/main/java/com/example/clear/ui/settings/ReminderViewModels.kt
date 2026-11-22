@@ -16,12 +16,13 @@ import kotlinx.coroutines.launch
 abstract class SimpleReminderViewModel(
     app: Application,
     private val settingsId: Int,
-    private val defaultHour: Int
+    private val defaultHour: Int,
+    private val defaultDaysMask: Int = 127
 ) : AndroidViewModel(app) {
     private val context: Application get() = getApplication()
     private val dao = ClearDatabase.getInstance(app).reminderDao()
 
-    private fun defaults() = ReminderSettings(id = settingsId, hour = defaultHour)
+    private fun defaults() = ReminderSettings(id = settingsId, hour = defaultHour, daysMask = defaultDaysMask)
 
     val settings: StateFlow<ReminderSettings> = dao.observeSettingsById(settingsId)
         .map { it ?: defaults() }
@@ -60,3 +61,7 @@ class Who5ReminderViewModel(app: Application) :
 
 class WsasReminderViewModel(app: Application) :
     SimpleReminderViewModel(app, ReminderScheduler.WSAS_ID, 9)
+
+/** Wochenrueckblick: nur sonntags (Bit 6), Uhrzeit einstellbar. */
+class WeeklyReviewReminderViewModel(app: Application) :
+    SimpleReminderViewModel(app, ReminderScheduler.WEEKLY_REVIEW_ID, 18, defaultDaysMask = 1 shl 6)

@@ -17,6 +17,12 @@ import com.example.clear.navigation.ClearApp
 import com.example.clear.ui.theme.ClearTheme
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        /** Extra im Start-Intent: welche Seite sich oeffnen soll (zum Beispiel aus einer Benachrichtigung). */
+        const val EXTRA_OPEN = "clear_open"
+        const val OPEN_WEEKLY_REVIEW = "weekly_review"
+    }
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(AppLanguage.wrap(newBase))
     }
