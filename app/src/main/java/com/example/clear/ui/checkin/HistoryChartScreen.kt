@@ -286,6 +286,7 @@ fun HistoryOverviewScreen(
         if (weekly?.review != null) {
             OverviewRow(tr("Wochenrückblick", "Weekly review"), onOpenWeeklyReview)
         }
+        ThenAndNowCard()
         Text(tr("Bereiche", "Areas"), style = MaterialTheme.typography.titleMedium)
         CheckInCategory.entries.forEach { category ->
             OverviewRow(category.title) { onOpen(category.id) }
