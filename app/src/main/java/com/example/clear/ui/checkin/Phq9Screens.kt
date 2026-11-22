@@ -1,5 +1,7 @@
 package com.example.clear.ui.checkin
 
+import com.example.clear.ui.components.ClearEmptyState
+import androidx.compose.material.icons.outlined.Timeline
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -296,10 +298,9 @@ fun Phq9HistoryScreen(onBack: () -> Unit, viewModel: Phq9HistoryViewModel = view
     ClearDetailScreen(title = tr("Verlauf Fragebogen", "Questionnaire history"), onBack = onBack) {
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> Text(
-                tr("Hier ist noch nichts gespeichert.", "Nothing saved here yet."),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            list.isEmpty() -> ClearEmptyState(
+                icon = Icons.Outlined.Timeline,
+                title = tr("Noch keine Ergebnisse", "No results yet")
             )
             else -> {
                 ClearCard {

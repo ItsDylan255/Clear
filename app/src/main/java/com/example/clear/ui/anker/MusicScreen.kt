@@ -1,5 +1,6 @@
 package com.example.clear.ui.anker
 
+import androidx.compose.material.icons.outlined.MusicNote
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -72,7 +73,7 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
         }
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> EmptyHintCard()
+            list.isEmpty() -> EmptyHintCard(Icons.Outlined.MusicNote)
             else -> list.forEach { track ->
                 val isCurrent = playback.trackId == track.id
                 val isPlaying = isCurrent && playback.isPlaying
@@ -112,16 +113,6 @@ fun MusicScreen(onBack: () -> Unit, viewModel: MusicViewModel = viewModel()) {
             }
         }
         AddButton(tr("Musik hinzufügen", "Add music")) { showAddMode = true }
-        Text(
-            tr(
-                "Die Datei wird in Clear gespeichert und bleibt nur auf deinem Handy. " +
-                    "Die Wiedergabe läuft, solange diese Seite offen ist.",
-                "The file is saved in Clear and stays only on your phone. " +
-                    "Playback continues while this page is open."
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 
     if (showAddMode) {

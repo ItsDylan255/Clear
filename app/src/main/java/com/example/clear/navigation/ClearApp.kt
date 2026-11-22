@@ -14,11 +14,17 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.sp
+import android.provider.Settings
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,6 +32,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -148,36 +157,44 @@ private val routesWithoutBottomBar = setOf(
 
 private const val HOME_START = "home_start"
 
-/** Die sechs Reiter. Home ist neu, der frühere Check-in-Reiter heisst jetzt "Bereiche". */
+/**
+ * Die vier Reiter. Bereiche und Einstellungen liegen jetzt im Home-Reiter
+ * (Karte "Deine Bereiche" und Zahnrad oben rechts).
+ */
 private enum class AppTab(val route: String, val icon: ImageVector) {
     Home("tab_home", Icons.Outlined.Home),
-    CheckIn(MainTab.CheckIn.route, Icons.Outlined.GridView),
     Meditieren(MainTab.Meditieren.route, MainTab.Meditieren.icon),
     Akut(MainTab.Akut.route, MainTab.Akut.icon),
-    Anker(MainTab.Anker.route, MainTab.Anker.icon),
-    Einstellungen(MainTab.Einstellungen.route, MainTab.Einstellungen.icon);
+    Anker(MainTab.Anker.route, MainTab.Anker.icon);
 
     /** Beschriftung in der eingestellten Sprache. */
     val label: String
         get() = when (this) {
-            Home -> "Home"
-            CheckIn -> tr("Bereiche", "Areas")
+            Home -> tr("Heute", "Today")
             Meditieren -> MainTab.Meditieren.label
             Akut -> MainTab.Akut.label
             Anker -> MainTab.Anker.label
-            Einstellungen -> MainTab.Einstellungen.label
         }
 }
 
 // Startseite jedes Tabs. Wird fuer "erneut auf den Tab tippen" gebraucht.
 private fun AppTab.startRoute(): String = when (this) {
     AppTab.Home -> HOME_START
-    AppTab.CheckIn -> CheckInRoutes.START
     AppTab.Meditieren -> MeditationRoutes.START
     AppTab.Akut -> AkutRoutes.START
     AppTab.Anker -> AnkerRoutes.START
-    AppTab.Einstellungen -> SettingsRoutes.START
 }
+
+private const val PAGE_MS = 260
+private const val TAB_FADE_MS = 180
+
+/** Route des Reiters (oberster Untergraph), zu dem ein Ziel gehoert. */
+private fun NavDestination.tabRoute(): String? =
+    hierarchy.firstOrNull { it.parent != null && it.parent?.parent == null }?.route
+
+/** Wechselt der Uebergang zwischen zwei Reitern (statt innerhalb eines Reiters)? */
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.isTabSwitch(): Boolean =
+    initialState.destination.tabRoute() != targetState.destination.tabRoute()
 
 @Composable
 fun ClearApp() {
@@ -213,11 +230,16 @@ fun ClearApp() {
         }
     }
 
+    // "Animationen entfernen" in den Bedienungshilfen: dann ohne Uebergaenge
+    val reduceMotion = remember {
+        Settings.Global.getFloat(appContext.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (currentRoute !in routesWithoutBottomBar) {
-                NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+                NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = 0.dp) {
                     AppTab.entries.forEach { tab ->
                         val isSelected =
                             destination?.hierarchy?.any { it.route == tab.route } == true
@@ -241,8 +263,7 @@ fun ClearApp() {
                             label = {
                                 Text(
                                     text = tab.label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 10.sp,
+                                    style = MaterialTheme.typography.labelMedium,
                                     maxLines = 1,
                                     softWrap = false
                                 )
@@ -264,11 +285,36 @@ fun ClearApp() {
             navController = navController,
             startDestination = AppTab.Home.route,
             modifier = Modifier.padding(innerPadding).consumeWindowInsets(innerPadding),
-            // Keine Animationen beim Wechsel der Seiten
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = { ExitTransition.None }
+            // Weiche Uebergaenge: Unterseiten gleiten leicht von der Seite herein, Reiter blenden
+            // nur ueber. Die Zurueck-Geste (Predictive Back) nutzt die pop-Uebergaenge.
+            enterTransition = {
+                when {
+                    reduceMotion -> EnterTransition.None
+                    isTabSwitch() -> fadeIn(tween(TAB_FADE_MS))
+                    else -> fadeIn(tween(PAGE_MS)) + slideInHorizontally(tween(PAGE_MS, easing = FastOutSlowInEasing)) { it / 10 }
+                }
+            },
+            exitTransition = {
+                when {
+                    reduceMotion -> ExitTransition.None
+                    isTabSwitch() -> fadeOut(tween(TAB_FADE_MS))
+                    else -> fadeOut(tween(PAGE_MS)) + slideOutHorizontally(tween(PAGE_MS, easing = FastOutSlowInEasing)) { -it / 10 }
+                }
+            },
+            popEnterTransition = {
+                when {
+                    reduceMotion -> EnterTransition.None
+                    isTabSwitch() -> fadeIn(tween(TAB_FADE_MS))
+                    else -> fadeIn(tween(PAGE_MS)) + slideInHorizontally(tween(PAGE_MS, easing = FastOutSlowInEasing)) { -it / 10 }
+                }
+            },
+            popExitTransition = {
+                when {
+                    reduceMotion -> ExitTransition.None
+                    isTabSwitch() -> fadeOut(tween(TAB_FADE_MS))
+                    else -> fadeOut(tween(PAGE_MS)) + slideOutHorizontally(tween(PAGE_MS, easing = FastOutSlowInEasing)) { it / 10 }
+                }
+            }
         ) {
             // --- Home: Check-in, Verlauf und Frageboegen ---
             navigation(startDestination = HOME_START, route = AppTab.Home.route) {
@@ -277,7 +323,9 @@ fun ClearApp() {
                         onStartCheckIn = { navController.navigate(CheckInRoutes.FLOW) },
                         onOpenHistory = { navController.navigate(CHECKIN_HISTORY) },
                         onOpenQuestionnaires = { navController.navigate(CHECKIN_QUESTIONNAIRES) },
-                        onOpenIdea = { id -> navController.navigate(ideaRoute(id)) }
+                        onOpenIdea = { id -> navController.navigate(ideaRoute(id)) },
+                        onOpenAreas = { navController.navigate(CheckInRoutes.START) },
+                        onOpenSettings = { navController.navigate(SettingsRoutes.START) }
                     )
                 }
                 composable(CHECKIN_QUESTIONNAIRES) {
@@ -345,12 +393,10 @@ fun ClearApp() {
                         onFinished = { navController.popBackStack() }
                     )
                 }
-            }
-
-            // --- Bereiche (frueher Check In) ---
-            navigation(startDestination = CheckInRoutes.START, route = AppTab.CheckIn.route) {
+                // Bereiche (frueher eigener Reiter), erreichbar ueber die Startseite
                 composable(CheckInRoutes.START) {
                     CheckInStartScreen(
+                        onBack = { navController.popBackStack() },
                         onOpenCategory = { navController.navigate(CheckInRoutes.category(it.id)) }
                     )
                 }
@@ -398,6 +444,62 @@ fun ClearApp() {
                     )
                 ) {
                     IdeaEditorScreen(onClose = { navController.popBackStack() })
+                }
+                // Einstellungen, erreichbar ueber das Zahnrad auf der Startseite
+                composable(SettingsRoutes.START) {
+                    SettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenAppearance = { navController.navigate(SettingsRoutes.APPEARANCE) },
+                        onOpenLanguage = { navController.navigate(SettingsRoutes.LANGUAGE) },
+                        onOpenReminders = { navController.navigate(SettingsRoutes.REMINDERS) },
+                        onOpenFocus = { navController.navigate(SettingsRoutes.FOCUS) },
+                        onOpenMyData = { navController.navigate(SettingsRoutes.MY_DATA) }
+                    )
+                }
+                composable(SettingsRoutes.FOCUS) {
+                    FocusSettingsScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.APPEARANCE) {
+                    AppearanceScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.LANGUAGE) {
+                    LanguageScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.REMINDERS) {
+                    ReminderSettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenQuoteReminders = { navController.navigate(SettingsRoutes.QUOTE_REMINDERS) },
+                        onOpenMeditationReminder = { navController.navigate(SettingsRoutes.MEDITATION_REMINDER) },
+                        onOpenCheckInReminder = { navController.navigate(SettingsRoutes.CHECKIN_REMINDER) },
+                        onOpenPhqReminder = { navController.navigate(SettingsRoutes.PHQ_REMINDER) },
+                        onOpenWho5Reminder = { navController.navigate(SettingsRoutes.WHO5_REMINDER) },
+                        onOpenWsasReminder = { navController.navigate(SettingsRoutes.WSAS_REMINDER) },
+                        onOpenEveningReminder = { navController.navigate(SettingsRoutes.EVENING_REMINDER) }
+                    )
+                }
+                composable(SettingsRoutes.WSAS_REMINDER) {
+                    WsasReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.WHO5_REMINDER) {
+                    Who5ReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.PHQ_REMINDER) {
+                    Phq9ReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.EVENING_REMINDER) {
+                    EveningReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.MEDITATION_REMINDER) {
+                    MeditationReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.CHECKIN_REMINDER) {
+                    CheckInReminderScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.QUOTE_REMINDERS) {
+                    RemindersScreen(onBack = { navController.popBackStack() })
+                }
+                composable(SettingsRoutes.MY_DATA) {
+                    MyDataScreen(onBack = { navController.popBackStack() })
                 }
             }
 
@@ -625,63 +727,6 @@ fun ClearApp() {
                 }
             }
 
-            // --- Einstellungen ---
-            navigation(startDestination = SettingsRoutes.START, route = AppTab.Einstellungen.route) {
-                composable(SettingsRoutes.START) {
-                    SettingsScreen(
-                        onOpenAppearance = { navController.navigate(SettingsRoutes.APPEARANCE) },
-                        onOpenLanguage = { navController.navigate(SettingsRoutes.LANGUAGE) },
-                        onOpenReminders = { navController.navigate(SettingsRoutes.REMINDERS) },
-                        onOpenFocus = { navController.navigate(SettingsRoutes.FOCUS) },
-                        onOpenMyData = { navController.navigate(SettingsRoutes.MY_DATA) }
-                    )
-                }
-                composable(SettingsRoutes.FOCUS) {
-                    FocusSettingsScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.APPEARANCE) {
-                    AppearanceScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.LANGUAGE) {
-                    LanguageScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.REMINDERS) {
-                    ReminderSettingsScreen(
-                        onBack = { navController.popBackStack() },
-                        onOpenQuoteReminders = { navController.navigate(SettingsRoutes.QUOTE_REMINDERS) },
-                        onOpenMeditationReminder = { navController.navigate(SettingsRoutes.MEDITATION_REMINDER) },
-                        onOpenCheckInReminder = { navController.navigate(SettingsRoutes.CHECKIN_REMINDER) },
-                        onOpenPhqReminder = { navController.navigate(SettingsRoutes.PHQ_REMINDER) },
-                        onOpenWho5Reminder = { navController.navigate(SettingsRoutes.WHO5_REMINDER) },
-                        onOpenWsasReminder = { navController.navigate(SettingsRoutes.WSAS_REMINDER) },
-                        onOpenEveningReminder = { navController.navigate(SettingsRoutes.EVENING_REMINDER) }
-                    )
-                }
-                composable(SettingsRoutes.WSAS_REMINDER) {
-                    WsasReminderScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.WHO5_REMINDER) {
-                    Who5ReminderScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.PHQ_REMINDER) {
-                    Phq9ReminderScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.EVENING_REMINDER) {
-                    EveningReminderScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.MEDITATION_REMINDER) {
-                    MeditationReminderScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.CHECKIN_REMINDER) {
-                    CheckInReminderScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.QUOTE_REMINDERS) {
-                    RemindersScreen(onBack = { navController.popBackStack() })
-                }
-                composable(SettingsRoutes.MY_DATA) {
-                    MyDataScreen(onBack = { navController.popBackStack() })
-                }
-            }
         }
     }
 }

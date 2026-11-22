@@ -1,5 +1,14 @@
 package com.example.clear.ui.home
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import com.example.clear.AppLanguage
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import android.app.Application
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,7 +18,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,6 +39,7 @@ import com.example.clear.data.PersonalIdeaRepository
 import com.example.clear.tr
 import com.example.clear.ui.checkin.ActiveIdeas
 import com.example.clear.ui.checkin.CheckInWarningsViewModel
+import com.example.clear.ui.checkin.OverallLevelLine
 import com.example.clear.ui.checkin.Phq9HubViewModel
 import com.example.clear.ui.checkin.Who5HubViewModel
 import com.example.clear.ui.checkin.WsasHubViewModel
@@ -68,6 +80,8 @@ fun HomeScreen(
     onOpenHistory: () -> Unit,
     onOpenQuestionnaires: () -> Unit,
     onOpenIdea: (Long) -> Unit,
+    onOpenAreas: () -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
     warningsViewModel: CheckInWarningsViewModel = viewModel(),
     phqViewModel: Phq9HubViewModel = viewModel(),
@@ -75,6 +89,7 @@ fun HomeScreen(
     wsasViewModel: WsasHubViewModel = viewModel()
 ) {
     val running by viewModel.running.collectAsState()
+    val levels by warningsViewModel.levels.collectAsState()
     val checkedInToday by warningsViewModel.checkedInToday.collectAsState()
     val phqReady by phqViewModel.available.collectAsState()
     val who5Ready by who5ViewModel.available.collectAsState()
@@ -92,43 +107,85 @@ fun HomeScreen(
         "PHQ-9".takeIf { phqReady }, "WHO-5".takeIf { who5Ready }, "WSAS".takeIf { wsasReady }
     )
 
-    ClearScreen(title = greeting) {
-        // Check-in
+    val streak by warningsViewModel.streakDays.collectAsState()
+    val haptic = LocalHapticFeedback.current
+
+    // Kleine Statuszeile: Datum und, wenn vorhanden, die Check-in-Serie
+    val dateText = remember {
+        val pattern = tr("EEEE, d. MMMM", "EEEE, MMMM d")
+        LocalDate.now().format(DateTimeFormatter.ofPattern(pattern, AppLanguage.locale))
+    }
+    val streakText = when {
+        streak <= 0 -> null
+        streak == 1 -> tr("1 Tag eingecheckt", "1 day checked in")
+        else -> tr("$streak Tage in Folge", "$streak days in a row")
+    }
+
+    ClearScreen(
+        title = greeting,
+        subtitle = listOfNotNull(dateText, streakText).joinToString(" · "),
+        actions = {
+            IconButton(onClick = onOpenSettings) {
+                Icon(Icons.Outlined.Settings, contentDescription = tr("Einstellungen", "Settings"))
+            }
+        }
+    ) {
+        // Check-in als grosse, ruhige Hauptkarte
         ClearCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-            Text(
-                tr("Dein Check-in", "Your check-in"),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            if (checkedInToday) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(ClearSpacing.small)
+            ) {
                 Text(
-                    tr("Du hast heute schon eingecheckt.", "You have already checked in today."),
-                    style = MaterialTheme.typography.bodyLarge,
+                    tr("HEUTE", "TODAY"),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+                )
+                Text(
+                    if (checkedInToday) tr("Schön, dass du da warst.", "Good to see you today.")
+                    else tr("Wie geht es dir gerade?", "How are you right now?"),
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-            }
-            if (checkedInToday) {
-                Button(
-                    onClick = onOpenHistory,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    shape = MaterialTheme.shapes.large
-                ) { Text(tr("Verlauf ansehen", "View history")) }
-            } else {
-                Button(
-                    onClick = onStartCheckIn,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    shape = MaterialTheme.shapes.large
-                ) { Text(tr("Check-in starten", "Start check-in")) }
-                TextButton(
-                    onClick = onOpenHistory,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                ) { Text(tr("Verlauf ansehen", "View history")) }
+                if (checkedInToday) {
+                    Text(
+                        tr("Du hast heute schon eingecheckt.", "You have already checked in today."),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                }
+                Spacer(Modifier.height(ClearSpacing.small))
+                if (checkedInToday) {
+                    Button(
+                        onClick = onOpenHistory,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        shape = CircleShape
+                    ) { Text(tr("Verlauf ansehen", "View history")) }
+                } else {
+                    Button(
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                            onStartCheckIn()
+                        },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        shape = CircleShape
+                    ) { Text(tr("Check-in starten", "Start check-in")) }
+                    TextButton(
+                        onClick = onOpenHistory,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    ) { Text(tr("Verlauf ansehen", "View history")) }
+                }
             }
         }
 
         // Laufende Ideen
         if (running.isNotEmpty()) {
-            Text(tr("Läuft gerade", "Running now"), style = MaterialTheme.typography.titleMedium)
+            Text(
+                tr("LÄUFT GERADE", "RUNNING NOW"),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 4.dp, top = ClearSpacing.small)
+            )
             running.forEach { (id, title) ->
                 ClearCard(onClick = { onOpenIdea(id) }) {
                     Row(
@@ -138,11 +195,6 @@ fun HomeScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(title, style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                tr("Tippen zum Ansehen oder Beenden", "Tap to view, end or cancel"),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -151,6 +203,25 @@ fun HomeScreen(
                         )
                     }
                 }
+            }
+        }
+
+        // Bereiche (frueher ein eigener Reiter)
+        ClearCard(onClick = onOpenAreas) {
+            Row(
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(tr("Deine Bereiche", "Your areas"), style = MaterialTheme.typography.titleMedium)
+                    OverallLevelLine(levels)
+                }
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 

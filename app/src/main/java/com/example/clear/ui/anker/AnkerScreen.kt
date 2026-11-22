@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.clear.model.Situation
 import com.example.clear.tr
-import com.example.clear.ui.components.ClearFitCard
-import com.example.clear.ui.components.ClearFitScreen
+import com.example.clear.ui.components.ClearNavCard
+import com.example.clear.ui.components.ClearScreen
 import com.example.clear.ui.components.ClearTile
 import com.example.clear.ui.theme.ClearSpacing
 import com.example.clear.ui.theme.ClearSurfaceSoft
@@ -54,16 +54,14 @@ fun AnkerScreen(
     onOpenEmergency: () -> Unit,
     onOpenType: (AnkerType) -> Unit
 ) {
-    ClearFitScreen(title = tr("Mein Anker", "My Anchor"), weightSum = 7f, gaps = 6) { unit ->
-        val compact = unit < 66.dp
-        val item = Modifier.fillMaxWidth().weight(1f)
-        ClearFitCard(Icons.Outlined.WbSunny, tr("Erfolge und gute Dinge", "Successes and good things"), tr("Dein Abend-Archiv", "Your evening archive"), compact, onOpenEvening, item)
-        ClearFitCard(Icons.Outlined.Lightbulb, tr("Ideen", "Ideas"), tr("Für deine Bereiche", "For your areas"), compact, onOpenIdeas, item)
-        ClearFitCard(Icons.Outlined.Phone, tr("Notfallkarte", "Emergency card"), tr("Person, Plan und Warnzeichen", "Contact, plan and warning signs"), compact, onOpenEmergency, item)
-        ClearFitCard(Icons.Outlined.FormatQuote, tr("Zitate", "Quotes"), tr("Gedanken, die dir helfen", "Thoughts that help you"), compact, { onOpenType(AnkerType.Quotes) }, item)
-        ClearFitCard(Icons.Outlined.Image, tr("Bilder", "Images"), tr("Bilder, die dir Halt geben", "Images that give you support"), compact, { onOpenType(AnkerType.Images) }, item)
-        ClearFitCard(Icons.Outlined.MusicNote, tr("Musik", "Music"), tr("Deine eigene Musik", "Your own music"), compact, { onOpenType(AnkerType.Music) }, item)
-        ClearFitCard(Icons.Outlined.Email, tr("Briefe", "Letters"), tr("Briefe an dich selbst", "Letters to yourself"), compact, { onOpenType(AnkerType.Letters) }, item)
+    ClearScreen(title = tr("Mein Anker", "My Anchor")) {
+        ClearNavCard(Icons.Outlined.WbSunny, tr("Erfolge und gute Dinge", "Successes and good things"), tr("Dein Abend-Archiv", "Your evening archive"), onOpenEvening)
+        ClearNavCard(Icons.Outlined.Lightbulb, tr("Ideen", "Ideas"), tr("Für deine Bereiche", "For your areas"), onOpenIdeas)
+        ClearNavCard(Icons.Outlined.Phone, tr("Notfallkarte", "Emergency card"), tr("Person, Plan und Warnzeichen", "Contact, plan and warning signs"), onOpenEmergency)
+        ClearNavCard(Icons.Outlined.FormatQuote, tr("Zitate", "Quotes"), tr("Gedanken, die dir helfen", "Thoughts that help you"), { onOpenType(AnkerType.Quotes) })
+        ClearNavCard(Icons.Outlined.Image, tr("Bilder", "Images"), tr("Bilder, die dir Halt geben", "Images that give you support"), { onOpenType(AnkerType.Images) })
+        ClearNavCard(Icons.Outlined.MusicNote, tr("Musik", "Music"), tr("Deine eigene Musik", "Your own music"), { onOpenType(AnkerType.Music) })
+        ClearNavCard(Icons.Outlined.Email, tr("Briefe", "Letters"), tr("Briefe an dich selbst", "Letters to yourself"), { onOpenType(AnkerType.Letters) })
     }
 }
 

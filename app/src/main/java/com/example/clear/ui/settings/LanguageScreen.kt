@@ -34,11 +34,6 @@ fun LanguageScreen(onBack: () -> Unit) {
     var selected by remember { mutableStateOf(AppLanguage.choice(context)) }
 
     ClearDetailScreen(title = tr("Sprache", "Language"), onBack = onBack) {
-        Text(
-            tr("Wähle, in welcher Sprache Clear dich begleitet.", "Choose the language Clear uses."),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         LanguageChoice.entries.forEach { option ->
             ClearCard {
                 Row(

@@ -1,5 +1,7 @@
 package com.example.clear.ui.anker
 
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.Icons
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -62,11 +64,6 @@ fun ImagesScreen(
         title = viewModel.emotionName?.let { tr("Bilder · $it", "Images · $it") } ?: tr("Meine Bilder", "My images"),
         onBack = onBack
     ) {
-        Text(
-            tr("Bilder von sicheren Orten, Menschen und Momenten.", "Images of safe places, people and moments."),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         message?.let { text ->
             ClearCard(containerColor = ClearWarningSoft) {
                 Text(text, style = MaterialTheme.typography.bodyLarge)
@@ -74,7 +71,7 @@ fun ImagesScreen(
         }
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> EmptyHintCard()
+            list.isEmpty() -> EmptyHintCard(Icons.Outlined.Image)
             else -> list.forEach { image ->
                 ImageCard(
                     image = image,
@@ -87,14 +84,6 @@ fun ImagesScreen(
         AddButton(tr("Bild hinzufügen", "Add image")) {
             picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
-        Text(
-            tr(
-                "Das Bild wird in Clear gespeichert und bleibt nur auf deinem Handy.",
-                "The image is saved in Clear and stays only on your phone."
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 
     captionFor?.let { image ->

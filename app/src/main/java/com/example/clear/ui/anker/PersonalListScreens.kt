@@ -1,5 +1,8 @@
 package com.example.clear.ui.anker
 
+import com.example.clear.ui.components.ClearEmptyState
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,10 +39,7 @@ fun WarningSignsScreen(onBack: () -> Unit, viewModel: WarningSignsViewModel = vi
     TextListScreen(
         title = tr("Meine Warnzeichen", "My warning signs"),
         intro = "",
-        emptyText = tr(
-            "Hier ist noch nichts gespeichert. Du kannst jederzeit etwas hinzufügen.",
-            "Nothing saved here yet. You can add something at any time."
-        ),
+        emptyText = tr("Noch nichts eingetragen", "Nothing added yet"),
         addLabel = tr("Warnzeichen hinzufügen", "Add warning sign"),
         editTitle = tr("Warnzeichen", "Warning sign"),
         deleteTitle = tr("Warnzeichen löschen?", "Delete warning sign?"),
@@ -81,10 +81,9 @@ private fun TextListScreen(
 
         when {
             items == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            items.isEmpty() -> Text(
-                emptyText,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            items.isEmpty() -> ClearEmptyState(
+                icon = Icons.Outlined.EditNote,
+                title = emptyText
             )
             else -> items.forEach { item ->
                 ClearCard(onClick = { editing = item }) {

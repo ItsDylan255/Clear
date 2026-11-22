@@ -48,4 +48,24 @@ class CheckInWarningsViewModel(app: Application) : AndroidViewModel(app) {
         }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    /**
+     * Wie viele Tage in Folge eingecheckt wurde. Zaehlt ab heute; ist heute noch offen,
+     * ab gestern (die Serie ist dann noch nicht gerissen). 0 = keine laufende Serie.
+     */
+    val streakDays: StateFlow<Int> = dao.observeAll()
+        .map { entries ->
+            val zone = ZoneId.systemDefault()
+            val days = entries.map { Instant.ofEpochMilli(it.timestamp).atZone(zone).toLocalDate() }.toSet()
+            val today = LocalDate.now(zone)
+            var day = if (today in days) today else today.minusDays(1)
+            var count = 0
+            while (day in days) {
+                count++
+                day = day.minusDays(1)
+            }
+            count
+        }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 }

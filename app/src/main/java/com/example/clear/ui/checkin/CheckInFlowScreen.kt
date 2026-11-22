@@ -228,14 +228,6 @@ private fun EveningStepFields(viewModel: EveningEntryViewModel) {
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    Text(
-        tr(
-            "Alles ist freiwillig. Ein Stichwort reicht, auch winzige Dinge zählen.",
-            "Everything is optional. A keyword is enough, and even tiny things count."
-        ),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
     OutlinedTextField(
         value = draft.success,
         onValueChange = viewModel::onSuccessChange,

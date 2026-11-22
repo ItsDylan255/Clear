@@ -1,5 +1,7 @@
 package com.example.clear.ui.anker
 
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -52,17 +54,9 @@ fun LettersScreen(
         title = viewModel.emotionName?.let { tr("Briefe · $it", "Letters · $it") } ?: tr("Briefe an mich selbst", "Letters to myself"),
         onBack = onBack
     ) {
-        Text(
-            tr(
-                "Schreib dir Worte, wenn es dir gut geht. Lies sie, wenn du sie brauchst.",
-                "Write yourself words when you are doing well. Read them when you need them."
-            ),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> EmptyHintCard()
+            list.isEmpty() -> EmptyHintCard(Icons.Outlined.Email)
             else -> list.forEach { letter ->
                 ClearCard(onClick = { onOpen(letter.id) }) {
                     Text(letter.title, style = MaterialTheme.typography.titleMedium)

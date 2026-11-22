@@ -1,5 +1,7 @@
 package com.example.clear.ui.anker
 
+import androidx.compose.material.icons.outlined.FormatQuote
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,7 +61,7 @@ fun QuotesScreen(
         )
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> EmptyHintCard()
+            list.isEmpty() -> EmptyHintCard(Icons.Outlined.FormatQuote)
             else -> list.forEach { quote ->
                 ClearCard(onClick = { onEdit(quote.id) }) {
                     Row(

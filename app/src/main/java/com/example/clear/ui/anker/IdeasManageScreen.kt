@@ -1,5 +1,7 @@
 package com.example.clear.ui.anker
 
+import com.example.clear.ui.components.ClearEmptyState
+import androidx.compose.material.icons.outlined.SearchOff
 import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -118,10 +120,9 @@ fun IdeasManageScreen(
                     .map { category to it }
             }
             if (matches.isEmpty()) {
-                Text(
-                    tr("Dazu wurde nichts gefunden.", "Nothing found."),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ClearEmptyState(
+                    icon = Icons.Outlined.SearchOff,
+                    title = tr("Nichts gefunden", "Nothing found")
                 )
             }
             matches.forEach { (category, idea) ->

@@ -1,6 +1,8 @@
 package com.example.clear.ui.meditation
 
-import androidx.compose.foundation.BorderStroke
+import com.example.clear.ui.components.pressScale
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,43 +34,35 @@ import androidx.compose.ui.unit.sp
 import com.example.clear.model.Meditation
 import com.example.clear.model.Meditations
 import com.example.clear.tr
-import com.example.clear.ui.components.ClearFillScreen
-import com.example.clear.ui.theme.ClearCard as ClearCardColor
+import com.example.clear.ui.components.ClearScreen
 import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
 
-/**
- * Die zehn Meditationen als Raster (2 Spalten x 5 Reihen). Die Reihen fuellen die Hoehe bis
- * zur unteren Leiste, ohne zu scrollen. Auf kleinen Bildschirmen scrollt die Seite als Rueckfall.
- */
+/** Die Meditationen als Raster mit zwei Spalten. Kacheln haben eine feste Hoehe, die Seite scrollt. */
 @Composable
 fun MeditationScreen(onOpenMeditation: (Meditation) -> Unit) {
-    val rows = Meditations.all.chunked(2)
-    ClearFillScreen(
-        title = tr("Meditieren", "Meditate"),
-        weightSum = rows.size.toFloat(),
-        gaps = rows.size - 1,
-        itemSpacing = 10.dp,
-        fixedHeight = 0.dp,
-        minUnit = 84.dp
-    ) { unit ->
-        rows.forEach { pair ->
-            Row(
-                modifier = Modifier.fillMaxWidth().height(unit),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                pair.forEach { meditation ->
-                    MeditationTile(
-                        meditation = meditation,
-                        height = unit,
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    ) { onOpenMeditation(meditation) }
+    ClearScreen(title = tr("Meditieren", "Meditate")) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Meditations.all.chunked(2).forEach { pair ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(TILE_HEIGHT),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    pair.forEach { meditation ->
+                        MeditationTile(
+                            meditation = meditation,
+                            height = TILE_HEIGHT,
+                            modifier = Modifier.weight(1f).fillMaxHeight()
+                        ) { onOpenMeditation(meditation) }
+                    }
+                    if (pair.size < 2) Spacer(Modifier.weight(1f))
                 }
-                if (pair.size < 2) Spacer(Modifier.weight(1f))
             }
         }
     }
 }
+
+private val TILE_HEIGHT = 128.dp
 
 @Composable
 private fun MeditationTile(
@@ -78,13 +72,14 @@ private fun MeditationTile(
     onClick: () -> Unit
 ) {
     val iconCircle = (height * 0.42f).coerceIn(34.dp, 50.dp)
+    val interaction = remember { MutableInteractionSource() }
     Card(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.pressScale(interaction),
+        interactionSource = interaction,
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = ClearCardColor, contentColor = ClearTextDark),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = ClearTextDark),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(8.dp),

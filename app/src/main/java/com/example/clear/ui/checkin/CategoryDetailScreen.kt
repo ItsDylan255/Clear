@@ -1,5 +1,8 @@
 package com.example.clear.ui.checkin
 
+import com.example.clear.ui.components.ClearEmptyState
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -66,18 +69,10 @@ fun CategoryDetailScreen(
 
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> ClearCard {
-                Text(
-                    tr(
-                        "Hier gibt es noch keine Ideen. Du kannst sie im Anker-Tab unter " +
-                            "„Ideen verwalten“ hinzufügen.",
-                        "There are no ideas here yet. You can add them in the Anchor tab under " +
-                            "“Manage ideas”."
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            list.isEmpty() -> ClearEmptyState(
+                icon = Icons.Outlined.Lightbulb,
+                title = tr("Noch keine Ideen", "No ideas yet")
+            )
             else -> {
                 // Jede Idee zeigt den Text, der zum aktuellen Level passt
                 val current = info?.level.toIdeaLevel()
@@ -136,8 +131,8 @@ private fun IdeaCard(
             } else {
                 Text(
                     tr(
-                        "Für dieses Level fehlt noch ein Text. Du kannst ihn im Anker-Tab ergänzen.",
-                        "There is no text for this level yet. You can add it in the Anchor tab."
+                        "Für dieses Level fehlt noch ein Text.",
+                        "There is no text for this level yet."
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

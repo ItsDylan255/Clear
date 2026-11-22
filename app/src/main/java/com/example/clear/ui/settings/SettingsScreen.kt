@@ -31,19 +31,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.clear.tr
 import com.example.clear.ui.components.ClearCard
-import com.example.clear.ui.components.ClearScreen
+import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
 
 /** Einstellungen: Darstellung, Sprache, Erinnerungen, Nicht stoeren, Daten. */
 @Composable
 fun SettingsScreen(
+    onBack: () -> Unit,
     onOpenAppearance: () -> Unit,
     onOpenLanguage: () -> Unit,
     onOpenReminders: () -> Unit,
     onOpenFocus: () -> Unit,
     onOpenMyData: () -> Unit
 ) {
-    ClearScreen(title = tr("Einstellungen", "Settings")) {
+    ClearDetailScreen(title = tr("Einstellungen", "Settings"), onBack = onBack) {
         ClearCard {
             SettingsRow(Icons.Outlined.Palette, tr("Darstellung", "Appearance"), tr("Hell, Dunkel oder System", "Light, dark or system"), onOpenAppearance)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

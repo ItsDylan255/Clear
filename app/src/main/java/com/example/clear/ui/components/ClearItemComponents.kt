@@ -1,5 +1,7 @@
 package com.example.clear.ui.components
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -60,19 +62,13 @@ fun ConfirmDeleteDialog(
     )
 }
 
-/** Ruhiger Leer-Zustand. */
+/** Ruhiger Leer-Zustand fuer Anker-Listen (Zitate, Bilder, Musik, Briefe). */
 @Composable
-fun EmptyHintCard() {
-    ClearCard {
-        Text(
-            tr(
-                "Hier ist noch nichts gespeichert. Du kannst jederzeit etwas hinzufügen.",
-                "Nothing saved here yet. You can add something at any time."
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+fun EmptyHintCard(icon: ImageVector = Icons.Outlined.Inbox) {
+    ClearEmptyState(
+        icon = icon,
+        title = tr("Noch nichts hier", "Nothing here yet")
+    )
 }
 
 /** Grosser Button zum Hinzufuegen. */

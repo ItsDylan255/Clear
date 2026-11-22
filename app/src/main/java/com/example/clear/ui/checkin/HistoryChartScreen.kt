@@ -1,5 +1,7 @@
 package com.example.clear.ui.checkin
 
+import com.example.clear.ui.components.ClearEmptyState
+import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -90,16 +92,10 @@ fun HistoryChartScreen(onBack: () -> Unit, viewModel: HistoryChartViewModel = vi
             }
 
             if (d.points.isEmpty()) {
-                ClearCard {
-                    Text(
-                        tr(
-                            "Hier ist noch nichts gespeichert. Sobald du Werte einträgst, erscheint hier ihr Verlauf.",
-                            "Nothing saved here yet. As soon as you enter values, their history appears here."
-                        ),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                ClearEmptyState(
+                    icon = Icons.Outlined.Timeline,
+                    title = tr("Noch kein Verlauf", "No history yet")
+                )
             } else {
                 ClearCard {
                     HistoryChart(d, if (d.allowRange) rangeDays else 365)
@@ -126,13 +122,6 @@ fun HistoryChartScreen(onBack: () -> Unit, viewModel: HistoryChartViewModel = vi
                                 modifier = Modifier.width(36.dp)
                             )
                         }
-                    }
-                    if (d.points.size > 30) {
-                        Text(
-                            tr("Es werden die letzten 30 Werte aufgelistet.", "The last 30 values are listed."),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                 }
             }
@@ -288,14 +277,6 @@ private fun dayMonth(date: LocalDate): String =
 @Composable
 fun HistoryOverviewScreen(onBack: () -> Unit, onOpen: (kind: String) -> Unit) {
     ClearDetailScreen(title = tr("Verlauf", "History"), onBack = onBack) {
-        Text(
-            tr(
-                "Wähle einen Bereich oder einen Fragebogen, um den Verlauf als Diagramm zu sehen.",
-                "Choose an area or a questionnaire to see its history as a chart."
-            ),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         Text(tr("Bereiche", "Areas"), style = MaterialTheme.typography.titleMedium)
         CheckInCategory.entries.forEach { category ->
             OverviewRow(category.title) { onOpen(category.id) }

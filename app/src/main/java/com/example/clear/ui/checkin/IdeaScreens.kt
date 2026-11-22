@@ -88,8 +88,8 @@ fun IdeaDetailScreen(
                     Text(
                         if (text.isNotBlank()) text
                         else tr(
-                            "Für dieses Level fehlt noch ein Text. Du kannst ihn im Anker-Tab ergänzen.",
-                            "There is no text for this level yet. You can add it in the Anchor tab."
+                            "Für dieses Level fehlt noch ein Text.",
+                            "There is no text for this level yet."
                         ),
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -137,13 +137,6 @@ fun IdeaDetailScreen(
                             "Diese Idee läuft gerade.",
                             "This idea is running right now."
                         ), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            tr(
-                                "Du siehst sie auch in der Benachrichtigungsleiste und kannst sie dort beenden.",
-                                "You can also see it in the notification bar and end it there."
-                            ),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
                     }
                     Button(
                         onClick = { onEnd(idea.id) },

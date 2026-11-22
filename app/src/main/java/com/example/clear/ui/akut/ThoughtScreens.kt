@@ -1,5 +1,7 @@
 package com.example.clear.ui.akut
 
+import com.example.clear.ui.components.ClearEmptyState
+import androidx.compose.material.icons.outlined.Psychology
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -83,13 +85,9 @@ fun ThoughtListScreen(
         AddButton(tr("Neues Protokoll", "New record"), onNew)
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> Text(
-                tr(
-                    "Hier ist noch nichts gespeichert. Du kannst jederzeit ein Protokoll anlegen.",
-                    "Nothing saved here yet. You can create a record at any time."
-                ),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            list.isEmpty() -> ClearEmptyState(
+                icon = Icons.Outlined.Psychology,
+                title = tr("Noch keine Protokolle", "No records yet")
             )
             else -> list.forEach { record ->
                 ClearCard(onClick = { onOpen(record.id) }) {
@@ -312,14 +310,6 @@ fun ThoughtFlowScreen(
                             "Welche Denkfalle steckt drin?",
                             "Which thinking trap is in it?"
                         ), style = MaterialTheme.typography.headlineSmall)
-                        Text(
-                            tr(
-                                "Tippe an, was passt. Mehrere sind möglich, und du kannst auch nichts wählen.",
-                                "Tap what fits. You can choose several, or none at all."
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                         ThinkingTrap.entries.forEach { trap ->
                             val selected = trap in s.traps
                             ClearCard(
@@ -346,11 +336,6 @@ fun ThoughtFlowScreen(
                     }
                     4 -> {
                         Text(tr("Neue Sichtweise", "New perspective"), style = MaterialTheme.typography.headlineSmall)
-                        Text(
-                            tr("Such dir eine Frage aus und beantworte sie.", "Pick a question and answer it."),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                         HelpQuestions.all.forEachIndexed { index, question ->
                             val selected = s.helpQuestion == index
                             ClearCard(

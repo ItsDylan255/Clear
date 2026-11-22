@@ -1,5 +1,8 @@
 package com.example.clear.ui.anker
 
+import com.example.clear.ui.components.ClearEmptyState
+import androidx.compose.material.icons.outlined.WbSunny
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -79,15 +82,17 @@ fun EveningArchiveScreen(
         )
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> Text(
-                if (query.isNotBlank()) tr("Dazu wurde nichts gefunden.", "Nothing found.")
-                else tr(
-                    "Hier ist noch nichts gespeichert. Einträge entstehen am Ende deines Check-ins.",
-                    "Nothing saved here yet. Entries are created at the end of your check-in."
-                ),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            list.isEmpty() -> if (query.isNotBlank()) {
+                ClearEmptyState(
+                    icon = Icons.Outlined.SearchOff,
+                    title = tr("Nichts gefunden", "Nothing found")
+                )
+            } else {
+                ClearEmptyState(
+                    icon = Icons.Outlined.WbSunny,
+                    title = tr("Noch keine Einträge", "No entries yet")
+                )
+            }
             else -> list.groupBy { it.day }.forEach { (day, dayEntries) ->
                 Text(dayLabel(day), style = MaterialTheme.typography.titleMedium)
                 dayEntries.forEach { entry ->
@@ -138,14 +143,6 @@ fun EveningEntryScreen(onClose: () -> Unit, viewModel: EveningEntryViewModel = v
     val draft by viewModel.draft.collectAsState()
     Box(modifier = Modifier.imePadding()) {
         ClearDetailScreen(title = tr("Heute", "Today"), onBack = onClose) {
-            Text(
-                tr(
-                    "Alles ist freiwillig. Ein Stichwort reicht, auch winzige Dinge zählen.",
-                    "Everything is optional. A keyword is enough, and even tiny things count."
-                ),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
             OutlinedTextField(
                 value = draft.success,
                 onValueChange = viewModel::onSuccessChange,

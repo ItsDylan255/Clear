@@ -113,8 +113,8 @@ fun EmotionAnkerScreen(
                 if (content.isEmpty) {
                     Text(
                         tr(
-                            "Hier ist noch nichts gespeichert. Du kannst Inhalte unter Mein Anker hinzufügen.",
-                            "Nothing saved here yet. You can add content under My Anchor."
+                            "Hier ist noch nichts gespeichert.",
+                            "Nothing saved here yet."
                         ),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

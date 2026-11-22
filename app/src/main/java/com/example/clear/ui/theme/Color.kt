@@ -5,13 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 
-// ---------- Helles Design: kuehles Weiss, sanftes Blau, ruhiges Grau ----------
-val LightBackground = Color(0xFFF5F7FA)      // kuehles Off-White
-val LightPrimary = Color(0xFF3F6C9A)         // gedecktes Blau (Kontrast zu Weiss 5,5:1)
-val LightTextDark = Color(0xFF1F2A37)        // weiches Blau-Schwarz
-val LightTextSecondary = Color(0xFF566270)   // mittleres Blau-Grau
+// ---------- Helles Design: warmes Off-White, tiefes Schieferblau, ruhiges Grau ----------
+val LightBackground = Color(0xFFF6F4F0)      // warmes Off-White
+val LightPrimary = Color(0xFF35506A)         // Schieferblau (Kontrast zu Weiss ca. 8:1)
+val LightTextDark = Color(0xFF1F2328)        // weiches Fast-Schwarz
+val LightTextSecondary = Color(0xFF5F5B55)   // warmes Grau
 val LightCard = Color(0xFFFFFFFF)            // Karten
-val LightSurfaceSoft = Color(0xFFE8EEF4)     // helle blaugraue Flaeche
+val LightSurfaceSoft = Color(0xFFECE8E1)     // helle warme Flaeche
 val LightWarning = Color(0xFFBE6B5C)         // gedaempftes Terrakotta
 val LightError = Color(0xFFB3574B)
 
@@ -20,13 +20,13 @@ val LightLevelLow = Color(0xFFF4DAD6)
 val LightLevelMedium = Color(0xFFF1E6CF)
 val LightLevelHigh = Color(0xFFDDEBE4)
 
-// ---------- Dunkles Design: tiefes Blaugrau, nie reines Schwarz ----------
-val DarkBackground = Color(0xFF12171C)
-val DarkPrimary = Color(0xFF8FB5DD)
-val DarkTextDark = Color(0xFFE6EBF0)
-val DarkTextSecondary = Color(0xFFA7B2BE)
-val DarkCard = Color(0xFF1B2229)
-val DarkSurfaceSoft = Color(0xFF26303A)
+// ---------- Dunkles Design (Standard am Abend): warmes Fast-Schwarz, helle Akzente ----------
+val DarkBackground = Color(0xFF141517)
+val DarkPrimary = Color(0xFFF2EFE9)          // helles Off-White fuer die Haupttaste ("Pill auf dunkel")
+val DarkTextDark = Color(0xFFECE9E3)
+val DarkTextSecondary = Color(0xFFA9A59D)
+val DarkCard = Color(0xFF1E2023)
+val DarkSurfaceSoft = Color(0xFF282B2F)
 val DarkWarning = Color(0xFFE2A092)
 val DarkError = Color(0xFFE58F85)
 
@@ -61,3 +61,4 @@ val ClearNoticeSoft: Color @Composable get() = ClearLevelLow
 val ClearLevelLowAccent: Color @Composable get() = if (isClearDark()) Color(0xFFE59A8C) else Color(0xFFB0594B)
 val ClearLevelMediumAccent: Color @Composable get() = if (isClearDark()) Color(0xFFE0B55E) else Color(0xFF9A6C0E)
 val ClearLevelHighAccent: Color @Composable get() = if (isClearDark()) Color(0xFF7DBF9B) else Color(0xFF3F7D5E)
+

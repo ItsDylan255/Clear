@@ -45,7 +45,7 @@ object DataWiper {
         AppLanguage.reset(app)
         DoNotDisturb.setEnabled(app, false)
         // "clear_active_exercise" und "clear_defaults" gibt es nur noch bei Installationen aelterer Versionen
-        listOf("clear_active_ideas", "clear_active_exercise", "clear_defaults").forEach { name ->
+        listOf("clear_active_ideas", "clear_active_exercise", "clear_defaults", "clear_player").forEach { name ->
             app.getSharedPreferences(name, Context.MODE_PRIVATE).edit().clear().apply()
         }
 

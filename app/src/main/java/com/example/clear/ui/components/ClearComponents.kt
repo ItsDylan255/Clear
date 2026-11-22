@@ -1,14 +1,22 @@
 package com.example.clear.ui.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,114 +32,126 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.example.clear.tr
 import com.example.clear.ui.theme.ClearSpacing
 
-/** Grundlayout jeder Hauptseite: Titel, optionaler Einfuehrungstext, scrollbarer Inhalt. */
+/**
+ * Grundlayout jeder Hauptseite: Titel, optional eine kleine Zeile darunter (`subtitle`),
+ * optionaler Einfuehrungstext und scrollbarer Inhalt.
+ * Mit `bottomBar` bleibt ein Bereich fest am unteren Rand stehen, der Inhalt scrollt darueber.
+ */
 @Composable
 fun ClearScreen(
     title: String,
     intro: String? = null,
+    subtitle: String? = null,
+    actions: @Composable RowScope.() -> Unit = {},
+    bottomBar: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium),
-        verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
-    ) {
-        Text(title, style = MaterialTheme.typography.headlineMedium)
-        if (intro != null) {
-            Text(
-                intro,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        content()
-    }
-}
-
-/**
- * Wie ClearScreen, aber die Eintraege fuellen die Hoehe bis zur unteren Leiste.
- * Jeder Eintrag bekommt `unit` mal sein Gewicht an Hoehe. Passt das nicht auf den
- * Bildschirm (kleines Handy, grosse Schrift), scrollt die Seite als Rueckfall.
- *
- * @param weightSum Summe der Gewichte aller Eintraege (ein Eintrag mit Hoehe `unit` zaehlt 1)
- * @param gaps Anzahl der Abstaende zwischen den Eintraegen
- * @param fixedHeight Hoehe von Inhalten, die nicht mitwachsen (z. B. Zwischenueberschriften)
- * @param minUnit kleinste erlaubte Hoehe pro Gewichtseinheit
- */
-@Composable
-fun ClearFillScreen(
-    title: String,
-    weightSum: Float,
-    gaps: Int,
-    itemSpacing: Dp,
-    fixedHeight: Dp,
-    minUnit: Dp,
-    content: @Composable ColumnScope.(unit: Dp) -> Unit
-) {
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val titleHeight = with(LocalDensity.current) {
-            MaterialTheme.typography.headlineMedium.lineHeight.toDp()
-        }
-        // Oben und unten je ein Seitenrand, dazu Titel und der Abstand unter dem Titel
-        val available = maxHeight - ClearSpacing.medium * 2 - titleHeight - ClearSpacing.medium
-        val unit = ((available - fixedHeight - itemSpacing * gaps) / weightSum)
-            .coerceAtLeast(minUnit)
+    Column(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .weight(1f)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium),
             verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
         ) {
-            Text(title, style = MaterialTheme.typography.headlineMedium)
-            Column(verticalArrangement = Arrangement.spacedBy(itemSpacing)) {
-                content(unit)
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
+                    actions()
+                }
+                if (subtitle != null) {
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
+            if (intro != null) {
+                Text(
+                    intro,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            content()
+        }
+        if (bottomBar != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = ClearSpacing.large)
+                    .padding(top = ClearSpacing.small, bottom = ClearSpacing.medium)
+            ) { bottomBar() }
         }
     }
 }
 
-/** Layout fuer Detailseiten mit Zurueck-Pfeil. */
+/**
+ * Layout fuer Detailseiten: grosse Titelleiste mit Zurueck-Pfeil. Beim Scrollen klappt der
+ * grosse Titel in die Leiste ein, so sieht man immer, wo man ist.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClearDetailScreen(
     title: String,
     onBack: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück", "Back"))
-            }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val background = MaterialTheme.colorScheme.background
+    Scaffold(
+        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            LargeTopAppBar(
+                title = {
+                    // Aufgeklappt darf ein langer Titel zwei Zeilen haben, eingeklappt nur eine
+                    Text(
+                        title,
+                        maxLines = if (scrollBehavior.state.collapsedFraction < 0.5f) 2 else 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Zurück", "Back"))
+                    }
+                },
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = background,
+                    scrolledContainerColor = background
+                ),
+                scrollBehavior = scrollBehavior
+            )
         }
+    ) { padding ->
         Column(
             modifier = Modifier
-                .weight(1f)
+                .padding(padding)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.small),
-            verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
-        ) {
-            Text(title, style = MaterialTheme.typography.headlineMedium)
-            content()
-        }
+                .padding(horizontal = ClearSpacing.large)
+                .padding(top = ClearSpacing.small, bottom = ClearSpacing.large),
+            verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium),
+            content = content
+        )
     }
 }
 
 /**
- * Runde Karte ohne Schatten. Mit `onClick` wird sie antippbar. Ohne eigene Farbe hat sie die
- * Kartenfarbe und einen feinen Rand. Mit eigener Farbe (zum Beispiel ein Level) entfaellt der Rand.
+ * Runde Karte ohne Schatten und ohne Rand, nur als ruhige Farbflaeche. Mit `onClick` wird sie
+ * antippbar. Ohne eigene Farbe hat sie die Kartenfarbe.
  */
 @Composable
 fun ClearCard(
@@ -144,9 +164,6 @@ fun ClearCard(
         containerColor = containerColor ?: MaterialTheme.colorScheme.surface
     )
     val elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    val border = if (containerColor == null) {
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-    } else null
     val inner: @Composable ColumnScope.() -> Unit = {
         Column(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = ClearSpacing.medium),
@@ -155,13 +172,14 @@ fun ClearCard(
         )
     }
     if (onClick != null) {
+        val interaction = remember { MutableInteractionSource() }
         Card(
             onClick = onClick,
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth().pressScale(interaction),
+            interactionSource = interaction,
             shape = MaterialTheme.shapes.medium,
             colors = colors,
             elevation = elevation,
-            border = border,
             content = inner
         )
     } else {
@@ -170,44 +188,7 @@ fun ClearCard(
             shape = MaterialTheme.shapes.medium,
             colors = colors,
             elevation = elevation,
-            border = border,
             content = inner
         )
-    }
-}
-
-/**
- * Seite, auf der alle Eintraege garantiert ohne Scrollen auf den Bildschirm passen. Jeder Eintrag
- * bekommt mit `Modifier.weight(...)` seinen Anteil der freien Hoehe. `unit` ist die Hoehe, die ein
- * Eintrag mit Gewicht 1 bekommt. Die Eintraege entscheiden selbst, ob sie bei wenig Platz
- * kompakter sind.
- *
- * @param weightSum Summe aller Gewichte
- * @param gaps Anzahl der Abstaende zwischen den Eintraegen
- */
-@Composable
-fun ClearFitScreen(
-    title: String,
-    weightSum: Float,
-    gaps: Int,
-    gap: Dp = 8.dp,
-    content: @Composable ColumnScope.(unit: Dp) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium)
-    ) {
-        Text(title, style = MaterialTheme.typography.headlineMedium)
-        androidx.compose.foundation.layout.Spacer(Modifier.height(ClearSpacing.medium))
-        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            val unit = (maxHeight - gap * gaps) / weightSum
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(gap)
-            ) {
-                content(unit)
-            }
-        }
     }
 }

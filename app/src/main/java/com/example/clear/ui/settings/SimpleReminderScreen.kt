@@ -47,10 +47,9 @@ fun MeditationReminderScreen(
 ) = SimpleReminderScreen(
     title = tr("Meditations-Erinnerung", "Meditation reminder"),
     intro = tr(
-        "Auf Wunsch erinnert Clear dich zur gewählten Zeit ans Meditieren. ",
-        "If you like, Clear reminds you to meditate at the time you choose. "
-    ) +
-            tr("Du kannst das jederzeit ausschalten.", "You can turn this off at any time."),
+        "Auf Wunsch erinnert Clear dich zur gewählten Zeit ans Meditieren.",
+        "If you like, Clear reminds you to meditate at the time you choose."
+    ),
     viewModel = viewModel,
     onBack = onBack
 )
