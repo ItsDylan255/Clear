@@ -278,13 +278,19 @@ private fun dayMonth(date: LocalDate): String =
 fun HistoryOverviewScreen(
     onBack: () -> Unit,
     onOpenWeeklyReview: () -> Unit,
+    onOpenCorrelations: () -> Unit,
     onOpen: (kind: String) -> Unit,
-    weeklyViewModel: WeeklyReviewViewModel = viewModel()
+    weeklyViewModel: WeeklyReviewViewModel = viewModel(),
+    correlationsViewModel: CorrelationsViewModel = viewModel()
 ) {
     val weekly by weeklyViewModel.data.collectAsState()
+    val correlationsAvailable by correlationsViewModel.available.collectAsState()
     ClearDetailScreen(title = tr("Verlauf", "History"), onBack = onBack) {
         if (weekly?.review != null) {
             OverviewRow(tr("Wochenrückblick", "Weekly review"), onOpenWeeklyReview)
+        }
+        if (correlationsAvailable) {
+            OverviewRow(tr("Zusammenhänge", "Connections"), onOpenCorrelations)
         }
         ThenAndNowCard()
         Text(tr("Bereiche", "Areas"), style = MaterialTheme.typography.titleMedium)

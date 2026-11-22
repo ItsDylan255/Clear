@@ -1,5 +1,6 @@
 package com.example.clear.navigation
 
+import com.example.clear.ui.checkin.CorrelationsScreen
 import com.example.clear.ui.settings.WeeklyReviewReminderScreen
 import com.example.clear.ui.checkin.WeeklyReviewDaysScreen
 import com.example.clear.ui.checkin.WeeklyReviewScreen
@@ -129,6 +130,7 @@ private val ankerView = AnkerViewRoutes("anker_ansicht")
 private const val CHECKIN_HISTORY = "checkin_verlauf"
 private const val WEEKLY_REVIEW = "wochenrueckblick"
 private const val WEEKLY_REVIEW_DAYS = "wochenrueckblick_tage"
+private const val CORRELATIONS = "zusammenhaenge"
 private const val CHECKIN_HISTORY_CHART = "checkin_verlauf_diagramm/{kind}"
 private fun historyChartRoute(kind: String) = "checkin_verlauf_diagramm/$kind"
 // Monatlicher Fragebogen (PHQ-9) im Check-in-Bereich
@@ -392,6 +394,9 @@ fun ClearApp() {
                         onOpenDays = { navController.navigate(WEEKLY_REVIEW_DAYS) }
                     )
                 }
+                composable(CORRELATIONS) {
+                    CorrelationsScreen(onBack = { navController.popBackStack() })
+                }
                 composable(WEEKLY_REVIEW_DAYS) {
                     WeeklyReviewDaysScreen(onBack = { navController.popBackStack() })
                 }
@@ -399,6 +404,7 @@ fun ClearApp() {
                     HistoryOverviewScreen(
                         onBack = { navController.popBackStack() },
                         onOpenWeeklyReview = { navController.navigate(WEEKLY_REVIEW) },
+                        onOpenCorrelations = { navController.navigate(CORRELATIONS) },
                         onOpen = { kind -> navController.navigate(historyChartRoute(kind)) }
                     )
                 }
