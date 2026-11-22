@@ -2,19 +2,19 @@ package com.example.clear.model
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatteryChargingFull
-import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material.icons.outlined.SentimentSatisfied
+import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.clear.AppLanguage
 
 /**
- * Die acht Check-in-Bereiche. Die `id` ist stabil und wird in der Datenbank verwendet.
- * Reihenfolge = Reihenfolge im Check-in. Hoher Wert bedeutet immer: gut.
+ * Die acht Check-in-Kategorien (Teil 1 "Wie geht es mir?"). Die `id` ist stabil und wird in der
+ * Datenbank verwendet. Reihenfolge = Reihenfolge im Check-in. Skala 1 bis 10, 10 ist immer gut.
  */
 enum class CheckInCategory(
     val id: String,
@@ -22,77 +22,58 @@ enum class CheckInCategory(
     private val en: Texts,
     val icon: ImageVector
 ) {
+    Mood(
+        "mood",
+        Texts("Stimmung", "Wie war deine Stimmung heute?", "niedergeschlagen, hoffnungslos", "gut, zuversichtlich"),
+        Texts("Mood", "How was your mood today?", "down, hopeless", "good, hopeful"),
+        Icons.Outlined.Favorite
+    ),
+    Joy(
+        "joy",
+        Texts("Freude", "Wie viel Freude oder Interesse hast du heute gespürt?", "gar keine", "sehr viel"),
+        Texts("Joy", "How much joy or interest did you feel today?", "none at all", "a lot"),
+        Icons.Outlined.WbSunny
+    ),
     Energy(
         "energy",
-        Texts("Energie", "Energie und Müdigkeit", "Wie viel Energie hast du?", "keine Energie", "viel Energie"),
-        Texts("Energy", "Energy and tiredness", "How much energy do you have?", "no energy", "lots of energy"),
+        Texts("Energie", "Wie viel Energie und Antrieb hattest du heute?", "komme kaum hoch", "voller Tatendrang"),
+        Texts("Energy", "How much energy and drive did you have today?", "can barely get up", "full of drive"),
         Icons.Outlined.BatteryChargingFull
     ),
     Clarity(
         "clarity",
-        Texts(
-            "Klarheit", "Konzentration und Gedächtnis",
-            "Wie klar kannst du denken, dich konzentrieren und erinnern?", "sehr vernebelt", "sehr klar"
-        ),
-        Texts(
-            "Clarity", "Concentration and memory",
-            "How clearly can you think, concentrate and remember?", "very foggy", "very clear"
-        ),
+        Texts("Klarheit", "Wie gut konntest du dich heute konzentrieren?", "sehr vernebelt", "sehr klar"),
+        Texts("Clarity", "How well could you concentrate today?", "very foggy", "very clear"),
         Icons.Outlined.Visibility
-    ),
-    Recovery(
-        "recovery",
-        Texts("Erholung", "Schlaf und Erholung", "Wie erholt fühlst du dich?", "gar nicht erholt", "sehr erholt"),
-        Texts("Recovery", "Sleep and recovery", "How rested do you feel?", "not rested at all", "very rested"),
-        Icons.Outlined.Bedtime
-    ),
-    Joy(
-        "joy",
-        Texts("Freude", "Freude und Antrieb", "Wie viel Freude und Interesse erlebst du?", "gar keine", "sehr viel"),
-        Texts("Joy", "Joy and drive", "How much joy and interest do you feel?", "none at all", "a lot"),
-        Icons.Outlined.WbSunny
-    ),
-    Mood(
-        "mood",
-        Texts("Stimmung", "Stimmung und Hoffnung", "Wie ist deine Stimmung?", "sehr niedergeschlagen", "sehr gut"),
-        Texts("Mood", "Mood and hope", "How is your mood?", "very low", "very good"),
-        Icons.Outlined.Favorite
     ),
     Thoughts(
         "thoughts",
-        Texts(
-            "Gedanken", "Gedankenmuster und Grübeln",
-            "Wie ruhig und freundlich sind deine Gedanken?", "sehr belastend", "sehr ruhig"
-        ),
-        Texts(
-            "Thoughts", "Thought patterns and rumination",
-            "How calm and kind are your thoughts?", "very distressing", "very calm"
-        ),
+        Texts("Gedanken", "Wie bist du heute in Gedanken mit dir umgegangen?", "Grübeln, hart zu mir", "ruhig und freundlich"),
+        Texts("Thoughts", "How did you treat yourself in your thoughts today?", "brooding, hard on myself", "calm and kind"),
         Icons.Outlined.Psychology
     ),
     Connection(
         "connection",
-        Texts(
-            "Verbundenheit", "Kontakt zu anderen Menschen",
-            "Wie verbunden fühlst du dich mit anderen Menschen?", "sehr getrennt", "sehr verbunden"
-        ),
-        Texts(
-            "Connection", "Contact with other people",
-            "How connected do you feel to other people?", "very disconnected", "very connected"
-        ),
+        Texts("Verbundenheit", "Wie verbunden hast du dich heute mit anderen gefühlt?", "völlig allein", "sehr verbunden"),
+        Texts("Connection", "How connected did you feel to others today?", "completely alone", "very connected"),
         Icons.Outlined.People
     ),
-    Structure(
-        "structure",
-        Texts("Struktur", "Tagesstruktur", "Wie gut gelingt dir deine Tagesstruktur?", "gar nicht", "sehr gut"),
-        Texts("Structure", "Daily structure", "How well are you managing your daily structure?", "not at all", "very good"),
-        Icons.Outlined.Home
+    Calm(
+        "calm",
+        Texts("Gelassenheit", "Wie ruhig warst du heute innerlich?", "stark angespannt", "ganz gelassen"),
+        Texts("Calm", "How calm were you inside today?", "very tense", "completely calm"),
+        Icons.Outlined.Spa
+    ),
+    Satisfaction(
+        "satisfaction",
+        Texts("Zufriedenheit", "Wie zufrieden warst du heute mit dir?", "sehr unzufrieden", "sehr zufrieden"),
+        Texts("Satisfaction", "How satisfied were you with yourself today?", "very dissatisfied", "very satisfied"),
+        Icons.Outlined.SentimentSatisfied
     );
 
-    /** Die Texte eines Bereichs in einer Sprache. */
+    /** Die Texte einer Kategorie in einer Sprache. */
     class Texts(
         val title: String,
-        val description: String,
         val question: String,
         val lowLabel: String,
         val highLabel: String
@@ -100,8 +81,9 @@ enum class CheckInCategory(
 
     private val texts: Texts get() = if (AppLanguage.isEnglish) en else de
     val title: String get() = texts.title
-    val description: String get() = texts.description
     val question: String get() = texts.question
+    /** Kurzbeschreibung unter dem Titel (Bereichsseite): die Frage der Kategorie. */
+    val description: String get() = texts.question
     val lowLabel: String get() = texts.lowLabel
     val highLabel: String get() = texts.highLabel
 

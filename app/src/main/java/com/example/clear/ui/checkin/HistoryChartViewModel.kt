@@ -93,15 +93,5 @@ class HistoryChartViewModel(app: Application, handle: SavedStateHandle) : Androi
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private fun valueOf(entry: CheckInEntry, category: CheckInCategory?): Int? = when (category) {
-        CheckInCategory.Energy -> entry.energy
-        CheckInCategory.Clarity -> entry.clarity
-        CheckInCategory.Recovery -> entry.recovery
-        CheckInCategory.Joy -> entry.joy
-        CheckInCategory.Mood -> entry.mood
-        CheckInCategory.Thoughts -> entry.thoughts
-        CheckInCategory.Connection -> entry.connection
-        CheckInCategory.Structure -> entry.structure
-        null -> null
-    }
+    private fun valueOf(entry: CheckInEntry, category: CheckInCategory?): Int? = category?.let { entry.rating(it) }
 }

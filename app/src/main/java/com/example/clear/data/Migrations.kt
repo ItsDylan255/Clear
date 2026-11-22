@@ -225,3 +225,21 @@ val MIGRATION_18_19 = object : Migration(18, 19) {
         )
     }
 }
+
+/**
+ * Version 19 -> 20: Neuer Check-in mit acht neuen Kategorien und Faktenteil, eigene Extras-Chips.
+ * Neuanfang: Die alten Check-ins werden geloescht (keine Uebernahme), ebenso die Ideen der
+ * weggefallenen Bereiche "Erholung" und "Struktur".
+ */
+val MIGRATION_19_20 = object : Migration(19, 20) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `check_ins`")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `check_ins` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `mood` INTEGER, `joy` INTEGER, `energy` INTEGER, `clarity` INTEGER, `thoughts` INTEGER, `connection` INTEGER, `calm` INTEGER, `satisfaction` INTEGER, `sleep` TEXT, `alcohol` TEXT, `movement` TEXT, `routine` TEXT, `contact` TEXT, `rest` TEXT, `dayTypes` TEXT NOT NULL, `extraChipIds` TEXT NOT NULL)"
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `extra_chips` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `active` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL)"
+        )
+        db.execSQL("DELETE FROM `personal_ideas` WHERE `categoryId` IN ('recovery', 'structure')")
+    }
+}

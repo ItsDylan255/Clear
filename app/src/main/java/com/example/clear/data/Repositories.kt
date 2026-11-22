@@ -1,6 +1,8 @@
 package com.example.clear.data
 
 import com.example.clear.model.CheckInCategory
+import com.example.clear.model.CheckInFact
+import com.example.clear.model.DayType
 import kotlinx.coroutines.flow.Flow
 
 class PersonalIdeaRepository(private val dao: PersonalIdeaDao) {
@@ -12,20 +14,31 @@ class PersonalIdeaRepository(private val dao: PersonalIdeaDao) {
 }
 
 class CheckInRepository(private val dao: CheckInDao) {
-    /** Speichert einen Check-in. Ohne eine einzige Antwort wird nichts gespeichert. */
-    suspend fun save(answers: Map<CheckInCategory, Int>) {
-        if (answers.isEmpty()) return
+    /**
+     * Speichert einen Check-in mit Datum und Uhrzeit (jetzt). Ohne eine einzige Antwort in
+     * Teil 1 oder Teil 2 wird nichts gespeichert.
+     */
+    suspend fun save(answers: Map<CheckInCategory, Int>, facts: CheckInFactAnswers = CheckInFactAnswers()) {
+        if (answers.isEmpty() && facts.isEmpty) return
         dao.insert(
             CheckInEntry(
                 timestamp = System.currentTimeMillis(),
+                mood = answers[CheckInCategory.Mood],
+                joy = answers[CheckInCategory.Joy],
                 energy = answers[CheckInCategory.Energy],
                 clarity = answers[CheckInCategory.Clarity],
-                recovery = answers[CheckInCategory.Recovery],
-                joy = answers[CheckInCategory.Joy],
-                mood = answers[CheckInCategory.Mood],
                 thoughts = answers[CheckInCategory.Thoughts],
                 connection = answers[CheckInCategory.Connection],
-                structure = answers[CheckInCategory.Structure]
+                calm = answers[CheckInCategory.Calm],
+                satisfaction = answers[CheckInCategory.Satisfaction],
+                sleep = facts.levels[CheckInFact.Sleep],
+                alcohol = facts.levels[CheckInFact.Alcohol],
+                movement = facts.levels[CheckInFact.Movement],
+                routine = facts.levels[CheckInFact.Routine],
+                contact = facts.levels[CheckInFact.Contact],
+                rest = facts.levels[CheckInFact.Rest],
+                dayTypes = DayType.entries.filter { it in facts.dayTypes }.joinToString(",") { it.id },
+                extraChipIds = facts.extraChipIds.sorted().joinToString(",")
             )
         )
     }

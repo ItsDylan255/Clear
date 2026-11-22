@@ -20,7 +20,7 @@ data class IdeaEditorState(
     val isLoading: Boolean = true,
     val isNew: Boolean = true,
     val title: String = "",
-    val category: CheckInCategory = CheckInCategory.Energy,
+    val category: CheckInCategory = CheckInCategory.entries.first(),
     val contentType: ContentType = ContentType.Exercise,
     // Je ein Text fuer Normal, Sinkend und Stark beeintraechtigt. Alle drei sind Pflicht.
     val textNormal: String = "",
@@ -50,7 +50,7 @@ class IdeaEditorViewModel(
             isLoading = ideaId != -1L,
             isNew = ideaId == -1L,
             category = CheckInCategory.fromId(savedStateHandle.get<String>("categoryId"))
-                ?: CheckInCategory.Energy
+                ?: CheckInCategory.entries.first()
         )
     )
     val state: StateFlow<IdeaEditorState> = _state.asStateFlow()
@@ -66,7 +66,7 @@ class IdeaEditorViewModel(
                             isLoading = false,
                             title = idea.title,
                             category = CheckInCategory.fromId(idea.categoryId)
-                                ?: CheckInCategory.Energy,
+                                ?: CheckInCategory.entries.first(),
                             contentType = idea.contentType,
                             textNormal = idea.textNormal,
                             textSinking = idea.textSinking,

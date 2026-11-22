@@ -64,16 +64,7 @@ class CheckInHistoryViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun valueOf(entry: CheckInEntry, category: CheckInCategory): Int? = when (category) {
-        CheckInCategory.Energy -> entry.energy
-        CheckInCategory.Clarity -> entry.clarity
-        CheckInCategory.Recovery -> entry.recovery
-        CheckInCategory.Joy -> entry.joy
-        CheckInCategory.Mood -> entry.mood
-        CheckInCategory.Thoughts -> entry.thoughts
-        CheckInCategory.Connection -> entry.connection
-        CheckInCategory.Structure -> entry.structure
-    }
+    private fun valueOf(entry: CheckInEntry, category: CheckInCategory): Int? = entry.rating(category)
 
     /** Vergleicht den Durchschnitt der ersten Haelfte mit dem der zweiten Haelfte. */
     private fun trendOf(values: List<Int>): Trend {
