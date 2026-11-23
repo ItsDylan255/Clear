@@ -69,23 +69,6 @@ fun WsasHubScreen(
     val latest = list?.firstOrNull()
 
     ClearDetailScreen(title = "WSAS", onBack = onBack) {
-        ClearCard(containerColor = ClearSurfaceSoft) {
-            Text(
-                if (available || latest == null)
-                    tr(
-                        "Die WSAS ist bereit. Sie hat fünf Fragen dazu, wie stark deine Probleme dich im Alltag beeinträchtigen.",
-                        "The WSAS is ready. It has five questions about how much your problems affect your daily life."
-                    )
-                else tr("Du hast die WSAS vor Kurzem ausgefüllt. ", "You filled in the WSAS recently. ") +
-                    tr(
-                        "Die nächste ist frühestens am ${nextAvailableLabel(latest.createdAt)} möglich " +
-                            "(mindestens zwei Wochen Abstand).",
-                        "The next one is available on ${nextAvailableLabel(latest.createdAt)} at the earliest " +
-                            "(at least two weeks apart)."
-                    ),
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
         Button(
             onClick = onStart,
             enabled = available,
@@ -253,30 +236,9 @@ private fun WsasResultContent(summary: WsasSummary, onDone: () -> Unit) {
             ), style = MaterialTheme.typography.headlineMedium)
             Text(summary.band, style = MaterialTheme.typography.titleMedium)
         }
-        Text(
-            tr(
-                "Ein niedrigerer Wert bedeutet weniger Beeinträchtigung. Das ist eine Momentaufnahme und " +
-                    "keine Diagnose. Bei Fragen oder wenn es dir schlecht geht, sprich gern mit einer " +
-                    "vertrauten Person oder einer Fachperson.",
-                "A lower score means less impairment. This is a snapshot and " +
-                    "not a diagnosis. If you have questions or are not doing well, feel free to talk to " +
-                    "someone you trust or a professional."
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
 
         val changes = summary.changes
-        if (changes == null) {
-            Text(
-                tr(
-                    "Das war deine erste WSAS. Beim nächsten Mal siehst du hier, was sich verändert hat.",
-                    "This was your first WSAS. Next time you'll see here what has changed."
-                ),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
+        if (changes != null) {
             Text(tr("Seit dem letzten Mal", "Since last time"), style = MaterialTheme.typography.titleMedium)
             ClearCard {
                 changes.forEach { change ->

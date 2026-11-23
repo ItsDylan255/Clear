@@ -104,6 +104,7 @@ fun ClearScreen(
 fun ClearDetailScreen(
     title: String,
     onBack: () -> Unit,
+    bottomBar: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -112,6 +113,17 @@ fun ClearDetailScreen(
         modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        // Mit `bottomBar` bleibt ein Bereich fest am unteren Rand stehen, der Inhalt scrollt darueber
+        bottomBar = {
+            if (bottomBar != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = ClearSpacing.large)
+                        .padding(top = ClearSpacing.small, bottom = ClearSpacing.medium)
+                ) { bottomBar() }
+            }
+        },
         topBar = {
             LargeTopAppBar(
                 title = {

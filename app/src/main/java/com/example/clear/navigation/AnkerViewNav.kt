@@ -13,8 +13,8 @@ import com.example.clear.ui.anker.QuoteViewScreen
 import com.example.clear.ui.anker.TrackViewScreen
 
 /**
- * Routen der Mein-Anker-Ansicht einer Emotion samt Einzelansichten.
- * Die Ansicht wird von Akut und von Mein Anker aus geoeffnet. Jeder Bereich bekommt eigene
+ * Routen der Anker-Ansicht einer Emotion samt Einzelansichten.
+ * Die Ansicht wird von Akut und von Anker aus geoeffnet. Jeder Bereich bekommt eigene
  * Routennamen (Praefix), damit die richtige Registerkarte markiert bleibt. Die Seiten selbst
  * sind in beiden Faellen dieselben.
  *

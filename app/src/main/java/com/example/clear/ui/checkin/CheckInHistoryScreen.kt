@@ -157,7 +157,7 @@ private fun trendLabel(trend: Trend): String = when (trend) {
 
 /** Kleiner Linienverlauf. Skala fest 1 bis 10, damit die Bereiche vergleichbar bleiben. */
 @Composable
-private fun Sparkline(
+internal fun Sparkline(
     points: List<TrendPoint>,
     lineColor: Color,
     guideColor: Color,

@@ -169,8 +169,8 @@ private fun RateScreen(idea: RunningIdea, onRate: (Int) -> Unit, onCancel: () ->
             )
         }
         item { ListHeader { Text(tr(
-            "Wie fühlst du dich jetzt?",
-            "How do you feel now?"
+            "Wie ist deine Stimmung jetzt?",
+            "How is your mood now?"
         ), textAlign = TextAlign.Center) } }
         items((10 downTo 1).toList()) { value ->
             Chip(

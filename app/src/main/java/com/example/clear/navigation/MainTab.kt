@@ -16,7 +16,7 @@ enum class MainTab(
 ) {
     Meditieren("meditieren", "Meditieren", "Meditate", Icons.Outlined.SelfImprovement),
     Akut("akut", "Akut", "Acute", Icons.Outlined.Bolt),
-    Anker("anker", "Mein Anker", "My Anchor", Icons.Outlined.Anchor);
+    Anker("anker", "Anker", "Anchor", Icons.Outlined.Anchor);
 
     val label: String get() = tr(labelDe, labelEn)
 }

@@ -1,7 +1,7 @@
 package com.example.clear.navigation
 
 /**
- * Routen innerhalb des Bereichs Mein Anker. ID -1 bedeutet: neuer Eintrag.
+ * Routen innerhalb des Bereichs Anker. ID -1 bedeutet: neuer Eintrag.
  * {emotion} ist die id einer Emotion ("anxiety" ...) oder "unknown" fuer Allgemein.
  */
 object AnkerRoutes {

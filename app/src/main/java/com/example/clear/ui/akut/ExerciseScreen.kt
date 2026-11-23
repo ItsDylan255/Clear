@@ -26,9 +26,10 @@ import com.example.clear.ui.theme.ClearSurfaceSoft
 @Composable
 fun ExerciseScreen(
     exercise: Exercise,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onOpenEmergency: () -> Unit
 ) {
-    ClearDetailScreen(title = exercise.title, onBack = onBack) {
+    ClearDetailScreen(title = exercise.title, onBack = onBack, bottomBar = { EmergencyCardBar(onOpenEmergency) }) {
         Text(
             exercise.category.label,
             style = MaterialTheme.typography.bodyMedium,

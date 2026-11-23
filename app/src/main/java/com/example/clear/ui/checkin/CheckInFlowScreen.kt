@@ -45,7 +45,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -63,20 +64,41 @@ fun CheckInFlowScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val chips by viewModel.activeChips.collectAsState()
-    // Reihenfolge: Teil 1 (Kategorien), Teil 2 (Faktenteil), Teil 3 "Erfolge und gute Dinge"
-    var factsStep by rememberSaveable { mutableStateOf(false) }
-    var eveningStep by rememberSaveable { mutableStateOf(false) }
+    // Die Teile dieses Durchlaufs, z. B. [1, 2, 3] oder nur [2]
+    val parts = viewModel.parts
+    var partIndex by rememberSaveable { mutableIntStateOf(0) }
+    val part = parts[partIndex]
     val eveningViewModel: EveningEntryViewModel = viewModel()
+    LaunchedEffect(Unit) { if (3 in parts) eveningViewModel.loadToday() }
 
-    // System-Zurueck: erst einen Schritt zurueck, bei der ersten Frage beenden
-    BackHandler {
+    val isFirstStep = partIndex == 0 && (part != 1 || state.isFirst)
+    val isLastStep = partIndex == parts.lastIndex && (part != 1 || state.isLast)
+
+    fun back() {
         when {
-            eveningStep -> { eveningStep = false; factsStep = true }
-            factsStep -> factsStep = false
-            state.isFirst -> onClose()
-            else -> viewModel.previous()
+            part == 1 && !state.isFirst -> viewModel.previous()
+            partIndex > 0 -> partIndex--
+            else -> onClose()
         }
     }
+
+    fun next() {
+        when {
+            part == 1 && !state.isLast -> viewModel.next()
+            partIndex < parts.lastIndex -> partIndex++
+            else -> viewModel.finish {
+                if (3 in parts) eveningViewModel.save(onFinished) else onFinished()
+            }
+        }
+    }
+
+    // Fortschritt ueber alle Schritte: acht Fragen in Teil 1, je ein Schritt fuer Teil 2 und 3
+    val totalSteps = parts.sumOf { if (it == 1) state.categories.size else 1 }
+    val doneSteps = parts.take(partIndex).sumOf { if (it == 1) state.categories.size else 1 } +
+        (if (part == 1) state.index + 1 else 1)
+
+    // System-Zurueck: erst einen Schritt zurueck, beim ersten Schritt beenden
+    BackHandler { back() }
 
     Column(modifier = Modifier.fillMaxSize().imePadding().padding(horizontal = ClearSpacing.large)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -84,21 +106,17 @@ fun CheckInFlowScreen(
                 Icon(Icons.Filled.Close, contentDescription = tr("Check-in beenden", "Close check-in"))
             }
             Text(
-                if (eveningStep) tr("Zum Schluss", "Finally")
-                else if (factsStep) tr("Teil 2 von 3", "Part 2 of 3")
-                else tr("Frage ${state.index + 1} von ${state.categories.size}", "Question ${state.index + 1} of ${state.categories.size}"),
+                when (part) {
+                    3 -> tr("Zum Schluss", "Finally")
+                    2 -> tr("Teil 2 von 3", "Part 2 of 3")
+                    else -> tr("Frage ${state.index + 1} von ${state.categories.size}", "Question ${state.index + 1} of ${state.categories.size}")
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         LinearProgressIndicator(
-            progress = {
-                when {
-                    eveningStep -> 1f
-                    factsStep -> 0.9f
-                    else -> state.progress * 0.8f
-                }
-            },
+            progress = { doneSteps.toFloat() / totalSteps },
             modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
             color = MaterialTheme.colorScheme.primary,
             trackColor = ClearSurfaceSoft
@@ -111,12 +129,9 @@ fun CheckInFlowScreen(
                 .padding(top = ClearSpacing.large),
             verticalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
         ) {
-            if (eveningStep) {
-                EveningStepFields(eveningViewModel)
-                return@Column
-            }
-            if (factsStep) {
-                CheckInFactsStep(
+            when (part) {
+                3 -> EveningStepFields(eveningViewModel)
+                2 -> CheckInFactsStep(
                     facts = state.facts,
                     chips = chips,
                     onToggleFact = viewModel::toggleFact,
@@ -124,20 +139,21 @@ fun CheckInFlowScreen(
                     onToggleExtra = viewModel::toggleExtra,
                     onAddExtra = viewModel::addExtra
                 )
-                return@Column
+                else -> {
+                    Text(
+                        state.current.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(state.current.question, style = MaterialTheme.typography.headlineMedium)
+                    ScaleSelector(
+                        selected = state.selected,
+                        onSelect = viewModel::select,
+                        lowLabel = state.current.lowLabel,
+                        highLabel = state.current.highLabel
+                    )
+                }
             }
-            Text(
-                state.current.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(state.current.question, style = MaterialTheme.typography.headlineMedium)
-            ScaleSelector(
-                selected = state.selected,
-                onSelect = viewModel::select,
-                lowLabel = state.current.lowLabel,
-                highLabel = state.current.highLabel
-            )
         }
 
         Row(
@@ -145,44 +161,30 @@ fun CheckInFlowScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (state.isFirst && !eveningStep && !factsStep) {
+            if (isFirstStep) {
                 Spacer(Modifier.size(1.dp))
             } else {
                 TextButton(
-                    onClick = {
-                        when {
-                            eveningStep -> { eveningStep = false; factsStep = true }
-                            factsStep -> factsStep = false
-                            else -> viewModel.previous()
-                        }
-                    },
+                    onClick = { back() },
                     modifier = Modifier.heightIn(min = 56.dp)
                 ) { Text(tr("Zurück", "Back")) }
             }
-            if (factsStep) {
-                // Faktenteil ueberspringen: Auswahl verwerfen, weiter zu Teil 3
+            if (part == 2 && parts.size > 1) {
+                // Faktenteil ueberspringen: Auswahl verwerfen, weiter
                 TextButton(
                     onClick = {
                         viewModel.clearFacts()
-                        factsStep = false
-                        eveningStep = true
+                        next()
                     },
                     modifier = Modifier.heightIn(min = 56.dp)
                 ) { Text(tr("Überspringen", "Skip")) }
             }
             Button(
-                onClick = {
-                    when {
-                        eveningStep -> viewModel.finish { eveningViewModel.save(onFinished) }
-                        factsStep -> { factsStep = false; eveningStep = true }
-                        state.isLast -> factsStep = true
-                        else -> viewModel.next()
-                    }
-                },
+                onClick = { next() },
                 modifier = Modifier.heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large
             ) {
-                Text(if (eveningStep) tr("Fertig", "Done") else tr("Weiter", "Next"))
+                Text(if (isLastStep) tr("Fertig", "Done") else tr("Weiter", "Next"))
             }
         }
     }

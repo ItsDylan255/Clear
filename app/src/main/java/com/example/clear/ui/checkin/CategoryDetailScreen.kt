@@ -1,63 +1,32 @@
 package com.example.clear.ui.checkin
 
-import com.example.clear.ui.components.ClearEmptyState
-import androidx.compose.material.icons.outlined.Lightbulb
-import androidx.compose.material.icons.Icons
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.IdeaLevel
-import com.example.clear.data.PersonalIdea
 import com.example.clear.domain.CategoryLevel
 import com.example.clear.model.CheckInCategory
 import com.example.clear.tr
-import com.example.clear.ui.akut.ExerciseStat
-import com.example.clear.ui.akut.ExerciseStatsViewModel
-import com.example.clear.ui.akut.formatAverage
-import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearDetailScreen
-import com.example.clear.ui.theme.ClearSpacing
 
-/**
- * Ein Check-in-Bereich: Level der letzten 14 Tage und die Ideen dazu. Tippst du eine Idee an,
- * startest du sie (Stimmung davor, laeuft mit Dauer, Stimmung danach). Ideen anlegen und
- * bearbeiten geht im Anker-Tab unter "Ideen verwalten".
- */
+/** Ein Check-in-Bereich: Level der letzten 14 Tage, die Frage und der Verlauf. */
 @Composable
 fun CategoryDetailScreen(
     category: CheckInCategory,
     onBack: () -> Unit,
-    onOpenIdea: (Long) -> Unit,
     onOpenHistory: () -> Unit,
-    viewModel: CategoryViewModel = viewModel(),
-    warningsViewModel: CheckInWarningsViewModel = viewModel(),
-    statsViewModel: ExerciseStatsViewModel = viewModel()
+    warningsViewModel: CheckInWarningsViewModel = viewModel()
 ) {
-    val context = LocalContext.current
-    val ideas by viewModel.ideas.collectAsState()
     val levels by warningsViewModel.levels.collectAsState()
-    val stats by statsViewModel.stats.collectAsState()
-    val runningIdeas by ActiveIdeas.running.collectAsState()
-    remember { ActiveIdeas.load(context) }
     val info = levels?.get(category.id)
-    val list = ideas
 
     ClearDetailScreen(title = category.title, onBack = onBack) {
         LevelNotice(info)
@@ -66,86 +35,11 @@ fun CategoryDetailScreen(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
-        when {
-            list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
-            list.isEmpty() -> ClearEmptyState(
-                icon = Icons.Outlined.Lightbulb,
-                title = tr("Noch keine Ideen", "No ideas yet")
-            )
-            else -> {
-                // Jede Idee zeigt den Text, der zum aktuellen Level passt
-                val current = info?.level.toIdeaLevel()
-                list.forEach { idea ->
-                    IdeaCard(
-                        idea = idea,
-                        level = current,
-                        stat = stats[ActiveIdeas.key(idea.id)],
-                        running = runningIdeas.containsKey(idea.id),
-                        onOpen = { onOpenIdea(idea.id) }
-                    )
-                }
-            }
-        }
-
         OutlinedButton(
             onClick = onOpenHistory,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             shape = MaterialTheme.shapes.large
         ) { Text(tr("Verlauf ansehen", "View history")) }
-    }
-}
-
-@Composable
-private fun IdeaCard(
-    idea: PersonalIdea,
-    level: IdeaLevel,
-    stat: ExerciseStat?,
-    running: Boolean,
-    onOpen: () -> Unit
-) {
-    ClearCard(onClick = onOpen) {
-        Column(verticalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)
-            ) {
-                Text(
-                    idea.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                // Durchschnittliche Veraenderung der Stimmung, sobald es Durchlaeufe gibt
-                if (stat != null) {
-                    Text(
-                        formatAverage(stat.average),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            val text = idea.textFor(level)
-            if (text.isNotBlank()) {
-                Text(text, style = MaterialTheme.typography.bodyLarge)
-            } else {
-                Text(
-                    tr(
-                        "Für dieses Level fehlt noch ein Text.",
-                        "There is no text for this level yet."
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (running) {
-                Text(
-                    tr("Läuft gerade", "Running now"),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
     }
 }
 

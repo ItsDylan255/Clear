@@ -3,6 +3,8 @@ package com.example.clear.ui.checkin
 import com.example.clear.data.EarlyWarningStore
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
+import com.example.clear.data.factAnswers
 import androidx.lifecycle.viewModelScope
 import com.example.clear.data.CheckInFactAnswers
 import com.example.clear.data.CheckInRepository
@@ -38,9 +40,20 @@ data class CheckInUiState(
     val progress: Float get() = (index + 1f) / categories.size
 }
 
-class CheckInViewModel(application: Application) : AndroidViewModel(application) {
+/**
+ * Teile eines Check-ins: 1 "Wie geht es mir?", 2 "Was habe ich gemacht?", 3 "Was war gut?".
+ * In der Route stehen die Teile als Ziffern, z. B. "123" oder "2".
+ */
+fun parseCheckInParts(value: String?): List<Int> =
+    value.orEmpty().mapNotNull { it.digitToIntOrNull() }.filter { it in 1..3 }.distinct().sorted()
+        .ifEmpty { listOf(1, 2, 3) }
+
+class CheckInViewModel(application: Application, handle: SavedStateHandle) : AndroidViewModel(application) {
     private val repository =
         CheckInRepository(ClearDatabase.getInstance(application).checkInDao())
+
+    /** Welche Teile dieser Durchlauf zeigt, in Reihenfolge. */
+    val parts: List<Int> = parseCheckInParts(handle.get<String>("parts"))
     private val chipRepository =
         ExtraChipRepository(ClearDatabase.getInstance(application).extraChipDao())
 
@@ -53,6 +66,19 @@ class CheckInViewModel(application: Application) : AndroidViewModel(application)
     val state: StateFlow<CheckInUiState> = _state.asStateFlow()
 
     private var saving = false
+
+    init {
+        // Was heute schon gespeichert ist, steht vorausgefuellt da und wird beim Speichern ersetzt
+        viewModelScope.launch {
+            val today = repository.getToday() ?: return@launch
+            _state.update { s ->
+                s.copy(
+                    answers = if (1 in parts) today.ratings else s.answers,
+                    facts = if (2 in parts) today.factAnswers() else s.facts
+                )
+            }
+        }
+    }
 
     /** Zahl antippen. Nochmal dieselbe Zahl antippen = Antwort wieder entfernen. */
     fun select(value: Int) = _state.update { s ->
@@ -94,12 +120,15 @@ class CheckInViewModel(application: Application) : AndroidViewModel(application)
 
     fun previous() = _state.update { if (it.isFirst) it else it.copy(index = it.index - 1) }
 
-    /** "Fertig": speichern und danach zurueck. Beenden mit X speichert nichts. */
+    /** "Fertig": die gezeigten Teile in den heutigen Check-in speichern. Beenden mit X speichert nichts. */
     fun finish(onDone: () -> Unit) {
         if (saving) return
         saving = true
         viewModelScope.launch {
-            repository.save(_state.value.answers, _state.value.facts)
+            repository.saveToday(
+                answers = _state.value.answers.takeIf { 1 in parts },
+                facts = _state.value.facts.takeIf { 2 in parts }
+            )
             EarlyWarningStore.evaluate(getApplication())
             WatchSync.update(getApplication<Application>())
             onDone()

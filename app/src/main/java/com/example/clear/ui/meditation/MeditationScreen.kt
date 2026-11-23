@@ -1,5 +1,8 @@
 package com.example.clear.ui.meditation
 
+import androidx.compose.foundation.layout.BoxWithConstraints
+import com.example.clear.ui.theme.ClearSpacing
+
 import com.example.clear.ui.components.pressScale
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,31 +41,47 @@ import com.example.clear.ui.components.ClearScreen
 import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
 
-/** Die Meditationen als Raster mit zwei Spalten. Kacheln haben eine feste Hoehe, die Seite scrollt. */
+/**
+ * Die Meditationen als Raster mit zwei Spalten. Alles passt auf eine Seite, nichts scrollt:
+ * Die Reihen teilen sich die freie Hoehe.
+ */
 @Composable
 fun MeditationScreen(onOpenMeditation: (Meditation) -> Unit) {
-    ClearScreen(title = tr("Meditieren", "Meditate")) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Meditations.all.chunked(2).forEach { pair ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(TILE_HEIGHT),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    pair.forEach { meditation ->
-                        MeditationTile(
-                            meditation = meditation,
-                            height = TILE_HEIGHT,
-                            modifier = Modifier.weight(1f).fillMaxHeight()
-                        ) { onOpenMeditation(meditation) }
+    val rows = Meditations.all.chunked(2)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = ClearSpacing.large, vertical = ClearSpacing.medium)
+    ) {
+        Text(tr("Meditieren", "Meditate"), style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(ClearSpacing.medium))
+        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            val tileHeight = (maxHeight - TILE_GAP * (rows.size - 1)) / rows.size
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(TILE_GAP)
+            ) {
+                rows.forEach { pair ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(TILE_GAP)
+                    ) {
+                        pair.forEach { meditation ->
+                            MeditationTile(
+                                meditation = meditation,
+                                height = tileHeight,
+                                modifier = Modifier.weight(1f).fillMaxHeight()
+                            ) { onOpenMeditation(meditation) }
+                        }
+                        if (pair.size < 2) Spacer(Modifier.weight(1f))
                     }
-                    if (pair.size < 2) Spacer(Modifier.weight(1f))
                 }
             }
         }
     }
 }
 
-private val TILE_HEIGHT = 128.dp
+private val TILE_GAP = 12.dp
 
 @Composable
 private fun MeditationTile(
@@ -82,7 +101,7 @@ private fun MeditationTile(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(8.dp),
+            modifier = Modifier.fillMaxSize().padding(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -95,7 +114,7 @@ private fun MeditationTile(
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(if (height < 110.dp) 4.dp else 8.dp))
             Text(
                 meditation.shortTitle,
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp, lineHeight = 20.sp),

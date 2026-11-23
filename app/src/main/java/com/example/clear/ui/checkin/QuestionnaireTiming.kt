@@ -21,11 +21,6 @@ internal fun isQuestionnaireAvailable(latestCreatedAt: Long?): Boolean {
     return days >= QUESTIONNAIRE_INTERVAL_DAYS
 }
 
-/** Fruehestes Datum fuer den naechsten Fragebogen, zum Beispiel "5. November 2026". */
-internal fun nextAvailableLabel(latestCreatedAt: Long): String =
-    dateOf(latestCreatedAt).plusDays(QUESTIONNAIRE_INTERVAL_DAYS)
-        .format(DateTimeFormatter.ofPattern(tr("d. MMMM yyyy", "MMMM d, yyyy"), AppLanguage.locale))
-
 /** Datum eines Ergebnisses, zum Beispiel "22. Okt. 2026". */
 internal fun dateLabel(createdAt: Long): String =
     dateOf(createdAt).format(DateTimeFormatter.ofPattern(tr("d. MMM yyyy", "MMM d, yyyy"), AppLanguage.locale))

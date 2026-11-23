@@ -84,23 +84,6 @@ fun Phq9HubScreen(
     val latest = list?.firstOrNull()
 
     ClearDetailScreen(title = "PHQ-9", onBack = onBack) {
-        ClearCard(containerColor = ClearSurfaceSoft) {
-            Text(
-                if (available || latest == null) tr(
-                    "Der PHQ-9 ist bereit. Er hat neun Fragen.",
-                    "The PHQ-9 is ready. It has nine questions."
-                )
-                else tr(
-                    "Du hast den PHQ-9 vor Kurzem ausgefüllt. Der nächste ist ",
-                    "You filled in the PHQ-9 recently. The next one is "
-                ) +
-                    tr(
-                        "frühestens am ${nextAvailableLabel(latest.createdAt)} möglich (mindestens zwei Wochen Abstand).",
-                        "available on ${nextAvailableLabel(latest.createdAt)} at the earliest (at least two weeks apart)."
-                    ),
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
         Button(
             onClick = onStart,
             enabled = available,
@@ -248,16 +231,7 @@ private fun Phq9ResultContent(summary: Phq9Summary, onDone: () -> Unit) {
         }
 
         val changes = summary.changes
-        if (changes == null) {
-            Text(
-                tr(
-                    "Das war dein erster Fragebogen. Ab dem nächsten Monat siehst du hier, was sich verändert hat.",
-                    "This was your first questionnaire. Next time you'll see here what has changed."
-                ),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
+        if (changes != null) {
             Text(tr("Seit dem letzten Mal", "Since last time"), style = MaterialTheme.typography.titleMedium)
             ClearCard {
                 changes.forEach { change ->

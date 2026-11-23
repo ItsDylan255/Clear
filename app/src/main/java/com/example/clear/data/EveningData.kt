@@ -38,6 +38,9 @@ interface EveningDao {
     @Query("SELECT * FROM evening_entries WHERE id = :id")
     suspend fun getById(id: Long): EveningEntry?
 
+    @Query("SELECT * FROM evening_entries WHERE day = :day ORDER BY id ASC")
+    suspend fun getForDay(day: Long): List<EveningEntry>
+
     @Query("SELECT COUNT(*) FROM evening_entries WHERE day = :day")
     suspend fun countForDay(day: Long): Int
 

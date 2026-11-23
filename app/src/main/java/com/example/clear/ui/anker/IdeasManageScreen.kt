@@ -42,8 +42,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clear.data.ClearDatabase
 import com.example.clear.data.PersonalIdea
+import com.example.clear.data.IdeaLevel
+import com.example.clear.data.IdeaTopic
+import com.example.clear.data.IdeaTopicRepository
 import com.example.clear.data.PersonalIdeaRepository
-import com.example.clear.model.CheckInCategory
+import androidx.compose.material.icons.outlined.Lightbulb
 import com.example.clear.tr
 import com.example.clear.ui.components.AddButton
 import com.example.clear.ui.components.ClearCard
@@ -57,14 +60,22 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** Alle Ideen, nach Bereich sortiert. null = wird noch geladen. */
-class IdeasManageViewModel(app: Application) : AndroidViewModel(app) {
-    private val repository =
-        PersonalIdeaRepository(ClearDatabase.getInstance(app).personalIdeaDao())
+/** Eine Gruppe der Verwaltung: ein Thema oder "Ohne Thema" (topic == null). */
+data class TopicGroup(val topic: IdeaTopic?, val ideas: List<PersonalIdea>) {
+    val key: String get() = topic?.id?.toString() ?: "none"
+    val name: String get() = topic?.name ?: tr("Ohne Bereich", "No area")
+}
 
-    val ideas: StateFlow<Map<CheckInCategory, List<PersonalIdea>>?> =
-        combine(CheckInCategory.entries.map { repository.observe(it.id) }) { lists ->
-            CheckInCategory.entries.zip(lists.toList()).toMap()
+/** Alle Ideen, nach Thema gruppiert. "Ohne Thema" steht am Ende. null = wird noch geladen. */
+class IdeasManageViewModel(app: Application) : AndroidViewModel(app) {
+    private val db = ClearDatabase.getInstance(app)
+    private val repository = PersonalIdeaRepository(db.personalIdeaDao())
+
+    val groups: StateFlow<List<TopicGroup>?> =
+        combine(repository.observeAll(), IdeaTopicRepository(db.ideaTopicDao()).observeAll()) { ideas, topics ->
+            val known = topics.map { it.id }.toSet()
+            topics.map { topic -> TopicGroup(topic, ideas.filter { it.topicId == topic.id }) } +
+                TopicGroup(null, ideas.filter { it.topicId == null || it.topicId !in known })
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun delete(idea: PersonalIdea) {
@@ -73,26 +84,25 @@ class IdeasManageViewModel(app: Application) : AndroidViewModel(app) {
 }
 
 /**
- * Ideen anlegen, bearbeiten und loeschen. Uebersichtlich auch bei vielen Ideen: Die Bereiche sind
- * eingeklappt und zeigen nur die Anzahl. Antippen klappt einen Bereich auf. Die Suche findet Ideen
- * ueber alle Bereiche. Im Check-in werden Ideen nur angezeigt und ausprobiert.
+ * Ideen anlegen, bearbeiten und loeschen, gruppiert nach Thema. Die Themen sind eingeklappt und
+ * zeigen nur die Anzahl. Antippen klappt ein Thema auf. Die Suche findet Ideen ueber alle Themen.
  */
 @Composable
 fun IdeasManageScreen(
     onBack: () -> Unit,
-    onAdd: (categoryId: String) -> Unit,
-    onEdit: (categoryId: String, ideaId: Long) -> Unit,
+    onAdd: (topicId: Long?) -> Unit,
+    onEdit: (ideaId: Long) -> Unit,
     viewModel: IdeasManageViewModel = viewModel()
 ) {
-    val ideas by viewModel.ideas.collectAsState()
+    val groups by viewModel.groups.collectAsState()
     var query by rememberSaveable { mutableStateOf("") }
-    // Saveable, damit aufgeklappte Bereiche nach dem Bearbeiten einer Idee offen bleiben
+    // Saveable, damit aufgeklappte Themen nach dem Bearbeiten einer Idee offen bleiben
     var expanded by rememberSaveable(stateSaver = expandedSaver) { mutableStateOf(setOf<String>()) }
     var toDelete by remember { mutableStateOf<PersonalIdea?>(null) }
-    val map = ideas
+    val list = groups
 
     ClearDetailScreen(title = tr("Ideen verwalten", "Manage ideas"), onBack = onBack) {
-        AddButton(tr("Idee hinzufügen", "Add idea")) { onAdd(CheckInCategory.entries.first().id) }
+        AddButton(tr("Idee hinzufügen", "Add idea")) { onAdd(null) }
 
         OutlinedTextField(
             value = query,
@@ -110,14 +120,18 @@ fun IdeasManageScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        if (map == null) {
+        if (list == null) {
             CircularProgressIndicator(modifier = Modifier.size(32.dp))
         } else if (query.isNotBlank()) {
-            // Suche: Treffer aus allen Bereichen, mit dem Namen des Bereichs
-            val matches = CheckInCategory.entries.flatMap { category ->
-                map[category].orEmpty()
-                    .filter { it.title.contains(query.trim(), ignoreCase = true) }
-                    .map { category to it }
+            // Suche: Treffer aus allen Themen (Titel und Fassungen), mit dem Namen des Themas
+            val needle = query.trim()
+            val matches = list.flatMap { group ->
+                group.ideas
+                    .filter { idea ->
+                        idea.title.contains(needle, ignoreCase = true) ||
+                            IdeaLevel.entries.any { idea.textFor(it).contains(needle, ignoreCase = true) }
+                    }
+                    .map { group to it }
             }
             if (matches.isEmpty()) {
                 ClearEmptyState(
@@ -125,21 +139,22 @@ fun IdeasManageScreen(
                     title = tr("Nichts gefunden", "Nothing found")
                 )
             }
-            matches.forEach { (category, idea) ->
+            matches.forEach { (group, idea) ->
                 IdeaRow(
                     idea = idea,
-                    caption = category.title,
-                    onEdit = { onEdit(category.id, idea.id) },
+                    caption = group.name,
+                    onEdit = { onEdit(idea.id) },
                     onDelete = { toDelete = idea }
                 )
             }
         } else {
-            CheckInCategory.entries.forEach { category ->
-                val list = map[category].orEmpty()
-                val isOpen = category.id in expanded
+            list.forEach { group ->
+                // "Ohne Thema" nur zeigen, wenn dort Ideen liegen oder es noch keine Themen gibt
+                if (group.topic == null && group.ideas.isEmpty() && list.size > 1) return@forEach
+                val isOpen = group.key in expanded
                 ClearCard(
                     onClick = {
-                        expanded = if (isOpen) expanded - category.id else expanded + category.id
+                        expanded = if (isOpen) expanded - group.key else expanded + group.key
                     }
                 ) {
                     Row(
@@ -155,17 +170,17 @@ fun IdeasManageScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                category.icon, contentDescription = null,
+                                Icons.Outlined.Lightbulb, contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(category.title, style = MaterialTheme.typography.titleMedium)
+                            Text(group.name, style = MaterialTheme.typography.titleMedium)
                             Text(
-                                when (list.size) {
+                                when (group.ideas.size) {
                                     0 -> tr("Noch keine Ideen", "No ideas yet")
                                     1 -> tr("1 Idee", "1 idea")
-                                    else -> tr("${list.size} Ideen", "${list.size} ideas")
+                                    else -> tr("${group.ideas.size} Ideen", "${group.ideas.size} ideas")
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -179,18 +194,18 @@ fun IdeasManageScreen(
                     }
                 }
                 if (isOpen) {
-                    list.forEach { idea ->
+                    group.ideas.forEach { idea ->
                         IdeaRow(
                             idea = idea,
                             caption = null,
-                            onEdit = { onEdit(category.id, idea.id) },
+                            onEdit = { onEdit(idea.id) },
                             onDelete = { toDelete = idea }
                         )
                     }
                     TextButton(
-                        onClick = { onAdd(category.id) },
+                        onClick = { onAdd(group.topic?.id) },
                         modifier = Modifier.heightIn(min = 48.dp)
-                    ) { Text(tr("Idee zu „${category.title}“ hinzufügen", "Add idea to “${category.title}”")) }
+                    ) { Text(tr("Idee zu „${group.name}“ hinzufügen", "Add idea to “${group.name}”")) }
                 }
             }
         }

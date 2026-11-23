@@ -52,6 +52,23 @@ class CorrelationsTest {
         assertEquals(9.0, next.groups.first { it.key == CorrelationCalculator.WITH }.average, 0.001)
     }
 
+    @Test fun ideaCountsLikeExtraWithMinimumDays() {
+        // Idee 7 an 5 Tagen beendet (Stimmung 8), 6 Tage ohne (Stimmung 4)
+        val entries = (0L until 11L).map { d -> entry(d, if (d < 5) 8 else 4, sleep = "okay") }
+        val ended = (0L until 5L).map { start.plusDays(it) }.toSet()
+        val idea = CorrelationCalculator.calculate(
+            entries, CheckInCategory.Mood, false, emptyList(), zone, ideaDays = mapOf(7L to ended)
+        ).first { it.subject == CorrelationSubject.Idea(7L) }
+        assertEquals(8.0, idea.groups.first { it.key == CorrelationCalculator.WITH }.average, 0.001)
+        assertEquals(4.0, idea.groups.first { it.key == CorrelationCalculator.WITHOUT }.average, 0.001)
+
+        // Nur an 4 Tagen beendet: zu selten, kein Eintrag
+        val rare = CorrelationCalculator.calculate(
+            entries, CheckInCategory.Mood, false, emptyList(), zone, ideaDays = mapOf(7L to ended.drop(1).toSet())
+        )
+        assertTrue(rare.none { it.subject == CorrelationSubject.Idea(7L) })
+    }
+
     @Test fun sortedByLargestDifference() {
         val entries = (0L until 12L).map { d ->
             entry(d, if (d < 6) 9 else 3, sleep = if (d < 6) "good" else "bad", days = if (d % 2 == 0L) DayType.Work.id else "")

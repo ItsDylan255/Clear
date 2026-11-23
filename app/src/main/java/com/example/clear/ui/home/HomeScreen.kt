@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import com.example.clear.AppLanguage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import android.app.Application
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,11 +25,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,68 +38,41 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.clear.data.ClearDatabase
-import com.example.clear.data.PersonalIdeaRepository
 import com.example.clear.tr
-import com.example.clear.ui.checkin.ActiveIdeas
 import com.example.clear.ui.checkin.CheckInWarningsViewModel
-import com.example.clear.ui.checkin.OverallLevelLine
+import androidx.compose.ui.draw.alpha
+import androidx.compose.material.icons.filled.Check
 import com.example.clear.ui.checkin.Phq9HubViewModel
 import com.example.clear.ui.checkin.Who5HubViewModel
 import com.example.clear.ui.checkin.WsasHubViewModel
 import com.example.clear.ui.components.ClearCard
 import com.example.clear.ui.components.ClearScreen
 import com.example.clear.ui.theme.ClearSpacing
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import java.time.LocalTime
 
-/** Laufende Ideen mit Titel, aelteste zuerst. */
-class HomeViewModel(app: Application) : AndroidViewModel(app) {
-    private val repository =
-        PersonalIdeaRepository(ClearDatabase.getInstance(app).personalIdeaDao())
-
-    init {
-        ActiveIdeas.load(app)
-    }
-
-    val running: StateFlow<List<Pair<Long, String>>> = ActiveIdeas.running
-        .map { map ->
-            map.values.sortedBy { it.startedAt }.mapNotNull { run ->
-                repository.get(run.ideaId)?.let { run.ideaId to it.title }
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-}
+/** Ein Fragebogen auf der Startseite. */
+enum class Questionnaire(val title: String) { Phq9("PHQ-9"), Who5("WHO-5"), Wsas("WSAS") }
 
 /**
- * Startseite: Begruessung, der Check-in (starten oder Verlauf), laufende Ideen und die Frageboegen.
- * Die acht Bereiche mit ihren Ideen findest du im Reiter "Bereiche".
+ * Reiter Check-in: Begruessung, der grosse Knopf fuer den Check-in, die drei Teile einzeln,
+ * und die Frageboegen. Uebersicht, Verlauf und Einstellungen oben als Symbole. Heute schon Erledigtes ist ausgegraut.
  */
 @Composable
 fun HomeScreen(
-    onStartCheckIn: () -> Unit,
-    onOpenHistory: () -> Unit,
-    onOpenQuestionnaires: () -> Unit,
-    onOpenIdea: (Long) -> Unit,
+    onStartCheckIn: (parts: String) -> Unit,
+    onOpenQuestionnaire: (Questionnaire, due: Boolean) -> Unit,
     onOpenAreas: () -> Unit,
+    onOpenHistory: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenEmergencyCard: () -> Unit,
     onOpenBadDayPlan: () -> Unit,
-    viewModel: HomeViewModel = viewModel(),
     warningsViewModel: CheckInWarningsViewModel = viewModel(),
     phqViewModel: Phq9HubViewModel = viewModel(),
     who5ViewModel: Who5HubViewModel = viewModel(),
     wsasViewModel: WsasHubViewModel = viewModel()
 ) {
-    val running by viewModel.running.collectAsState()
-    val levels by warningsViewModel.levels.collectAsState()
-    val checkedInToday by warningsViewModel.checkedInToday.collectAsState()
+    val today by warningsViewModel.todayParts.collectAsState()
     val phqReady by phqViewModel.available.collectAsState()
     val who5Ready by who5ViewModel.available.collectAsState()
     val wsasReady by wsasViewModel.available.collectAsState()
@@ -112,9 +85,6 @@ fun HomeScreen(
             else -> tr("Guten Abend", "Good evening")
         }
     }
-    val ready = listOfNotNull(
-        "PHQ-9".takeIf { phqReady }, "WHO-5".takeIf { who5Ready }, "WSAS".takeIf { wsasReady }
-    )
 
     val streak by warningsViewModel.streakDays.collectAsState()
     val warningVisible by EarlyWarningStore.visible.collectAsState()
@@ -136,6 +106,12 @@ fun HomeScreen(
         title = greeting,
         subtitle = listOfNotNull(dateText, streakText).joinToString(" · "),
         actions = {
+            IconButton(onClick = onOpenAreas) {
+                Icon(Icons.Outlined.GridView, contentDescription = tr("Übersicht", "Overview"))
+            }
+            IconButton(onClick = onOpenHistory) {
+                Icon(Icons.Outlined.Insights, contentDescription = tr("Verlauf", "History"))
+            }
             IconButton(onClick = onOpenSettings) {
                 Icon(Icons.Outlined.Settings, contentDescription = tr("Einstellungen", "Settings"))
             }
@@ -150,123 +126,64 @@ fun HomeScreen(
             )
         }
 
-        // Check-in als grosse, ruhige Hauptkarte
-        ClearCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(ClearSpacing.small)
-            ) {
-                Text(
-                    tr("HEUTE", "TODAY"),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
-                )
-                Text(
-                    if (checkedInToday) tr("Schön, dass du da warst.", "Good to see you today.")
-                    else tr("Wie geht es dir gerade?", "How are you right now?"),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                if (checkedInToday) {
-                    Text(
-                        tr("Du hast heute schon eingecheckt.", "You have already checked in today."),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                    )
-                }
-                Spacer(Modifier.height(ClearSpacing.small))
-                if (checkedInToday) {
-                    Button(
-                        onClick = onOpenHistory,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        shape = CircleShape
-                    ) { Text(tr("Verlauf ansehen", "View history")) }
-                } else {
-                    Button(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                            onStartCheckIn()
-                        },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        shape = CircleShape
-                    ) { Text(tr("Check-in starten", "Start check-in")) }
-                    TextButton(
-                        onClick = onOpenHistory,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                    ) { Text(tr("Verlauf ansehen", "View history")) }
-                }
-            }
+        // Grosser Knopf: startet die noch offenen Teile nacheinander. Alles erledigt: ausgegraut.
+        val missing = today.missing
+        Button(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                onStartCheckIn(missing)
+            },
+            enabled = missing.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+            shape = CircleShape
+        ) { Text(tr("Check-in", "Check-in"), style = MaterialTheme.typography.titleMedium) }
+
+        // Die drei Teile einzeln. Erledigt: ausgegraut, Antippen zeigt und bearbeitet den Eintrag.
+        listOf(
+            1 to tr("Wie geht es mir?", "How am I doing?"),
+            2 to tr("Was habe ich gemacht?", "What did I do?"),
+            3 to tr("Was war gut?", "What was good?")
+        ).forEach { (part, title) ->
+            HomeRow(title = title, done = today.isDone(part)) { onStartCheckIn(part.toString()) }
         }
 
-        // Laufende Ideen
-        if (running.isNotEmpty()) {
-            Text(
-                tr("LÄUFT GERADE", "RUNNING NOW"),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 4.dp, top = ClearSpacing.small)
+        // Frageboegen: noch nicht wieder faellig = ausgegraut, Antippen zeigt Ergebnis und Verlauf
+        SectionLabel(tr("FRAGEBÖGEN", "QUESTIONNAIRES"))
+        listOf(
+            Questionnaire.Phq9 to phqReady,
+            Questionnaire.Who5 to who5Ready,
+            Questionnaire.Wsas to wsasReady
+        ).forEach { (questionnaire, due) ->
+            HomeRow(title = questionnaire.title, done = !due) { onOpenQuestionnaire(questionnaire, due) }
+        }
+    }
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 4.dp, top = ClearSpacing.small)
+    )
+}
+
+/** Eine Zeile zum Antippen. `done` = ausgegraut (bleibt antippbar). */
+@Composable
+private fun HomeRow(title: String, done: Boolean, onClick: () -> Unit) {
+    ClearCard(onClick = onClick, modifier = Modifier.alpha(if (done) 0.5f else 1f)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
+        ) {
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Icon(
+                if (done) Icons.Filled.Check else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = if (done) tr("Erledigt", "Done") else null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            running.forEach { (id, title) ->
-                ClearCard(onClick = { onOpenIdea(id) }) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(title, style = MaterialTheme.typography.titleMedium)
-                        }
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-
-        // Bereiche (frueher ein eigener Reiter)
-        ClearCard(onClick = onOpenAreas) {
-            Row(
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(tr("Deine Bereiche", "Your areas"), style = MaterialTheme.typography.titleMedium)
-                    OverallLevelLine(levels)
-                }
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        // Frageboegen
-        ClearCard(onClick = onOpenQuestionnaires) {
-            Row(
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(ClearSpacing.medium)
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(tr("Fragebögen", "Questionnaires"), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        if (ready.isEmpty()) tr("Gerade ist alles erledigt", "All done for now")
-                        else tr("Bereit: ", "Ready: ") + ready.joinToString(", "),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
     }
 }

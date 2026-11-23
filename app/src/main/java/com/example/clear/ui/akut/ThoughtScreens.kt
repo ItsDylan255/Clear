@@ -75,13 +75,18 @@ fun ThoughtListScreen(
     onBack: () -> Unit,
     onNew: () -> Unit,
     onOpen: (Long) -> Unit,
+    onOpenEmergency: () -> Unit,
     viewModel: ThoughtListViewModel = viewModel()
 ) {
     val records by viewModel.records.collectAsState()
     var toDelete by remember { mutableStateOf<ThoughtRecord?>(null) }
     val list = records
 
-    ClearDetailScreen(title = tr("Gedankenprotokoll", "Thought record"), onBack = onBack) {
+    ClearDetailScreen(
+        title = tr("Gedankenprotokoll", "Thought record"),
+        onBack = onBack,
+        bottomBar = { EmergencyCardBar(onOpenEmergency) }
+    ) {
         AddButton(tr("Neues Protokoll", "New record"), onNew)
         when {
             list == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
@@ -142,12 +147,20 @@ fun ThoughtListScreen(
 // ---------- Ansicht eines Protokolls ----------
 
 @Composable
-fun ThoughtDetailScreen(onBack: () -> Unit, viewModel: ThoughtDetailViewModel = viewModel()) {
+fun ThoughtDetailScreen(
+    onBack: () -> Unit,
+    onOpenEmergency: () -> Unit,
+    viewModel: ThoughtDetailViewModel = viewModel()
+) {
     val record by viewModel.record.collectAsState()
     var confirmDelete by remember { mutableStateOf(false) }
     val r = record
 
-    ClearDetailScreen(title = tr("Gedankenprotokoll", "Thought record"), onBack = onBack) {
+    ClearDetailScreen(
+        title = tr("Gedankenprotokoll", "Thought record"),
+        onBack = onBack,
+        bottomBar = { EmergencyCardBar(onOpenEmergency) }
+    ) {
         if (r == null) {
             CircularProgressIndicator(modifier = Modifier.size(32.dp))
         } else {

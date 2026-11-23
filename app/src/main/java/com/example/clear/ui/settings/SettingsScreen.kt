@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Label
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
@@ -44,6 +45,7 @@ fun SettingsScreen(
     onOpenReminders: () -> Unit,
     onOpenFocus: () -> Unit,
     onOpenExtras: () -> Unit,
+    onOpenTopics: () -> Unit,
     onOpenMyData: () -> Unit
 ) {
     ClearDetailScreen(title = tr("Einstellungen", "Settings"), onBack = onBack) {
@@ -61,6 +63,8 @@ fun SettingsScreen(
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             SettingsRow(Icons.Outlined.Label, tr("Extras", "Extras"), tr("Eigene Chips im Check-in", "Your own chips in the check-in"), onOpenExtras)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SettingsRow(Icons.Outlined.Lightbulb, tr("Bereiche", "Areas"), tr("Eigene Bereiche für Ideen", "Your own areas for ideas"), onOpenTopics)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             SettingsRow(Icons.Outlined.Bedtime, tr("Nicht stören", "Do Not Disturb"), tr("Bei Ideen automatisch ruhig stellen", "Silence automatically during ideas"), onOpenFocus)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

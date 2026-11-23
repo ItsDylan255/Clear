@@ -28,8 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.clear.domain.CategoryLevel
-import com.example.clear.model.CheckInCategory
+import androidx.compose.foundation.border
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import com.example.clear.data.IdeaLevel
+import com.example.clear.data.PersonalIdea
+import com.example.clear.domain.IdeaSuggestion
 import com.example.clear.tr
 import com.example.clear.ui.akut.ExerciseStatsViewModel
 import com.example.clear.ui.akut.formatAverage
@@ -38,14 +42,15 @@ import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSurfaceSoft
 
 /**
- * Beschreibung einer Idee. "Starten" fragt zuerst, wie du dich fuehlst, und bringt dich dann
- * hierher zurueck. Solange die Idee laeuft, kannst du sie hier oder in der Benachrichtigung beenden
- * oder ohne Bewertung abbrechen.
+ * Eine Idee mit allen drei Fassungen. Die vorgeschlagene Fassung (aus "Braucht" und den
+ * 14-Tage-Durchschnitten) ist vorausgewaehlt und markiert, jede andere laesst sich antippen.
+ * "Starten" fragt nach der Stimmung und bringt dich dann hierher zurueck. Solange die Idee laeuft,
+ * kannst du sie hier oder in der Benachrichtigung beenden oder ohne Bewertung abbrechen.
  */
 @Composable
 fun IdeaDetailScreen(
     onBack: () -> Unit,
-    onStart: (Long) -> Unit,
+    onStart: (ideaId: Long, variant: IdeaLevel) -> Unit,
     onEnd: (Long) -> Unit,
     viewModel: IdeaDetailViewModel = viewModel(),
     warningsViewModel: CheckInWarningsViewModel = viewModel(),
@@ -58,42 +63,25 @@ fun IdeaDetailScreen(
     val stats by statsViewModel.stats.collectAsState()
     val runningMap by ActiveIdeas.running.collectAsState()
     val idea = state.idea
-    var showOthers by rememberSaveable { mutableStateOf(false) }
+    // Selbst gewaehlte Fassung (Name von IdeaLevel). null = die vorgeschlagene
+    var chosen by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmCancel by rememberSaveable { mutableStateOf(false) }
 
     ClearDetailScreen(title = idea?.title ?: tr("Idee", "Idea"), onBack = onBack) {
         when {
-            state.isLoading -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
+            state.isLoading || levels == null -> CircularProgressIndicator(modifier = Modifier.size(32.dp))
             idea == null -> Text(
                 tr("Diese Idee gibt es nicht mehr.", "This idea no longer exists."),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             else -> {
-                val currentLevel = levels?.get(idea.categoryId)?.level ?: CategoryLevel.High
-                val level = currentLevel.toIdeaLevel()
                 val running = runningMap.containsKey(idea.id)
-                val text = idea.textFor(level)
+                val suggested = IdeaSuggestion.suggest(idea.needSet, levels)
+                val picked = IdeaLevel.entries.firstOrNull { it.name == chosen }
+                // Laeuft die Idee, bleibt die Fassung des laufenden Durchlaufs ausgewaehlt
+                val selected = (if (running) state.runningVariant ?: picked else picked) ?: suggested
 
-                CheckInCategory.fromId(idea.categoryId)?.let {
-                    Text(
-                        it.title,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                ClearCard {
-                    Text(levelName(currentLevel), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        if (text.isNotBlank()) text
-                        else tr(
-                            "Für dieses Level fehlt noch ein Text.",
-                            "There is no text for this level yet."
-                        ),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
                 stats[ActiveIdeas.key(idea.id)]?.let { stat ->
                     Text(
                         tr(
@@ -106,29 +94,15 @@ fun IdeaDetailScreen(
                     )
                 }
 
-                // Die anderen Varianten (Level) der Idee, nur bei Bedarf
-                val others = listOf(CategoryLevel.High, CategoryLevel.Medium, CategoryLevel.Low)
-                    .filter { it != currentLevel }
-                TextButton(
-                    onClick = { showOthers = !showOthers },
-                    modifier = Modifier.heightIn(min = 48.dp)
-                ) { Text(if (showOthers) tr("Andere Varianten ausblenden", "Hide other variants") else tr("Andere Varianten anzeigen", "Show other variants")) }
-                if (showOthers) {
-                    others.forEach { variant ->
-                        val variantText = idea.textFor(variant.toIdeaLevel())
-                        ClearCard {
-                            Text(levelName(variant), style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                if (variantText.isNotBlank()) variantText else tr(
-                                    "Dafür gibt es noch keinen Text.",
-                                    "There is no text for this yet."
-                                ),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = if (variantText.isNotBlank()) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                IdeaLevel.entries.forEach { variant ->
+                    VariantCard(
+                        idea = idea,
+                        variant = variant,
+                        selected = variant == selected,
+                        suggested = variant == suggested,
+                        enabled = !running,
+                        onSelect = { chosen = variant.name }
+                    )
                 }
 
                 if (running) {
@@ -149,32 +123,17 @@ fun IdeaDetailScreen(
                         shape = MaterialTheme.shapes.large
                     ) { Text(tr("Abbrechen", "Cancel")) }
                     if (confirmCancel) {
-                        AlertDialog(
-                            onDismissRequest = { confirmCancel = false },
-                            title = { Text(tr("Idee abbrechen?", "Cancel idea?")) },
-                            text = {
-                                Text(tr(
-                                    "Die Idee endet ohne Bewertung. Dieser Durchlauf wird nicht gespeichert.",
-                                    "The idea ends without a rating. This run won't be saved."
-                                ))
+                        CancelIdeaDialog(
+                            onConfirm = {
+                                confirmCancel = false
+                                viewModel.cancel()
                             },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    confirmCancel = false
-                                    viewModel.cancel()
-                                }) { Text(tr("Abbrechen", "Cancel")) }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { confirmCancel = false }) { Text(tr(
-                                    "Weiterlaufen lassen",
-                                    "Keep running"
-                                )) }
-                            }
+                            onDismiss = { confirmCancel = false }
                         )
                     }
                 } else {
                     Button(
-                        onClick = { onStart(idea.id) },
+                        onClick = { onStart(idea.id, selected) },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         shape = MaterialTheme.shapes.large
                     ) { Text(tr("Starten", "Start")) }
@@ -184,7 +143,57 @@ fun IdeaDetailScreen(
     }
 }
 
-/** "Wie fuehlst du dich gerade?" (vor dem Start) oder "...jetzt?" (nach dem Beenden). */
+/**
+ * Eine Fassung zum Antippen, nur mit ihrem Text. Ausgewaehlt: farbig hinterlegt.
+ * Vorgeschlagen: umrandet (und beim Oeffnen schon ausgewaehlt).
+ */
+@Composable
+private fun VariantCard(
+    idea: PersonalIdea,
+    variant: IdeaLevel,
+    selected: Boolean,
+    suggested: Boolean,
+    enabled: Boolean,
+    onSelect: () -> Unit
+) {
+    val text = idea.textFor(variant)
+    val shape = MaterialTheme.shapes.medium
+    ClearCard(
+        onClick = if (enabled) onSelect else null,
+        containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else null,
+        modifier = Modifier
+            .then(if (suggested) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, shape) else Modifier)
+            .semantics { this.selected = selected }
+    ) {
+        Text(text.ifBlank { "–" }, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+/** Rueckfrage vor dem Abbrechen einer laufenden Idee. */
+@Composable
+internal fun CancelIdeaDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("Idee abbrechen?", "Cancel idea?")) },
+        text = {
+            Text(tr(
+                "Die Idee endet ohne Bewertung. Dieser Durchlauf wird nicht gespeichert.",
+                "The idea ends without a rating. This run won't be saved."
+            ))
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(tr("Abbrechen", "Cancel")) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(tr(
+                "Weiterlaufen lassen",
+                "Keep running"
+            )) }
+        }
+    )
+}
+
+/** "Wie ist deine Stimmung gerade?" (vor dem Start) oder "...jetzt?" (nach dem Beenden). */
 @Composable
 fun IdeaRateScreen(
     onBack: () -> Unit,
@@ -244,7 +253,7 @@ fun IdeaRateScreen(
             }
             else -> {
                 Text(
-                    if (viewModel.isBefore) tr("Wie fühlst du dich gerade?", "How do you feel right now?") else tr("Wie fühlst du dich jetzt?", "How do you feel now?"),
+                    if (viewModel.isBefore) tr("Wie ist deine Stimmung gerade?", "How is your mood right now?") else tr("Wie ist deine Stimmung jetzt?", "How is your mood now?"),
                     style = MaterialTheme.typography.titleLarge
                 )
                 ScaleSelector(

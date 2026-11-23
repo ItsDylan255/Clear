@@ -65,9 +65,35 @@ data class EveningDraft(
 class EveningEntryViewModel(app: Application) : AndroidViewModel(app) {
     private val dao = ClearDatabase.getInstance(app).eveningDao()
     private var saving = false
+    private var loaded = false
+
+    // Beim Bearbeiten von heute: die Eintraege hinter den Feldern (null = Feld ist neu)
+    private var successEntry: EveningEntry? = null
+    private var goodEntries: List<EveningEntry?> = List(3) { null }
 
     private val _draft = MutableStateFlow(EveningDraft())
     val draft: StateFlow<EveningDraft> = _draft.asStateFlow()
+
+    /**
+     * Fuellt die Felder mit den heutigen Eintraegen (Check-in Teil 3). Beim Speichern werden
+     * diese Eintraege dann geaendert statt neue angelegt. Weitere Eintraege von heute bleiben.
+     */
+    fun loadToday() {
+        if (loaded) return
+        loaded = true
+        viewModelScope.launch {
+            val day = LocalDate.now(ZoneId.systemDefault()).toEpochDay()
+            val today = dao.getForDay(day)
+            successEntry = today.firstOrNull { it.type == EveningType.SUCCESS }
+            val goods = today.filter { it.type == EveningType.GOOD }.take(3)
+            goodEntries = List(3) { goods.getOrNull(it) }
+            _draft.value = EveningDraft(
+                success = successEntry?.text.orEmpty(),
+                goodTexts = List(3) { goodEntries[it]?.text.orEmpty() },
+                goodReasons = List(3) { goodEntries[it]?.reason.orEmpty() }
+            )
+        }
+    }
 
     fun onSuccessChange(value: String) = _draft.update { it.copy(success = value) }
 
@@ -79,7 +105,10 @@ class EveningEntryViewModel(app: Application) : AndroidViewModel(app) {
         it.copy(goodReasons = it.goodReasons.toMutableList().also { list -> list[index] = value })
     }
 
-    /** Speichert nur, was ausgefuellt ist. Ganz leer: es wird nichts gespeichert. */
+    /**
+     * Speichert nur, was ausgefuellt ist. Ganz leer: es wird nichts gespeichert.
+     * Ein vorausgefuelltes Feld, das jetzt leer ist, loescht seinen Eintrag.
+     */
     fun save(onDone: () -> Unit) {
         if (saving) return
         saving = true
@@ -87,23 +116,27 @@ class EveningEntryViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             val day = LocalDate.now(ZoneId.systemDefault()).toEpochDay()
-            if (d.success.isNotBlank()) {
-                dao.insert(
-                    EveningEntry(type = EveningType.SUCCESS, text = d.success.trim(), day = day, createdAt = now)
+            write(successEntry, EveningEntry(type = EveningType.SUCCESS, text = d.success.trim(), day = day, createdAt = now))
+            d.goodTexts.forEachIndexed { index, text ->
+                write(
+                    goodEntries[index],
+                    EveningEntry(
+                        type = EveningType.GOOD, text = text.trim(),
+                        reason = d.goodReasons[index].trim().ifBlank { null },
+                        day = day, createdAt = now
+                    )
                 )
             }
-            d.goodTexts.forEachIndexed { index, text ->
-                if (text.isNotBlank()) {
-                    dao.insert(
-                        EveningEntry(
-                            type = EveningType.GOOD, text = text.trim(),
-                            reason = d.goodReasons[index].trim().ifBlank { null },
-                            day = day, createdAt = now
-                        )
-                    )
-                }
-            }
             onDone()
+        }
+    }
+
+    private suspend fun write(existing: EveningEntry?, entry: EveningEntry) {
+        when {
+            existing == null && entry.text.isBlank() -> Unit
+            existing == null -> dao.insert(entry)
+            entry.text.isBlank() -> dao.delete(existing)
+            else -> dao.update(existing.copy(text = entry.text, reason = entry.reason))
         }
     }
 }

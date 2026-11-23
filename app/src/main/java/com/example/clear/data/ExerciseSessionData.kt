@@ -10,8 +10,9 @@ import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Ein Durchlauf einer Akut-Uebung mit Stimmung davor und danach (je 1 bis 10).
+ * Ein Durchlauf einer Uebung oder Idee mit Stimmung davor und danach (je 1 bis 10).
  * endedAt == null: Die Uebung laeuft noch. moodAfter == null: Stimmung danach wurde nicht angegeben.
+ * `variant` = gewaehlte Fassung einer Idee (Name von [IdeaLevel]), null bei Uebungen und alten Durchlaeufen.
  * Nur Durchlaeufe mit beiden Stimmungen zaehlen fuer den Durchschnitt.
  */
 @Entity(tableName = "exercise_sessions")
@@ -21,7 +22,8 @@ data class ExerciseSession(
     val startedAt: Long,
     val moodBefore: Int,
     val endedAt: Long? = null,
-    val moodAfter: Int? = null
+    val moodAfter: Int? = null,
+    val variant: String? = null
 )
 
 @Dao

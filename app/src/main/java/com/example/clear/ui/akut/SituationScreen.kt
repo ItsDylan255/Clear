@@ -35,9 +35,10 @@ fun SituationScreen(
     situation: Situation,
     onBack: () -> Unit,
     onOpenExercise: (Exercise) -> Unit,
-    onOpenAnker: () -> Unit
+    onOpenAnker: () -> Unit,
+    onOpenEmergency: () -> Unit
 ) {
-    ClearDetailScreen(title = situation.name, onBack = onBack) {
+    ClearDetailScreen(title = situation.name, onBack = onBack, bottomBar = { EmergencyCardBar(onOpenEmergency) }) {
         situation.intro?.let { intro ->
             ClearCard(containerColor = ClearSurfaceSoft) {
                 Text(intro, style = MaterialTheme.typography.bodyLarge)
@@ -58,7 +59,7 @@ fun SituationScreen(
             ) {
                 Icon(Icons.Outlined.FavoriteBorder, contentDescription = null)
                 Text(
-                    tr("Mein Anker", "My Anchor"),
+                    tr("Anker für dieses Gefühl", "Anchor for this feeling"),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )

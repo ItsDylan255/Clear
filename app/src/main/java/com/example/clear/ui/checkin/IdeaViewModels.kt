@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.clear.data.ClearDatabase
 import com.example.clear.data.ExerciseSession
+import com.example.clear.data.IdeaLevel
 import com.example.clear.data.PersonalIdea
 import com.example.clear.data.PersonalIdeaRepository
 import com.example.clear.reminder.DoNotDisturb
@@ -17,7 +18,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class IdeaDetailState(val isLoading: Boolean = true, val idea: PersonalIdea? = null)
+/** `runningVariant` = Fassung des laufenden Durchlaufs (null = laeuft nicht oder unbekannt). */
+data class IdeaDetailState(
+    val isLoading: Boolean = true,
+    val idea: PersonalIdea? = null,
+    val runningVariant: IdeaLevel? = null
+)
 
 /** Beschreibung einer Idee. Die ID kommt aus der Navigation ("ideaId"). */
 class IdeaDetailViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
@@ -28,8 +34,14 @@ class IdeaDetailViewModel(app: Application, handle: SavedStateHandle) : AndroidV
 
     init {
         viewModelScope.launch {
-            val repository = PersonalIdeaRepository(ClearDatabase.getInstance(app).personalIdeaDao())
-            _state.value = IdeaDetailState(isLoading = false, idea = repository.get(ideaId))
+            val db = ClearDatabase.getInstance(app)
+            val repository = PersonalIdeaRepository(db.personalIdeaDao())
+            val open = db.exerciseSessionDao().getOpen(ActiveIdeas.key(ideaId))
+            _state.value = IdeaDetailState(
+                isLoading = false,
+                idea = repository.get(ideaId),
+                runningVariant = IdeaLevel.entries.firstOrNull { it.name == open?.variant }
+            )
         }
     }
 
@@ -49,12 +61,13 @@ data class IdeaRateState(
 )
 
 /**
- * Bewertung "Wie fuehlst du dich?". mode = "before": startet die Idee. mode = "after": beendet sie.
- * ideaId und mode kommen aus der Navigation.
+ * Bewertung "Wie ist deine Stimmung?". mode = "before": startet die Idee. mode = "after": beendet sie.
+ * ideaId, mode und beim Starten die gewaehlte Fassung (variant) kommen aus der Navigation.
  */
 class IdeaRateViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     private val ideaId: Long = handle.get<Long>("ideaId") ?: -1L
     val isBefore: Boolean = handle.get<String>("mode") != "after"
+    private val variant: IdeaLevel? = IdeaLevel.entries.firstOrNull { it.name == handle.get<String>("variant") }
     private val db = ClearDatabase.getInstance(app)
     private var saving = false
 
@@ -84,7 +97,9 @@ class IdeaRateViewModel(app: Application, handle: SavedStateHandle) : AndroidVie
             val now = System.currentTimeMillis()
             if (isBefore) {
                 if (!ActiveIdeas.isRunning(ideaId)) {
-                    dao.insert(ExerciseSession(exerciseId = key, startedAt = now, moodBefore = mood))
+                    dao.insert(
+                        ExerciseSession(exerciseId = key, startedAt = now, moodBefore = mood, variant = variant?.name)
+                    )
                     ActiveIdeas.start(app, ideaId, now)
                     ExerciseNotifier.show(app, ideaId, idea.title)
                     DoNotDisturb.enter(app)   // nur, wenn in den Einstellungen eingeschaltet

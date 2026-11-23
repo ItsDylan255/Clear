@@ -8,11 +8,15 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** Was verglichen wird: ein Fakten-Feld (mehrere Stufen), eine Tag-Option oder ein Extras-Chip (mit/ohne). */
+/**
+ * Was verglichen wird: ein Fakten-Feld (mehrere Stufen), eine Tag-Option, ein Extras-Chip oder
+ * eine Idee (je mit/ohne).
+ */
 sealed class CorrelationSubject {
     data class Fact(val fact: CheckInFact) : CorrelationSubject()
     data class Day(val dayType: DayType) : CorrelationSubject()
     data class Extra(val chipId: Long) : CorrelationSubject()
+    data class Idea(val ideaId: Long) : CorrelationSubject()
 }
 
 /** Eine Gruppe: Stufen-Kennung (Fakten-Feld) oder "with"/"without" (Tag, Extra). */
@@ -34,6 +38,8 @@ data class Correlation(
  * - "gleicher Tag": Kategorie am selben Tag wie der Faktenteil. Das gilt auch fuer Schlaf und
  *   Alkohol: Sie zaehlen zu dem Check-in, in dem sie eingetragen wurden.
  * - "naechster Tag": Kategorie am Tag danach.
+ * - Ideen zaehlen wie ein Extras-Chip: "mit" = an diesem Tag wurde die Idee beendet
+ *   (Durchlauf mit Bewertung), "ohne" = Tag mit Faktenteil ohne beendete Idee.
  * - Eine Gruppe erscheint nur, wenn sie an mindestens [MIN_DAYS] Tagen vorkommt. Ein Eintrag
  *   erscheint nur mit mindestens zwei solchen Gruppen. Sortiert nach groesstem Unterschied.
  */
@@ -60,7 +66,8 @@ object CorrelationCalculator {
         category: CheckInCategory,
         nextDay: Boolean,
         chipIds: List<Long>,
-        zone: ZoneId
+        zone: ZoneId,
+        ideaDays: Map<Long, Set<LocalDate>> = emptyMap()
     ): List<Correlation> {
         val days = entries.groupBy { Instant.ofEpochMilli(it.timestamp).atZone(zone).toLocalDate() }
             .mapValues { (_, list) -> summarize(list) }
@@ -86,6 +93,13 @@ object CorrelationCalculator {
         }
         DayType.entries.forEach { day -> withWithout(CorrelationSubject.Day(day)) { day in it.dayTypes } }
         chipIds.forEach { id -> withWithout(CorrelationSubject.Extra(id)) { id in it.extras } }
+        ideaDays.forEach { (ideaId, ended) ->
+            val factDays = days.filter { (_, d) -> d.hasFacts }
+            val with = factDays.keys.filter { it in ended }.mapNotNull { target(it) }
+            val without = factDays.keys.filter { it !in ended }.mapNotNull { target(it) }
+            val groups = listOfNotNull(group(WITH, with), group(WITHOUT, without))
+            if (groups.size == 2) result += Correlation(CorrelationSubject.Idea(ideaId), groups)
+        }
 
         return result.sortedByDescending { it.spread }
     }

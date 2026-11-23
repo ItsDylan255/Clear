@@ -64,23 +64,6 @@ fun Who5HubScreen(
     val latest = list?.firstOrNull()
 
     ClearDetailScreen(title = "WHO-5", onBack = onBack) {
-        ClearCard(containerColor = ClearSurfaceSoft) {
-            Text(
-                if (available || latest == null) tr(
-                    "Der WHO-5 ist bereit. Er hat fünf Fragen zu deinem Wohlbefinden.",
-                    "The WHO-5 is ready. It has five questions about your well-being."
-                )
-                else tr(
-                    "Du hast den WHO-5 vor Kurzem ausgefüllt. Der nächste ist ",
-                    "You filled in the WHO-5 recently. The next one is "
-                ) +
-                    tr(
-                        "frühestens am ${nextAvailableLabel(latest.createdAt)} möglich (mindestens zwei Wochen Abstand).",
-                        "available on ${nextAvailableLabel(latest.createdAt)} at the earliest (at least two weeks apart)."
-                    ),
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
         Button(
             onClick = onStart,
             enabled = available,
@@ -227,28 +210,9 @@ private fun Who5ResultContent(summary: Who5Summary, onDone: () -> Unit) {
             ), style = MaterialTheme.typography.headlineMedium)
             Text(summary.band, style = MaterialTheme.typography.titleMedium)
         }
-        Text(
-            tr(
-                "Das ist eine Momentaufnahme und keine Diagnose. Bei Fragen oder wenn es dir schlecht geht, " +
-                    "sprich gern mit einer vertrauten Person oder einer Fachperson.",
-                "This is a snapshot, not a diagnosis. If you have questions or are not doing well, " +
-                    "feel free to talk to someone you trust or a professional."
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
 
         val changes = summary.changes
-        if (changes == null) {
-            Text(
-                tr(
-                    "Das war dein erster WHO-5. Ab dem nächsten Monat siehst du hier, was sich verändert hat.",
-                    "This was your first WHO-5. Next time you'll see here what has changed."
-                ),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
+        if (changes != null) {
             Text(tr("Seit dem letzten Mal", "Since last time"), style = MaterialTheme.typography.titleMedium)
             ClearCard {
                 changes.forEach { change ->

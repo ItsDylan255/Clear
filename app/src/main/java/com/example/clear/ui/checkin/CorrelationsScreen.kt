@@ -43,12 +43,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.Instant
 import java.time.ZoneId
 
 data class CorrelationsData(
     val available: Boolean,
     val items: List<Correlation>,
-    val chips: Map<Long, ExtraChip>
+    val chips: Map<Long, ExtraChip>,
+    val ideaTitles: Map<Long, String> = emptyMap()
 )
 
 class CorrelationsViewModel(app: Application) : AndroidViewModel(app) {
@@ -64,19 +66,39 @@ class CorrelationsViewModel(app: Application) : AndroidViewModel(app) {
         .map { CorrelationCalculator.isAvailable(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    /** Pro Idee die Tage, an denen sie beendet wurde (Durchlauf mit Bewertung). */
+    private val ideaDays = combine(
+        db.exerciseSessionDao().observeAllCompleted(),
+        db.personalIdeaDao().observeAll()
+    ) { sessions, ideas ->
+        val zone = ZoneId.systemDefault()
+        val days = ideas.associate { idea ->
+            val key = ActiveIdeas.key(idea.id)
+            idea.id to sessions
+                .filter { it.exerciseId == key }
+                .map { Instant.ofEpochMilli(it.endedAt ?: it.startedAt).atZone(zone).toLocalDate() }
+                .toSet()
+        }.filterValues { it.isNotEmpty() }
+        days to ideas.associate { it.id to it.title }
+    }
+
     val data: StateFlow<CorrelationsData?> = combine(
         db.checkInDao().observeAll(),
         db.extraChipDao().observeAll(),
+        ideaDays,
         category,
         nextDay
-    ) { entries, chips, cat, next ->
+    ) { entries, chips, ideas, cat, next ->
         val available = CorrelationCalculator.isAvailable(entries)
         CorrelationsData(
             available = available,
             items = if (available) {
-                CorrelationCalculator.calculate(entries, cat, next, chips.map { it.id }, ZoneId.systemDefault())
+                CorrelationCalculator.calculate(
+                    entries, cat, next, chips.map { it.id }, ZoneId.systemDefault(), ideaDays = ideas.first
+                )
             } else emptyList(),
-            chips = chips.associateBy { it.id }
+            chips = chips.associateBy { it.id },
+            ideaTitles = ideas.second
         )
     }
         .flowOn(Dispatchers.Default)
@@ -123,17 +145,23 @@ fun CorrelationsScreen(onBack: () -> Unit, viewModel: CorrelationsViewModel = vi
                 icon = Icons.Outlined.Insights,
                 title = tr("Noch zu wenige Daten", "Not enough data yet")
             )
-            else -> d.items.forEach { item -> CorrelationCard(item, category, d.chips) }
+            else -> d.items.forEach { item -> CorrelationCard(item, category, d.chips, d.ideaTitles) }
         }
     }
 }
 
 @Composable
-private fun CorrelationCard(item: Correlation, category: CheckInCategory, chips: Map<Long, ExtraChip>) {
+private fun CorrelationCard(
+    item: Correlation,
+    category: CheckInCategory,
+    chips: Map<Long, ExtraChip>,
+    ideaTitles: Map<Long, String>
+) {
     val (title, labelOf) = when (val s = item.subject) {
         is CorrelationSubject.Fact -> s.fact.title to { key: String -> s.fact.option(key)?.label ?: key }
         is CorrelationSubject.Day -> "${tr("Tag", "Day")}: ${s.dayType.label}" to ::withLabel
         is CorrelationSubject.Extra -> (chips[s.chipId]?.name ?: "–") to ::withLabel
+        is CorrelationSubject.Idea -> "${tr("Idee", "Idea")}: ${ideaTitles[s.ideaId] ?: "–"}" to ::withLabel
     }
     ClearCard {
         Text(title, style = MaterialTheme.typography.titleMedium)

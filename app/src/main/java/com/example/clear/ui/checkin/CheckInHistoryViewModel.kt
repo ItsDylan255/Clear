@@ -60,24 +60,24 @@ class CheckInHistoryViewModel(app: Application) : AndroidViewModel(app) {
                     TrendPoint(((entry.timestamp - startMs) / span).coerceIn(0f, 1f), value)
                 }
             }
-            CategoryTrend(category, points, trendOf(points.map { it.value }))
+            CategoryTrend(category, points, trendOf(points.map { it.value.toDouble() }))
         }
     }
 
     private fun valueOf(entry: CheckInEntry, category: CheckInCategory): Int? = entry.rating(category)
+}
 
-    /** Vergleicht den Durchschnitt der ersten Haelfte mit dem der zweiten Haelfte. */
-    private fun trendOf(values: List<Int>): Trend {
-        if (values.isEmpty()) return Trend.None
-        if (values.size == 1) return Trend.Single
-        val half = values.size / 2
-        val first = values.take(half).average()
-        val last = values.takeLast(half).average()
-        val diff = last - first
-        return when {
-            diff > 0.75 -> Trend.Up
-            diff < -0.75 -> Trend.Down
-            else -> Trend.Flat
-        }
+/** Vergleicht den Durchschnitt der ersten Haelfte mit dem der zweiten Haelfte. */
+internal fun trendOf(values: List<Double>): Trend {
+    if (values.isEmpty()) return Trend.None
+    if (values.size == 1) return Trend.Single
+    val half = values.size / 2
+    val first = values.take(half).average()
+    val last = values.takeLast(half).average()
+    val diff = last - first
+    return when {
+        diff > 0.75 -> Trend.Up
+        diff < -0.75 -> Trend.Down
+        else -> Trend.Flat
     }
 }

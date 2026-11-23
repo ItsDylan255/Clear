@@ -243,3 +243,19 @@ val MIGRATION_19_20 = object : Migration(19, 20) {
         db.execSQL("DELETE FROM `personal_ideas` WHERE `categoryId` IN ('recovery', 'structure')")
     }
 }
+
+/**
+ * Version 20 -> 21: Ideen bekommen eigene Themen und "Braucht". Bestehende Ideen behalten Titel
+ * und Fassungen, landen unter "Ohne Thema" mit leerem "Braucht". Durchlaeufe merken sich die
+ * gewaehlte Fassung (alte Durchlaeufe: unbekannt).
+ */
+val MIGRATION_20_21 = object : Migration(20, 21) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `idea_topics` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)"
+        )
+        db.execSQL("ALTER TABLE `personal_ideas` ADD COLUMN `topicId` INTEGER")
+        db.execSQL("ALTER TABLE `personal_ideas` ADD COLUMN `needs` TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE `exercise_sessions` ADD COLUMN `variant` TEXT")
+    }
+}

@@ -43,7 +43,7 @@ import com.example.clear.ui.theme.ClearSurfaceSoft
 import com.example.clear.ui.theme.ClearTextDark
 
 /**
- * Mein Anker: Erfolge und gute Dinge, Ideen, Notfallkarte und die vier Inhalte Zitate, Bilder,
+ * Anker: Erfolge und gute Dinge, Ideen, Notfallkarte und die vier Inhalte Zitate, Bilder,
  * Musik und Briefe. Alles passt auf eine Seite, ohne Scrollen. Die Emotions-Ansichten erreichst
  * du ueber den Akut-Tab.
  */
@@ -54,7 +54,7 @@ fun AnkerScreen(
     onOpenEmergency: () -> Unit,
     onOpenType: (AnkerType) -> Unit
 ) {
-    ClearScreen(title = tr("Mein Anker", "My Anchor")) {
+    ClearScreen(title = tr("Anker", "Anchor")) {
         ClearNavCard(Icons.Outlined.WbSunny, tr("Erfolge und gute Dinge", "Successes and good things"), tr("Dein Abend-Archiv", "Your evening archive"), onOpenEvening)
         ClearNavCard(Icons.Outlined.Lightbulb, tr("Ideen", "Ideas"), tr("Für deine Bereiche", "For your areas"), onOpenIdeas)
         ClearNavCard(Icons.Outlined.Phone, tr("Notfallkarte", "Emergency card"), tr("Person, Plan und Warnzeichen", "Contact, plan and warning signs"), onOpenEmergency)

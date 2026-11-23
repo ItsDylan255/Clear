@@ -22,7 +22,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.clear.model.CheckInCategory
+import androidx.compose.material3.AssistChip
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.example.clear.data.IdeaLevel
+import com.example.clear.data.IdeaNeeds
+import com.example.clear.ui.components.TextInputDialog
 import com.example.clear.tr
 import com.example.clear.ui.components.ClearDetailScreen
 import com.example.clear.ui.theme.ClearSpacing
@@ -34,6 +42,8 @@ fun IdeaEditorScreen(
     viewModel: IdeaEditorViewModel = viewModel()
 ) {
     val s by viewModel.state.collectAsState()
+    val topics by viewModel.topics.collectAsState()
+    var addingTopic by remember { mutableStateOf(false) }
 
     // imePadding: Inhalt rutscht ueber die Tastatur
     Box(modifier = Modifier.imePadding()) {
@@ -59,33 +69,51 @@ fun IdeaEditorScreen(
 
                 Text(tr("Bereich", "Area"), style = MaterialTheme.typography.titleMedium)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
-                    CheckInCategory.entries.forEach { category ->
+                    FilterChip(
+                        selected = s.topicId == null,
+                        onClick = { viewModel.onTopicChange(null) },
+                        label = { Text(tr("Ohne Bereich", "No area")) }
+                    )
+                    topics.forEach { topic ->
                         FilterChip(
-                            selected = s.category == category,
-                            onClick = { viewModel.onCategoryChange(category) },
+                            selected = s.topicId == topic.id,
+                            onClick = { viewModel.onTopicChange(topic.id) },
+                            label = { Text(topic.name) }
+                        )
+                    }
+                    AssistChip(
+                        onClick = { addingTopic = true },
+                        label = { Text("+") },
+                        modifier = Modifier.semantics { contentDescription = tr("Bereich anlegen", "Add area") }
+                    )
+                }
+
+                Text(tr("Braucht", "Needs"), style = MaterialTheme.typography.titleMedium)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(ClearSpacing.small)) {
+                    IdeaNeeds.all.forEach { category ->
+                        FilterChip(
+                            selected = category in s.needs,
+                            onClick = { viewModel.toggleNeed(category) },
                             label = { Text(category.title) }
                         )
                     }
                 }
 
-                Text(tr(
-                    "Was gilt in welchem Zustand?",
-                    "What applies in which state?"
-                ), style = MaterialTheme.typography.titleMedium)
+                Text(tr("Fassungen", "Versions"), style = MaterialTheme.typography.titleMedium)
                 StateField(
-                    label = tr("Hoch", "High"),
+                    label = ideaLevelPhrase(IdeaLevel.Normal),
                     value = s.textNormal,
                     onChange = viewModel::onNormalChange,
                     isError = s.normalError
                 )
                 StateField(
-                    label = tr("Mittel", "Medium"),
+                    label = ideaLevelPhrase(IdeaLevel.Sinking),
                     value = s.textSinking,
                     onChange = viewModel::onSinkingChange,
                     isError = s.sinkingError
                 )
                 StateField(
-                    label = tr("Niedrig", "Low"),
+                    label = ideaLevelPhrase(IdeaLevel.Severe),
                     value = s.textSevere,
                     onChange = viewModel::onSevereChange,
                     isError = s.severeError
@@ -106,6 +134,16 @@ fun IdeaEditorScreen(
                 }
             }
         }
+    }
+
+    if (addingTopic) {
+        TextInputDialog(
+            title = tr("Neuer Bereich", "New area"),
+            label = tr("Name", "Name"),
+            initial = "",
+            onConfirm = { viewModel.addTopic(it); addingTopic = false },
+            onDismiss = { addingTopic = false }
+        )
     }
 }
 

@@ -26,13 +26,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** Kachel mit rundem Symbol und Titel (Akut, Emotionen). Ohne Schatten und Rand. */
+/**
+ * Kachel mit rundem Symbol und Titel (Akut, Emotionen). Ohne Schatten und Rand.
+ * `compact`: kleineres Symbol und keine Mindesthoehe, damit eine ganze Seite ohne Scrollen passt.
+ */
 @Composable
 fun ClearTile(
     icon: ImageVector,
     title: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
     val interaction = remember { MutableInteractionSource() }
     Card(
@@ -44,11 +48,12 @@ fun ClearTile(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().heightIn(min = 104.dp).padding(12.dp),
+            modifier = Modifier.fillMaxSize().heightIn(min = if (compact) 0.dp else 104.dp)
+                .padding(if (compact) 8.dp else 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
         ) {
-            TileIcon(icon, 44)
+            TileIcon(icon, if (compact) 36 else 44)
             Text(
                 title,
                 style = MaterialTheme.typography.bodyLarge,
